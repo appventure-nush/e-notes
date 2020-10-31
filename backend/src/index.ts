@@ -21,7 +21,7 @@ app.listen(port, () => {
 // set up firebase admin with vault
 (async () => {
     try {
-        return require("../service-account.json");
+        return require("service-account.json");
     } catch (e) {
         const vaultClient = NodeVault({endpoint: "https://vault.nush.app"});
         const secretsClient = NodeVault({
