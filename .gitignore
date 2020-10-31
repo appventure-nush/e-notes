@@ -2,4 +2,4 @@
 build
 node_modules
 .DS_Store
-e-notes-nush-firebase-adminsdk.json
+service-account.json
