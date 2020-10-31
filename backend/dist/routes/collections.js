@@ -8,52 +8,55 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
+const notes_1 = __importDefault(require("./notes"));
 const collections = express_1.Router();
-collections.get("/:id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const doc = yield req.app.locals.db.collection("collections").doc(req.params.id).get();
+collections.get("/:coll_id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const doc = yield req.app.locals.db.collection("collections").doc(req.params.coll_id).get();
     if (!doc.exists)
         return res.status(404).json({
             reason: "collection_not_found",
-            id: req.params.id
+            coll_id: req.params.coll_id
         });
     else
         res.json(doc.data());
 }));
-collections.get("/:id/delete", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const ref = req.app.locals.db.collection("collections").doc(req.params.id);
+collections.delete("/:coll_id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const ref = req.app.locals.db.collection("collections").doc(req.params.coll_id);
     if (!(yield ref.get()).exists)
         return res.status(404).json({
             reason: "collection_not_found",
-            id: req.params.id
+            coll_id: req.params.coll_id
         });
     else {
         yield ref.delete();
         res.json({ status: "ok" });
     }
 }));
-collections.post("/:id/create", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!req.body.name)
-        return res.status(400).json({
-            reason: "name_required_for_creation",
-            id: req.params.id
-        });
+collections.post("/:coll_id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const data = {
-        id: req.params.id,
-        name: req.body.name,
+        coll_id: req.params.coll_id,
+        name: req.body.name || req.params.coll_id,
         desc: req.body.desc || "No descriptions yet."
     };
-    const ref = req.app.locals.db.collection("collections").doc(req.params.id);
+    const ref = req.app.locals.db.collection("collections").doc(req.params.coll_id);
     if ((yield ref.get()).exists)
         return res.status(403).json({
             reason: "collection_already_exists",
-            collection_id: req.params.id
+            coll_id: req.params.coll_id
         });
     else {
         yield ref.set(data);
         res.json(data);
     }
 }));
+collections.use("/:coll_id/notes", (req, res, next) => {
+    req.body.coll_id = req.params.coll_id;
+    next();
+}, notes_1.default);
 exports.default = collections;
 //# sourceMappingURL=collections.js.map
