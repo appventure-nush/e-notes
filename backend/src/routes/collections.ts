@@ -4,6 +4,14 @@ import notesRouter from './notes';
 
 const collections = Router();
 
+collections.get("/", async (req, res, next) => {
+    const snapshot = await req.app.locals.db.collection("collections").get();
+    if (snapshot.empty) return res.status(404).json({
+        reason: "no_collections_found"
+    })
+    else res.json(snapshot.docs.map((doc: { id: any; }) => doc.id));
+});
+
 collections.get("/:coll_id", async (req, res, next) => {
     const doc = await req.app.locals.db.collection("collections").doc(req.params.coll_id).get();
 

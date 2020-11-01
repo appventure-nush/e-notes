@@ -19,7 +19,9 @@ notes.get("/", (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
             coll_id: req.body.coll_id
         });
     else
-        res.json(snapshot.docs.map((doc) => doc.id));
+        res.json(snapshot.docs.map((doc) => {
+            return { id: doc.id, name: doc.data().name };
+        }));
 }));
 notes.get("/:note_id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const doc = yield req.app.locals.db.collection("collections").doc(req.body.coll_id).collection("notes").doc(req.params.note_id).get();

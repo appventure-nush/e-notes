@@ -15,6 +15,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const notes_1 = __importDefault(require("./notes"));
 const collections = express_1.Router();
+collections.get("/", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const snapshot = yield req.app.locals.db.collection("collections").get();
+    if (snapshot.empty)
+        return res.status(404).json({
+            reason: "no_collections_found"
+        });
+    else
+        res.json(snapshot.docs.map((doc) => doc.id));
+}));
 collections.get("/:coll_id", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const doc = yield req.app.locals.db.collection("collections").doc(req.params.coll_id).get();
     if (!doc.exists)

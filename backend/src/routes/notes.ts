@@ -9,7 +9,9 @@ notes.get("/", async (req, res, next) => {
         reason: "no_notes_found",
         coll_id: req.body.coll_id
     });
-    else res.json(snapshot.docs.map((doc: { id: any; }) => doc.id));
+    else res.json(snapshot.docs.map((doc: { id: any; data: () => { (): any; new(): any; name: any; }; }) => {
+        return {id: doc.id, name: doc.data().name}
+    }));
 });
 
 notes.get("/:note_id", async (req, res, next) => {

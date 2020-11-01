@@ -31,7 +31,7 @@ app.listen(port, () => {
                 password: process.env.VAULT_PASSWORD
             })).auth.client_token
         });
-        return (await secretsClient.read("apps/data/enotes")).data.service_account;
+        return (await secretsClient.read("apps/data/enotes")).data.data.service_account;
     }
 })().then((serviceAccount: object | admin.ServiceAccount) => {
     admin.initializeApp({credential: admin.credential.cert(serviceAccount)});

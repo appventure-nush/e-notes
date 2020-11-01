@@ -46,24 +46,23 @@ app.get("/", (req, res) => res.send("API End Point: /api"));
 app.listen(port, () => {
     console.log(`server started at http://localhost:${port}`);
 });
-(function () {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            return require("../service-account.json");
-        }
-        catch (e) {
-            const vaultClient = node_vault_1.default({ endpoint: "https://vault.nush.app" });
-            const secretsClient = node_vault_1.default({
-                endpoint: "https://vault.nush.app",
-                token: (yield vaultClient.userpassLogin({
-                    username: "enotes",
-                    password: process.env.VAULT_PASSWORD
-                })).auth.client_token
-            });
-            return (yield secretsClient.read("apps/data/enotes")).data.service_account;
-        }
-    });
-})().then((serviceAccount) => {
+// set up firebase admin with vault
+(() => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        return require("service-account.json");
+    }
+    catch (e) {
+        const vaultClient = node_vault_1.default({ endpoint: "https://vault.nush.app" });
+        const secretsClient = node_vault_1.default({
+            endpoint: "https://vault.nush.app",
+            token: (yield vaultClient.userpassLogin({
+                username: "enotes",
+                password: process.env.VAULT_PASSWORD
+            })).auth.client_token
+        });
+        return (yield secretsClient.read("apps/data/enotes")).data.data.service_account;
+    }
+}))().then((serviceAccount) => {
     firebase_admin_1.default.initializeApp({ credential: firebase_admin_1.default.credential.cert(serviceAccount) });
     app.locals.db = firebase_admin_1.default.firestore();
 });
