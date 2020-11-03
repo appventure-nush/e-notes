@@ -35,5 +35,7 @@ app.listen(port, () => {
     }
 })().then((serviceAccount: object | admin.ServiceAccount) => {
     admin.initializeApp({credential: admin.credential.cert(serviceAccount)});
+    app.locals.admin = admin;
     app.locals.db = admin.firestore();
+    app.locals.auth = admin.auth();
 });

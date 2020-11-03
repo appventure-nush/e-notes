@@ -4,30 +4,32 @@ import notesRouter from './notes';
 
 const collections = Router();
 
+import {checkPermissions} from '../utils';
+
 collections.get("/", async (req, res, next) => {
-    const snapshot = await req.app.locals.db.collection("collections").get();
+    const snapshot = await req.app.locals.db.collection("collections").limi.get();
     if (snapshot.empty) return res.status(404).json({
         reason: "no_collections_found"
     })
     else res.json(snapshot.docs.map((doc: { id: any; }) => doc.id));
 });
 
-collections.get("/:coll_id", async (req, res, next) => {
-    const doc = await req.app.locals.db.collection("collections").doc(req.params.coll_id).get();
+collections.get("/:cid", checkPermissions, async (req, res, next) => {
+    const doc = await req.app.locals.db.collection("collections").doc(req.params.cid).get();
 
     if (!doc.exists) return res.status(404).json({
         reason: "collection_not_found",
-        coll_id: req.params.coll_id
+        cid: req.params.cid
     })
     else res.json(doc.data());
 });
 
-collections.delete("/:coll_id", async (req, res, next) => {
-    const ref = req.app.locals.db.collection("collections").doc(req.params.coll_id);
+collections.delete("/:cid", checkPermissions, async (req, res, next) => {
+    const ref = req.app.locals.db.collection("collections").doc(req.params.cid);
 
     if (!(await ref.get()).exists) return res.status(404).json({
         reason: "collection_not_found",
-        coll_id: req.params.coll_id
+        cid: req.params.cid
     });
     else {
         await ref.delete();
@@ -35,16 +37,16 @@ collections.delete("/:coll_id", async (req, res, next) => {
     }
 });
 
-collections.post("/:coll_id", async (req, res, next) => {
+collections.post("/:cid", checkPermissions, async (req, res, next) => {
     const data = {
-        coll_id: req.params.coll_id,
-        name: req.body.name || req.params.coll_id,
+        cid: req.params.cid,
+        name: req.body.name || req.params.cid,
         desc: req.body.desc || "No descriptions yet."
     };
-    const ref = req.app.locals.db.collection("collections").doc(req.params.coll_id);
+    const ref = req.app.locals.db.collection("collections").doc(req.params.cid);
     if ((await ref.get()).exists) return res.status(403).json({
         reason: "collection_already_exists",
-        coll_id: req.params.coll_id
+        cid: req.params.cid
     });
     else {
         await ref.set(data);
@@ -52,8 +54,8 @@ collections.post("/:coll_id", async (req, res, next) => {
     }
 });
 
-collections.use("/:coll_id/notes", (req, res, next) => {
-    req.body.coll_id = req.params.coll_id;
+collections.use("/:cid/notes", (req, res, next) => {
+    req.body.cid = req.params.cid;
     next();
 }, notesRouter);
 

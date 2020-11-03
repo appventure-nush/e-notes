@@ -1,72 +1,70 @@
 import {Router} from 'express';
+import Role from '../types/role';
+import {getRole, updateRoleCache} from '../utils';
 
 const roles = Router();
 
-roles.get("/:role_id", async (req, res, next) => {
-    const doc = await req.app.locals.db.collection("roles").doc(req.params.role_id).get();
-
-    if (!doc.exists) return res.status(404).json({
+roles.get("/:roleId", async (req, res, next) => {
+    const role = await getRole(req.params.roleId);
+    if (!role) return res.status(404).json({
         reason: "role_not_found",
-        role_id: req.params.role_id
+        roleId: req.params.roleId
     })
-    else res.json(doc.data());
+    else res.json(role);
 });
 
-roles.delete("/:role_id", async (req, res, next) => {
-    const ref = req.app.locals.db.collection("roles").doc(req.params.role_id);
-    if (!(await ref.get()).exists) return res.status(404).json({
+roles.delete("/:roleId", async (req, res, next) => {
+    if (!await getRole(req.params.roleId)) return res.status(404).json({
         reason: "role_not_found",
-        role_id: req.params.role_id
+        roleId: req.params.roleId
     });
     else {
+        const ref = req.app.locals.db.collection("roles").doc(req.params.roleId);
         await ref.delete();
+        updateRoleCache(req.params.roleId, null);
         res.json({status: "ok"});
     }
 });
 
-roles.post("/:role_id", async (req, res, next) => {
+roles.post("/:roleId", async (req, res, next) => {
     if (!req.body.name) return res.status(400).json({
         reason: "name_required_for_creation",
-        role_id: req.params.role_id
+        roleId: req.params.roleId
     });
-
-    const data = {
-        role_id: req.params.role_id,
-        name: req.body.name || req.params.role_id,
-        desc: req.body.desc || "No descriptions yet.",
-        permissions: req.body.permissions.map((id: string) => req.app.locals.db.collection("collections").doc(id).ref) || []
-    };
-    const ref = req.app.locals.db.collection("roles").doc(req.params.role_id);
-    if ((await ref.get()).exists) return res.status(403).json({
+    if (await getRole(req.params.roleId)) return res.status(403).json({
         reason: "role_already_exists",
-        role_id: req.params.role_id
+        roleId: req.params.roleId
     });
     else {
-        await ref.set(data);
-        res.json(data);
+        const ref = req.app.locals.db.collection("roles").doc(req.params.roleId);
+        const role = new Role(req.params.roleId, req.body.name, req.body.desc);
+        await ref.set(role);
+        updateRoleCache(req.params.roleId, role);
+        res.json(role);
     }
 });
 
-roles.get("/:role_id/:operation/:coll_id", async (req, res, next) => {
-    const doc = await req.app.locals.db.collection("roles").doc(req.params.role_id).get();
+roles.get("/:roleId/:operation/:cid", async (req, res, next) => {
+    const doc = await req.app.locals.db.collection("roles").doc(req.params.roleId).get();
     if (!doc.exists) return res.status(404).json({
         reason: "role_not_found",
-        role_id: req.params.role_id
+        roleId: req.params.roleId
     });
+    let role = doc.data() as Role;
     try {
-        if (req.params.operation === "add") return await doc.update({
-            permissions: req.app.locals.db.FieldValue.arrayUnion(req.app.locals.db.collection("collections").doc(req.params.coll_id).ref)
-        }); else if (req.params.operation === "remove") return await doc.update({
-            permissions: req.app.locals.db.FieldValue.arrayRemove(req.app.locals.db.collection("collections").doc(req.params.coll_id).ref)
-        }); else return res.status(400).json({
-            reason: "invalid_operation",
-            operation: req.params.operation
-        });
+        if (req.params.operation === "grant") return await role.setPermission(req.params.cid, true);
+        else if (req.params.operation === "deny") return await role.setPermission(req.params.cid, false);
+        else if (req.params.operation === "remove") return await role.setPermission(req.params.cid, undefined);
+        else return res.status(400).json({
+                reason: "invalid_operation",
+                operation: req.params.operation,
+                allowed: ['grant', 'deny', 'remove']
+            });
     } catch (e) {
         res.status(500).json({
             reason: "error",
-            role_id: req.params.role_id,
-            coll_id: req.params.coll_id,
+            roleId: req.params.roleId,
+            cid: req.params.cid,
             operation: req.params.operation,
         });
     }
