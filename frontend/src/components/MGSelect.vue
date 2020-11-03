@@ -1,13 +1,10 @@
 <template>
   <div>
-    <v-slider
+    <v-autocomplete
+      @input="$emit('update', $data.year)"
       v-model="year"
       label="Year"
-      max="6"
-      min="1"
-      step="1"
-      thumb-label
-      ticks="always"
+      :items="$data.years"
     />
 <!--    Use $emit to pass data to parent -->
     <v-autocomplete
@@ -27,6 +24,7 @@ export default Vue.extend({
   data: function () {
     return {
       year: 1,
+      years: [1,2,3,4,5,6],
       mentorGroup:"",
     };
   },

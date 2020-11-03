@@ -46,7 +46,7 @@
       <v-app-bar-nav-icon v-if="user != null"
                           @click="drawerShown = !drawerShown"/>
       <v-toolbar-title>
-        Vue App
+        Nush e-notes
       </v-toolbar-title>
     </v-app-bar>
 
@@ -69,7 +69,7 @@ export default Vue.extend({
   mounted() {
     const user = localStorage.getItem("user");
     if (!user) {
-      this.$router.push("sign_in");
+      return user
     }
     this.$store.state.user = JSON.parse(user) as User;
   },
