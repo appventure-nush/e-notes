@@ -21,7 +21,7 @@ export async function getUser(uid: string): Promise<User> { // heavy call functi
     const userDoc = await firestore().collection("users").doc(user.uid).get();
     let userObj: User;
     if (!userDoc.exists) {
-        userObj = new User(user);
+        userObj = new User(user.uid);
         await userDoc.ref.set(userObj.toData());
     } else userObj = new User(userDoc.data());
     userCache.set(user.uid, [userObj, Date.now()]);

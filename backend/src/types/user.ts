@@ -1,4 +1,3 @@
-import {auth, firestore} from "firebase-admin";
 import {updateUser} from '../utils';
 
 class User {
