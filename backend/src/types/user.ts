@@ -3,18 +3,24 @@ import {updateUser} from '../utils';
 
 class User {
     uid: string;
-    ref: firestore.DocumentReference;
 
     nickname?: string;
     roles: string[];
     admin = false;
     permissions: Map<string, boolean>;
 
-    constructor(user: auth.UserRecord) {
-        this.uid = user.uid;
-        this.ref = firestore().collection("users").doc(this.uid);
-        this.roles = [];
-        this.permissions = new Map<string, boolean>();
+    constructor(user: string | any) {
+        if (typeof user === 'string') {
+            this.uid = user;
+            this.roles = [];
+            this.permissions = new Map<string, boolean>();
+        } else {
+            this.uid = user.uid;
+            this.nickname = user.nickname;
+            this.roles = user.roles;
+            this.admin = user.admin;
+            this.permissions = new Map(Object.entries(user.permissions));
+        }
     }
 
     async setNickname(nickname: string) {
@@ -35,6 +41,23 @@ class User {
     rejects(cid: string) {
         return this.permissions.has(cid) && this.permissions.get(cid) === false;
     }
+
+    toData() {
+        return {
+            uid: this.uid,
+            nickname: this.nickname,
+            roles: this.roles,
+            admin: this.admin,
+            permissions: autoConvertMapToObject(this.permissions)
+        }
+    }
 }
 
+const autoConvertMapToObject = (map: Map<string, any>) => {
+    const obj = {};
+    for (const [key, value] of map)
+        // @ts-ignore
+        obj[key] = value;
+    return obj;
+}
 export default User;

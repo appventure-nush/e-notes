@@ -5,7 +5,7 @@ class Role {
     name: string;
     desc: string;
     defaultPerm: boolean;
-    permissions: Map<string, boolean>; // [coll id, deny/accept]
+    permissions: Map<string, boolean>;
 
     constructor(roleId: string, name: string, desc = "No description yet.", defaultPerm = false) {
         this.roleId = roleId;
@@ -28,6 +28,23 @@ class Role {
     rejects(cid: string) {
         return this.permissions.has(cid) && this.permissions.get(cid) === false;
     }
+
+    toData() {
+        return {
+            roleId: this.roleId,
+            name: this.name,
+            desc: this.desc,
+            defaultPerm: this.defaultPerm,
+            permissions: autoConvertMapToObject(this.permissions)
+        }
+    }
 }
 
+const autoConvertMapToObject = (map: Map<string, any>) => {
+    const obj = {};
+    for (const [key, value] of map)
+        // @ts-ignore
+        obj[key] = value;
+    return obj;
+}
 export default Role;

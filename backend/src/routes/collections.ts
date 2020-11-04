@@ -4,7 +4,7 @@ import notesRouter from './notes';
 
 const collections = Router();
 
-import {checkPermissions} from '../utils';
+import {checkPermissions, checkAdmin} from '../utils';
 
 collections.get("/", async (req, res, next) => {
     const snapshot = await req.app.locals.db.collection("collections").limi.get();
@@ -24,7 +24,7 @@ collections.get("/:cid", checkPermissions, async (req, res, next) => {
     else res.json(doc.data());
 });
 
-collections.delete("/:cid", checkPermissions, async (req, res, next) => {
+collections.delete("/:cid", checkAdmin, async (req, res, next) => {
     const ref = req.app.locals.db.collection("collections").doc(req.params.cid);
 
     if (!(await ref.get()).exists) return res.status(404).json({
@@ -37,7 +37,7 @@ collections.delete("/:cid", checkPermissions, async (req, res, next) => {
     }
 });
 
-collections.post("/:cid", checkPermissions, async (req, res, next) => {
+collections.post("/:cid", checkAdmin, async (req, res, next) => {
     const data = {
         cid: req.params.cid,
         name: req.body.name || req.params.cid,
@@ -54,7 +54,7 @@ collections.post("/:cid", checkPermissions, async (req, res, next) => {
     }
 });
 
-collections.use("/:cid/notes", (req, res, next) => {
+collections.use("/:cid/notes", checkPermissions, (req, res, next) => {
     req.body.cid = req.params.cid;
     next();
 }, notesRouter);

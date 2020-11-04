@@ -1,6 +1,6 @@
 import {Router} from 'express';
 import Role from '../types/role';
-import {getRole, updateRoleCache} from '../utils';
+import {getRole, updateRoleCache, checkAdmin} from '../utils';
 
 const roles = Router();
 
@@ -13,7 +13,7 @@ roles.get("/:roleId", async (req, res, next) => {
     else res.json(role);
 });
 
-roles.delete("/:roleId", async (req, res, next) => {
+roles.delete("/:roleId", checkAdmin, async (req, res, next) => {
     if (!await getRole(req.params.roleId)) return res.status(404).json({
         reason: "role_not_found",
         roleId: req.params.roleId
@@ -26,7 +26,7 @@ roles.delete("/:roleId", async (req, res, next) => {
     }
 });
 
-roles.post("/:roleId", async (req, res, next) => {
+roles.post("/:roleId", checkAdmin, async (req, res, next) => {
     if (!req.body.name) return res.status(400).json({
         reason: "name_required_for_creation",
         roleId: req.params.roleId
@@ -44,13 +44,13 @@ roles.post("/:roleId", async (req, res, next) => {
     }
 });
 
-roles.get("/:roleId/:operation/:cid", async (req, res, next) => {
+roles.get("/:roleId/:operation/:cid", checkAdmin, async (req, res, next) => {
     const doc = await req.app.locals.db.collection("roles").doc(req.params.roleId).get();
     if (!doc.exists) return res.status(404).json({
         reason: "role_not_found",
         roleId: req.params.roleId
     });
-    let role = doc.data() as Role;
+    const role = doc.data() as Role;
     try {
         if (req.params.operation === "grant") return await role.setPermission(req.params.cid, true);
         else if (req.params.operation === "deny") return await role.setPermission(req.params.cid, false);

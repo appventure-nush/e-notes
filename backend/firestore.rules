@@ -4,9 +4,6 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if request.auth != null;
     }
-    match /collections/{cid} {
-      allow read: if request.auth != null&&request.auth.uid.;
-    }
     match /{document=**} {
       allow read, write, update: if false;
     }

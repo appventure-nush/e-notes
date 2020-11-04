@@ -22,8 +22,8 @@ export async function getUser(uid: string): Promise<User> { // heavy call functi
     let userObj: User;
     if (!userDoc.exists) {
         userObj = new User(user);
-        await userDoc.ref.set(userObj);
-    } else userObj = userDoc.data() as User;
+        await userDoc.ref.set(userObj.toData());
+    } else userObj = new User(userDoc.data());
     userCache.set(user.uid, [userObj, Date.now()]);
     return userObj;
 }
@@ -43,13 +43,13 @@ export async function getRole(roleId: string): Promise<Role> { // heavy call fun
 
 export async function updateUser(userId: string, value: User) {
     updateUserCache(userId, value);
-    if (value) await firestore().collection("users").doc(userId).set(value);
+    if (value) await firestore().collection("users").doc(userId).set(value.toData());
     else await firestore().collection("users").doc(userId).delete();
 }
 
 export async function updateRole(roleId: string, value: Role) {
     updateRoleCache(roleId, value);
-    if (value) await firestore().collection("roles").doc(roleId).set(value);
+    if (value) await firestore().collection("roles").doc(roleId).set(value.toData());
     else await firestore().collection("roles").doc(roleId).delete();
 }
 
@@ -70,6 +70,7 @@ export function updateRoleCache(roleId: string, value: Role) {
 // 4) role default (default allow) there is no default reject
 export async function hasPermissions(userID: string, cid: string) { // used in middleware
     const user = await getUser(userID);
+    if (user.admin) return true; // well, here we go, an admin
     if (user.accepts(cid)) return true;
     if (user.rejects(cid)) return false;
     const roles = await Promise.all(user.roles.map(roleId => getRole(roleId)));
@@ -77,12 +78,25 @@ export async function hasPermissions(userID: string, cid: string) { // used in m
 }
 
 export async function checkPermissions(req: express.Request, res: express.Response, next: Function) {
-    let idToken = req.header("Authorisation");
-    if (!idToken) return res.status(403).send("'Authorisation' header not found");
+    const idToken = req.header("Authorization");
+    if (!idToken) return res.status(403).send("'Authorization' header not found");
     try {
         if (await hasPermissions((await auth().verifyIdToken(idToken)).uid, req.params.cid)) return next();
-        else return res.status(403).send("not authorised");
+        else return res.status(403).send("not authorized");
     } catch (e) {
-        return res.status(403).send("authorisation invalid");
+        console.error(e);
+        return res.status(403).send("authorization invalid");
+    }
+}
+
+export async function checkAdmin(req: express.Request, res: express.Response, next: Function) {
+    const idToken = req.header("Authorization");
+    if (!idToken) return res.status(403).send("'Authorization' header not found");
+    try {
+        if ((await getUser((await auth().verifyIdToken(idToken)).uid)).admin === true) return next();
+        else return res.status(403).send("not admin");
+    } catch (e) {
+        console.error(e);
+        return res.status(403).send("authorization invalid");
     }
 }

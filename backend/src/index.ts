@@ -11,6 +11,7 @@ const port = process.env.PORT || 8080;
 
 app.use(bodyParser.json());
 app.use("/api", apiRouter);
+app.use('/static', express.static('public'));
 app.get("/", (req, res) => res.send("API End Point: /api"));
 
 // start the Express server
@@ -36,6 +37,8 @@ app.listen(port, () => {
 })().then((serviceAccount: object | admin.ServiceAccount) => {
     admin.initializeApp({credential: admin.credential.cert(serviceAccount)});
     app.locals.admin = admin;
-    app.locals.db = admin.firestore();
+    (app.locals.db = admin.firestore()).settings({
+        ignoreUndefinedProperties: true,
+    });
     app.locals.auth = admin.auth();
 });
