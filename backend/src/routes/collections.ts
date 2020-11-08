@@ -5,6 +5,7 @@ import notesRouter from './notes';
 const collections = Router();
 
 import {checkPermissions, checkAdmin} from '../utils';
+import Collection from "../types/coll";
 
 collections.get("/", async (req, res, next) => {
     const snapshot = await req.app.locals.db.collection("collections").limi.get();
@@ -38,19 +39,15 @@ collections.delete("/:cid", checkAdmin, async (req, res, next) => {
 });
 
 collections.post("/:cid", checkAdmin, async (req, res, next) => {
-    const data = {
-        cid: req.params.cid,
-        name: req.body.name || req.params.cid,
-        desc: req.body.desc || "No descriptions yet."
-    };
+    const collection = new Collection(req.params.cid, req.body.name, req.body.desc);
     const ref = req.app.locals.db.collection("collections").doc(req.params.cid);
     if ((await ref.get()).exists) return res.status(403).json({
         reason: "collection_already_exists",
         cid: req.params.cid
     });
     else {
-        await ref.set(data);
-        res.json(data);
+        await ref.set(collection.toData());
+        res.json(collection);
     }
 });
 

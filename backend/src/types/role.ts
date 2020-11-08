@@ -7,12 +7,21 @@ class Role {
     defaultPerm: boolean;
     permissions: Map<string, boolean>;
 
-    constructor(roleId: string, name: string, desc = "No description yet.", defaultPerm = false) {
-        this.roleId = roleId;
-        this.name = name || roleId;
-        this.desc = desc;
-        this.permissions = new Map<string, boolean>();
-        this.defaultPerm = defaultPerm;
+    constructor(roleId: string | any, name?: string, desc?: string, defaultPerm?: boolean) {
+        if (typeof roleId === 'string') {
+            this.roleId = roleId;
+            this.name = name || roleId;
+            this.desc = desc || "No description yet.";
+            this.permissions = new Map<string, boolean>();
+            this.defaultPerm = defaultPerm === true;
+        } else {
+            const src = roleId as any;
+            this.roleId = src.roleId;
+            this.name = src.name;
+            this.desc = src.desc;
+            this.permissions = new Map<string, boolean>(Object.entries(src.permissions));
+            this.defaultPerm = src.defaultPerm;
+        }
     }
 
     async setPermission(cid: string, accepts: boolean) {

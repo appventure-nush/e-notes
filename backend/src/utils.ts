@@ -1,5 +1,7 @@
 import User from './types/user';
 import Role from './types/role';
+// import Note from "./types/note";
+// import Collection from "./types/coll";
 import express from "express";
 import {auth, firestore} from "firebase-admin";
 
@@ -11,6 +13,8 @@ const CACHE_AGE = 1000 * 60 * 30; // 30 minutes
 
 const userCache = new Map<string, [User, number]>();
 const roleCache = new Map<string, [Role, number]>();
+// const collCache = new Map<string, [Collection, number]>();
+// const noteCache = new Map<string, [Note, number]>();
 
 export async function getUser(uid: string): Promise<User> { // heavy call function
     if (userCache.has(uid)) {
@@ -36,7 +40,7 @@ export async function getRole(roleId: string): Promise<Role> { // heavy call fun
     }
     const roleDoc = await firestore().collection("roles").doc(roleId).get();
     if (!roleDoc.exists) return null;
-    const role = roleDoc.data() as Role;
+    const role = new Role(roleDoc.data());
     roleCache.set(role.roleId, [role, Date.now()]);
     return role;
 }

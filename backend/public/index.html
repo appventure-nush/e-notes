@@ -2,7 +2,68 @@
 <!-- The core Firebase JS SDK is always required and must be listed first -->
 <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-auth.js"></script>
+
+<pre id="displayName"></pre>
+<pre id="email"></pre>
+<pre id="photoURL"></pre>
+
+<br>
+<pre id="idToken"></pre>
+<span>collections</span>
+<button onclick="readColl()">Read collection</button>
+<button onclick="makeColl()">Make collection</button>
+<button onclick="killColl()">Kill collection</button>
+<br>
+<span>roles</span>
+<button onclick="role()">Test role</button>
+<br>
+<button onclick="signIn()">Sign IN</button>
+<button onclick="signOut()">Sign OUT</button>
+<pre id="apiResults"></pre>
 <script>
+    let idTokenDOM = document.getElementById('idToken');
+    let apiResults = document.getElementById('apiResults');
+
+    function readColl() {
+        fetcher("/api/collections/test")
+            .then(res => res.json())
+            .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
+    }
+
+    function makeColl() {
+        fetcher("/api/collections/test", {
+            method: 'POST',
+            body: JSON.stringify({
+                name: "Test Test Test",
+                desc: "Purely for testing purposes"
+            })
+        }).then(res => res.json())
+            .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
+    }
+
+    function killColl() {
+        fetcher("/api/collections/test", {method: 'DELETE'})
+            .then(res => res.json())
+            .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
+    }
+
+    function getNotes() {
+        fetcher("/api/collections/test/notes")
+            .then(res => res.json())
+            .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
+    }
+
+    function uploadNotes() {
+        fetcher("/api/collections/test/notes/note1", {
+            method: 'POST', body: JSON.stringify({
+                name: "Test Test Test",
+                desc: "Purely for testing purposes"
+            })
+        })
+            .then(res => res.json())
+            .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
+    }
+
     var firebaseConfig = {
         apiKey: "AIzaSyARHcPTpQ09ekeN91DtgfrAl8kA3bgrcYM",
         authDomain: "e-notes-nush.firebaseapp.com",
@@ -14,14 +75,42 @@
         measurementId: "G-5CEEWG9PZR"
     };
     firebase.initializeApp(firebaseConfig);
+    firebase.auth().onAuthStateChanged(function (user) {
+        let keys = ['displayName', 'email', 'photoURL'];
+        if (user) {
+            keys.forEach(key => document.getElementById(key).innerText = user[key]);
+            firebase.auth().currentUser.getIdToken(true).then(function (idToken) {
+                idTokenDOM.innerText = idToken;
+                localStorage.jwt = idToken;
+            }).catch(function (error) {
+                console.log("died");
+            });
+        } else keys.forEach(key => document.getElementById(key).innerText = "NULL");
+    });
 
-    var provider = new firebase.auth.OAuthProvider('microsoft.com');
-    firebase.auth().signInWithPopup(provider)
-        .then(function (result) {
-            console.log(result);
-            alert("signed in");
-        })
-        .catch(function (error) {
-            alert("sign in failed");
-        });
+    function signIn() {
+        const provider = new firebase.auth.OAuthProvider('microsoft.com');
+        console.log(firebase.auth().currentUser);
+        firebase.auth().signInWithPopup(provider);
+    }
+
+    function signOut() {
+        firebase.auth().signOut();
+    }
+
+    function updateOptions(options) {
+        const update = {...options};
+        if (localStorage.jwt) {
+            update.headers = {
+                ...update.headers,
+                'Authorization': localStorage.jwt
+            };
+            if (!update.headers['Content-Type']) update.headers['Content-Type'] = 'application/json';
+        }
+        return update;
+    }
+
+    function fetcher(url, options) {
+        return fetch(url, updateOptions(options));
+    }
 </script>

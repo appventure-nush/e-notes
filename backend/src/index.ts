@@ -1,3 +1,4 @@
+import morgan from 'morgan';
 import express from "express";
 import admin from 'firebase-admin';
 import * as bodyParser from 'body-parser';
@@ -10,6 +11,8 @@ const app = express();
 const port = process.env.PORT || 8080;
 
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(morgan('dev'));
 app.use("/api", apiRouter);
 app.use('/static', express.static('public'));
 app.get("/", (req, res) => res.send("API End Point: /api"));
@@ -35,10 +38,14 @@ app.listen(port, () => {
         return (await secretsClient.read("apps/data/enotes")).data.data.service_account;
     }
 })().then((serviceAccount: object | admin.ServiceAccount) => {
-    admin.initializeApp({credential: admin.credential.cert(serviceAccount)});
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+        storageBucket: "e-notes-nush.appspot.com"
+    });
     app.locals.admin = admin;
     (app.locals.db = admin.firestore()).settings({
         ignoreUndefinedProperties: true,
     });
     app.locals.auth = admin.auth();
+    app.locals.bucket = admin.storage().bucket();
 });
