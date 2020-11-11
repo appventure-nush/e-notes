@@ -21,7 +21,6 @@ import User from "@/types/user";
 
 export default Vue.extend({
   name: "App",
-  components: {},
   data: () => ({
     drawerShown: false,
   }),
