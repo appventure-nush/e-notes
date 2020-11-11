@@ -1,53 +1,24 @@
 <template>
   <v-container fluid>
-    <v-treeview
-      v-model="selection"
-      :items="items"
-      activatable
-      open-on-click
-      hoverable
-      @update:active="test"
-    >
-    </v-treeview>
+    <SignIn v-if="adminSignIn === false && studentSignIn === false"></SignIn>
+    <Student v-if="studentSignIn"></Student>
   </v-container>
 </template>
 
-
 <script lang="ts">
 import Vue from "vue";
+import Student from "./Student.vue"
+import SignIn from "./SignIn.vue"
 
 export default Vue.extend({
   name: "Main",
-  components: {
-  },
   data: () => ({
-    showMGSelect: false,
-    selection: [],
-    items: [
-      {
-        id: 1,
-        name: 'Profile',
-      },
-      {
-        id: 2,
-        name: 'Roles',
-      },
-      {
-        id: 3,
-        name: 'Notes',
-        children: [
-          {
-            id: 4,
-            name: 'Test'
-          }
-        ]
-      }
-    ]
+    studentSignIn: false,
+    adminSignIn: false
   }),
-  methods: {
-    test(selection: any) {
-      this.showMGSelect = !this.showMGSelect
-    }
+  components: {
+    Student: Student,
+    SignIn: SignIn
   }
 });
 </script>
