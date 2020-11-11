@@ -4,15 +4,15 @@ import notesRouter from './notes';
 
 const collections = Router();
 
-import {checkPermissions, checkAdmin} from '../utils';
+import {getAvailableCollections, checkUser, checkPermissions, checkAdmin} from '../utils';
 import Collection from "../types/coll";
 
-collections.get("/", async (req, res, next) => {
-    const snapshot = await req.app.locals.db.collection("collections").limi.get();
-    if (snapshot.empty) return res.status(404).json({
+collections.get("/", checkUser, async (req, res, next) => {
+    const collections = await getAvailableCollections(req.body.uid);
+    if (collections.length === 0) return res.status(404).json({
         reason: "no_collections_found"
-    })
-    else res.json(snapshot.docs.map((doc: { id: any; }) => doc.id));
+    });
+    else res.json(collections);
 });
 
 collections.get("/:cid", checkPermissions, async (req, res, next) => {

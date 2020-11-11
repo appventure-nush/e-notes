@@ -4,6 +4,7 @@ import Role from './types/role';
 // import Collection from "./types/coll";
 import express from "express";
 import {auth, firestore} from "firebase-admin";
+import Collection from "./types/coll";
 
 // running two at the same time is a bad idea
 // using cache system to reduce reads, idk about write
@@ -13,6 +14,7 @@ const CACHE_AGE = 1000 * 60 * 30; // 30 minutes
 
 const userCache = new Map<string, [User, number]>();
 const roleCache = new Map<string, [Role, number]>();
+const collections: Collection[] = [];
 // const collCache = new Map<string, [Collection, number]>();
 // const noteCache = new Map<string, [Note, number]>();
 
@@ -72,13 +74,29 @@ export function updateRoleCache(roleId: string, value: Role) {
 // 2) role rejection (specified not allow)
 // 3) role acceptance (specified allow)
 // 4) role default (default allow) there is no default reject
-export async function hasPermissions(userID: string, cid: string) { // used in middleware
-    const user = await getUser(userID);
+export async function hasPermissions(uid: string, cid: string) { // used in middleware
+    const user = await getUser(uid);
     if (user.admin) return true; // well, here we go, an admin
     if (user.accepts(cid)) return true;
     if (user.rejects(cid)) return false;
     const roles = await Promise.all(user.roles.map(roleId => getRole(roleId)));
     return (!roles.some(role => role.rejects(cid))) && roles.some(role => role.accepts(cid));
+}
+
+export function getAvailableCollections(uid: string) { // used in middleware
+    return filterAsync(collections, c => hasPermissions(uid, c.cid));
+}
+
+export async function checkUser(req: express.Request, res: express.Response, next: Function) {
+    const idToken = req.header("Authorization");
+    if (!idToken) return res.status(403).send("'Authorization' header not found");
+    try {
+        req.body.uid = (await auth().verifyIdToken(idToken)).uid;
+        return next();
+    } catch (e) {
+        console.error(e);
+        return res.status(403).send("authorization invalid");
+    }
 }
 
 export async function checkPermissions(req: express.Request, res: express.Response, next: Function) {
@@ -103,4 +121,17 @@ export async function checkAdmin(req: express.Request, res: express.Response, ne
         console.error(e);
         return res.status(403).send("authorization invalid");
     }
+}
+
+export function setup() {
+    firestore().collection('collections').onSnapshot(querySnapshot => collections.splice(0, collections.length, ...querySnapshot.docs.map(doc => new Collection(doc.data()))));
+}
+
+function mapAsync<T, U>(array: T[], callback: (value: T, index: number, array: T[]) => Promise<U>): Promise<U[]> {
+    return Promise.all(array.map(callback));
+}
+
+async function filterAsync<T>(array: T[], callback: (value: T, index: number, array: T[]) => Promise<boolean>): Promise<T[]> {
+    const filterMap = await mapAsync(array, callback);
+    return array.filter((value, index) => filterMap[index]);
 }
