@@ -2,6 +2,7 @@ import morgan from 'morgan';
 import express from "express";
 import admin from 'firebase-admin';
 import * as bodyParser from 'body-parser';
+import {setup} from './utils';
 // @ts-ignore
 import NodeVault from 'node-vault';
 
@@ -42,6 +43,7 @@ app.listen(port, () => {
         credential: admin.credential.cert(serviceAccount),
         storageBucket: "e-notes-nush.appspot.com"
     });
+    setup();
     app.locals.admin = admin;
     (app.locals.db = admin.firestore()).settings({
         ignoreUndefinedProperties: true,

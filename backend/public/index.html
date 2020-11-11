@@ -10,9 +10,14 @@
 <br>
 <pre id="idToken"></pre>
 <span>collections</span>
+<button onclick="allColls()">All collection</button>
 <button onclick="readColl()">Read collection</button>
 <button onclick="makeColl()">Make collection</button>
 <button onclick="killColl()">Kill collection</button>
+<br>
+<span>roles</span>
+<button onclick="readNotes()">Read notes</button>
+<button onclick="makeNote()">make note</button>
 <br>
 <span>roles</span>
 <button onclick="role()">Test role</button>
@@ -23,6 +28,12 @@
 <script>
     let idTokenDOM = document.getElementById('idToken');
     let apiResults = document.getElementById('apiResults');
+
+    function allColls() {
+        fetcher("/api/collections")
+            .then(res => res.json())
+            .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
+    }
 
     function readColl() {
         fetcher("/api/collections/test")
@@ -47,20 +58,19 @@
             .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
     }
 
-    function getNotes() {
+    function readNotes() {
         fetcher("/api/collections/test/notes")
             .then(res => res.json())
             .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
     }
 
-    function uploadNotes() {
+    function makeNote() {
         fetcher("/api/collections/test/notes/note1", {
             method: 'POST', body: JSON.stringify({
                 name: "Test Test Test",
                 desc: "Purely for testing purposes"
             })
-        })
-            .then(res => res.json())
+        }).then(res => res.json())
             .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
     }
 
