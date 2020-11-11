@@ -1,14 +1,14 @@
 <template>
   <v-container fluid>
-    <SignIn v-if="adminSignIn === false && studentSignIn === false"></SignIn>
-    <Student v-if="studentSignIn"></Student>
+    hi
+    <Login></Login>
   </v-container>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
-import Student from "./Student.vue"
-import SignIn from "./SignIn.vue"
+// import Dashboard from "./Dashboard.vue"
+import Login from "./Login.vue"
 
 export default Vue.extend({
   name: "Main",
@@ -17,8 +17,8 @@ export default Vue.extend({
     adminSignIn: false
   }),
   components: {
-    Student: Student,
-    SignIn: SignIn
+    // Dashboard: Dashboard,
+    Login: Login
   }
 });
 </script>

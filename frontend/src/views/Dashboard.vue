@@ -25,27 +25,26 @@ import Vue from "vue";
 
 export default Vue.extend({
   name: "Main",
-  components: {
-  },
+  components: {},
   data: () => ({
     showMGSelect: false,
     selection: [],
     items: [
       {
         id: 1,
-        name: 'Profile',
+        name: "Profile",
       },
       {
         id: 2,
-        name: 'Roles',
+        name: "Roles",
       },
       {
         id: 3,
-        name: 'Notes',
+        name: "Collections",
         children: [
           {
             id: 4,
-            name: 'Test'
+            name: "Test"
           }
         ]
       }

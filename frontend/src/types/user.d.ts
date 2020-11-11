@@ -1,4 +1,8 @@
 export default class User {
-  public name: string
-  public mentorGroup: string
+  uid: string;
+
+  nickname?: string;
+  roles: string[];
+  admin: boolean;
+  permissions: Map<string, boolean>;
 }
