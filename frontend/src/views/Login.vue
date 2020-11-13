@@ -3,12 +3,12 @@
     <v-form justify-center>
       <h1>NUSH Notes</h1>
       <div class="section">
-        <label for="email1">Email</label>
-        <input type="text" placeholder="hxxxxxxx@nushigh.edu.sg" id="email1"/>
+        <label for="email">Email</label>
+        <input v-model="email" type="email" placeholder="hxxxxxxx@nushigh.edu.sg" id="email"/>
       </div>
       <div class="section">
         <label for="password1">Password</label>
-        <input type="password" placeholder="******" id="password1"/>
+        <input v-model="password" type="password" placeholder="******" id="password1"/>
       </div>
       <div class="section">
         <button class="button" v-on:click="login">Login</button>
@@ -43,20 +43,33 @@ input {
 </style>
 <script lang="ts">
 import Vue from "vue";
-import firebase from "firebase/app";
-import "firebase/auth";
+import {firebase, auth} from "../firebase";
 
 const provider = new firebase.auth.OAuthProvider("microsoft.com");
 
 export default Vue.extend({
   name: "SignIn",
   computed: {},
+  data: () => ({
+    email: "", password: ""
+  }),
+  mounted() {
+    auth.onAuthStateChanged(user => {
+      if (user) this.$router.push("/");
+    })
+  },
   methods: {
-    login: function (event) {
-      firebase.auth().signInWithEmailAndPassword().then();
+    login: function () {
+      firebase.auth().signInWithEmailAndPassword(this.email, this.password).catch(function (error) {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        if (errorCode === "auth/wrong-password") alert("Wrong password.");
+        else alert(errorMessage);
+        console.log(error);
+      });
     },
-    microsoft: function (event) {
-      firebase.auth().signInWithRedirect(provider).then();
+    microsoft: function () {
+      firebase.auth().signInWithPopup(provider);
     }
   }
 });

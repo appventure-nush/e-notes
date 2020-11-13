@@ -11,11 +11,11 @@ const firebaseConfig = {
   messagingSenderId: "1002111194265",
   appId: "1:1002111194265:web:24a8837e5d910ebcd11408"
 };
-firebase.initializeApp(firebaseConfig)
+firebase.initializeApp(firebaseConfig);
 
 // utils
-const db = firebase.firestore()
-const auth = firebase.auth()
+const db = firebase.firestore();
+const auth = firebase.auth();
 
 // collection references
 const usersCollection = db.collection('users')
@@ -23,6 +23,7 @@ const collectionCollection = db.collection('collections')
 
 // export utils/refs
 export {
+  firebase,
   db,
   auth,
   usersCollection

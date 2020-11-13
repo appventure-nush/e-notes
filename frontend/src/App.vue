@@ -21,8 +21,8 @@ export default Vue.extend({
   data: () => ({
     drawerShown: false,
   }),
-  // mounted() {
-  // },
+  mounted() {
+  },
   computed: {
     routes(): Array<{ name: string; route: string; icon: string; }> {
       return [

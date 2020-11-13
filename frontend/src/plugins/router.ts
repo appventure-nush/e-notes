@@ -31,16 +31,11 @@ const routes: Array<RouteConfig> = [
 
 let router = new VueRouter({
   mode: 'history',
-  base: process.env.BASE_URL,
   routes,
 });
 router.beforeEach((to, from, next) => {
   const requiresAuth = to.matched.some(x => x.meta.requiresAuth)
-
-  if (requiresAuth && !auth.currentUser) {
-    next('/login')
-  } else {
-    next()
-  }
+  if (requiresAuth && !auth.currentUser) next('/login');
+  else next();
 })
 export default router;
