@@ -45,22 +45,23 @@ roles.post("/:rid", checkAdmin, async (req, res, next) => {
 });
 
 roles.get("/:rid/:operation/:cid", checkAdmin, async (req, res, next) => {
-    const doc = await req.app.locals.db.collection("roles").doc(req.params.rid).get();
-    if (!doc.exists) return res.status(404).json({
+    const role = await getRole(req.params.rid);
+    if (!role) return res.status(404).json({
         reason: "role_not_found",
         rid: req.params.rid
     });
-    const role = doc.data() as Role;
     try {
-        if (req.params.operation === "grant") return await role.setPermission(req.params.cid, true);
-        else if (req.params.operation === "deny") return await role.setPermission(req.params.cid, false);
-        else if (req.params.operation === "remove") return await role.setPermission(req.params.cid, undefined);
+        if (req.params.operation === "grant") await role.setPermission(req.params.cid, true);
+        else if (req.params.operation === "deny") await role.setPermission(req.params.cid, false);
+        else if (req.params.operation === "remove") await role.setPermission(req.params.cid, undefined);
         else return res.status(400).json({
                 reason: "invalid_operation",
                 operation: req.params.operation,
                 allowed: ['grant', 'deny', 'remove']
             });
+        res.json(role);
     } catch (e) {
+        console.log(e);
         res.status(500).json({
             reason: "error",
             rid: req.params.rid,
