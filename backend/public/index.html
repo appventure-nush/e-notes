@@ -9,6 +9,12 @@
 
 <br>
 <pre id="idToken"></pre>
+<span>users</span>
+<button onclick="getUsers()">Get users</button>
+<button onclick="me()">Get me</button>
+<input id="uid">
+<button onclick="getUser(document.getElementById('uid').val)">Get user</button>
+<br>
 <span>collections</span>
 <button onclick="allColls()">All collection</button>
 <button onclick="readColl()">Read collection</button>
@@ -30,15 +36,11 @@
     let apiResults = document.getElementById('apiResults');
 
     function allColls() {
-        fetcher("/api/collections")
-            .then(res => res.json())
-            .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
+        fetcher("/api/collections");
     }
 
     function readColl() {
-        fetcher("/api/collections/test")
-            .then(res => res.json())
-            .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
+        fetcher("/api/collections/test");
     }
 
     function makeColl() {
@@ -48,20 +50,15 @@
                 name: "Test Test Test",
                 desc: "Purely for testing purposes"
             })
-        }).then(res => res.json())
-            .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
+        });
     }
 
     function killColl() {
-        fetcher("/api/collections/test", {method: 'DELETE'})
-            .then(res => res.json())
-            .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
+        fetcher("/api/collections/test", {method: 'DELETE'});
     }
 
     function readNotes() {
-        fetcher("/api/collections/test/notes")
-            .then(res => res.json())
-            .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
+        fetcher("/api/collections/test/notes");
     }
 
     function makeNote() {
@@ -70,8 +67,7 @@
                 name: "Test Test Test",
                 desc: "Purely for testing purposes"
             })
-        }).then(res => res.json())
-            .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
+        });
     }
 
     var firebaseConfig = {
@@ -84,6 +80,19 @@
         appId: "1:1002111194265:web:24a8837e5d910ebcd11408",
         measurementId: "G-5CEEWG9PZR"
     };
+
+    function getUsers() {
+        fetcher("/api/users");
+    }
+
+    function getUser(uid) {
+        fetcher("/api/users/" + uid);
+    }
+
+    function me() {
+        fetcher("/api/users/me");
+    }
+
     firebase.initializeApp(firebaseConfig);
     firebase.auth().onAuthStateChanged(function (user) {
         let keys = ['displayName', 'email', 'photoURL'];
@@ -121,6 +130,8 @@
     }
 
     function fetcher(url, options) {
-        return fetch(url, updateOptions(options));
+        return fetch(url, updateOptions(options)).then(res => res.json())
+            .then(res => apiResults.innerText = JSON.stringify(res, null, 4))
+            .catch(err => apiResults.innerText = JSON.stringify(err, null, 4));
     }
 </script>

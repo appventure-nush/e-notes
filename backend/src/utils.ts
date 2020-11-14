@@ -125,6 +125,7 @@ export async function checkAdmin(req: express.Request, res: express.Response, ne
 
 export function setup() {
     firestore().collection('collections').onSnapshot(querySnapshot => collections.splice(0, collections.length, ...querySnapshot.docs.map(doc => new Collection(doc.data()))));
+    auth();
 }
 
 function mapAsync<T, U>(array: T[], callback: (value: T, index: number, array: T[]) => Promise<U>): Promise<U[]> {

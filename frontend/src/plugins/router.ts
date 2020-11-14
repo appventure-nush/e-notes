@@ -11,7 +11,7 @@ const routes: Array<RouteConfig> = [
     path: "/",
     component: Main,
     meta: {
-      requiresAuth: true
+      requiresAuth: true,
     }
   },
   {
@@ -21,7 +21,7 @@ const routes: Array<RouteConfig> = [
   },
   {
     path: '/settings',
-    name: 'settings',
+    name: 'Settings',
     component: () => import(/* webpackChunkName: "settings" */ '@/views/Settings.vue'),
     meta: {
       requiresAuth: true
