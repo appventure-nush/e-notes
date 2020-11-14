@@ -9,11 +9,13 @@
 
 <br>
 <pre id="idToken"></pre>
+
+<label for="uid">User ID: </label><input id="uid" placeholder="uid"/><br>
+<label for="cid">Collection ID:</label> <input id="cid" placeholder="cid"/><br>
 <span>users</span>
 <button onclick="getUsers()">Get users</button>
 <button onclick="me()">Get me</button>
-<input id="uid">
-<button onclick="getUser(document.getElementById('uid').val)">Get user</button>
+<button onclick="getUser(document.getElementById('uid').value)">Get user</button>
 <br>
 <span>collections</span>
 <button onclick="allColls()">All collection</button>
@@ -26,7 +28,9 @@
 <button onclick="makeNote()">make note</button>
 <br>
 <span>roles</span>
-<button onclick="role()">Test role</button>
+<button onclick="makeRole()">Test role</button>
+<button onclick="giveRolePerm()">Give perm to role</button>
+<button onclick="giveRoleToUser()">Give role to user</button>
 <br>
 <button onclick="signIn()">Sign IN</button>
 <button onclick="signOut()">Sign OUT</button>
@@ -91,6 +95,29 @@
 
     function me() {
         fetcher("/api/users/me");
+    }
+
+    function makeRole() {
+        fetcher("/api/roles/test", {
+            method: 'POST',
+            body: JSON.stringify({
+                name: "Test Role",
+                desc: "Very powerful role"
+            })
+        });
+    }
+
+    function giveRolePerm() {
+        fetcher("/api/roles/test/grant/" + document.getElementById('cid').value);
+    }
+
+    function giveRoleToUser() {
+        fetcher("/api/users/" + document.getElementById('uid').value + "/admin/role", {
+            method: 'POST',
+            body: JSON.stringify({
+                rid: "test"
+            })
+        });
     }
 
     firebase.initializeApp(firebaseConfig);

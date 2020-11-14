@@ -34,16 +34,16 @@ export async function getUser(uid: string): Promise<User> { // heavy call functi
     return userObj;
 }
 
-export async function getRole(roleId: string): Promise<Role> { // heavy call function
-    if (!roleId) return null;
-    if (roleCache.has(roleId)) {
-        const cache = roleCache.get(roleId);
+export async function getRole(rid: string): Promise<Role> { // heavy call function
+    if (!rid) return null;
+    if (roleCache.has(rid)) {
+        const cache = roleCache.get(rid);
         if (Date.now() - cache[1] <= CACHE_AGE) return cache[0]; // else carry on
     }
-    const roleDoc = await firestore().collection("roles").doc(roleId).get();
+    const roleDoc = await firestore().collection("roles").doc(rid).get();
     if (!roleDoc.exists) return null;
     const role = new Role(roleDoc.data());
-    roleCache.set(role.roleId, [role, Date.now()]);
+    roleCache.set(role.rid, [role, Date.now()]);
     return role;
 }
 
@@ -53,10 +53,10 @@ export async function updateUser(userId: string, value: User) {
     else await firestore().collection("users").doc(userId).delete();
 }
 
-export async function updateRole(roleId: string, value: Role) {
-    updateRoleCache(roleId, value);
-    if (value) await firestore().collection("roles").doc(roleId).set(value.toData());
-    else await firestore().collection("roles").doc(roleId).delete();
+export async function updateRole(rid: string, value: Role) {
+    updateRoleCache(rid, value);
+    if (value) await firestore().collection("roles").doc(rid).set(value.toData());
+    else await firestore().collection("roles").doc(rid).delete();
 }
 
 export function updateUserCache(userId: string, value: User) {
@@ -64,9 +64,9 @@ export function updateUserCache(userId: string, value: User) {
     else userCache.delete(userId);
 }
 
-export function updateRoleCache(roleId: string, value: Role) {
-    if (value) roleCache.set(roleId, [value, Date.now()]);
-    else roleCache.delete(roleId);
+export function updateRoleCache(rid: string, value: Role) {
+    if (value) roleCache.set(rid, [value, Date.now()]);
+    else roleCache.delete(rid);
 }
 
 // permission system in order of priority
@@ -79,7 +79,7 @@ export async function hasPermissions(uid: string, cid: string) { // used in midd
     if (user.admin) return true; // well, here we go, an admin
     if (user.accepts(cid)) return true;
     if (user.rejects(cid)) return false;
-    const roles = await Promise.all(user.roles.map(roleId => getRole(roleId)));
+    const roles = await Promise.all(user.roles.map(rid => getRole(rid)));
     return (!roles.some(role => role.rejects(cid))) && roles.some(role => role.accepts(cid));
 }
 
@@ -91,7 +91,7 @@ export async function checkUser(req: express.Request, res: express.Response, nex
     const idToken = req.header("Authorization");
     if (!idToken) return res.status(403).send("'Authorization' header not found");
     try {
-        req.body.uid = (await auth().verifyIdToken(idToken)).uid;
+        req.body.cuid = (await auth().verifyIdToken(idToken)).uid;
         return next();
     } catch (e) {
         console.error(e);

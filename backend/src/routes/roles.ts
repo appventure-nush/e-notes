@@ -4,51 +4,51 @@ import {getRole, updateRoleCache, checkAdmin} from '../utils';
 
 const roles = Router();
 
-roles.get("/:roleId", async (req, res, next) => {
-    const role = await getRole(req.params.roleId);
+roles.get("/:rid", async (req, res, next) => {
+    const role = await getRole(req.params.rid);
     if (!role) return res.status(404).json({
         reason: "role_not_found",
-        roleId: req.params.roleId
+        rid: req.params.rid
     })
     else res.json(role);
 });
 
-roles.delete("/:roleId", checkAdmin, async (req, res, next) => {
-    if (!await getRole(req.params.roleId)) return res.status(404).json({
+roles.delete("/:rid", checkAdmin, async (req, res, next) => {
+    if (!await getRole(req.params.rid)) return res.status(404).json({
         reason: "role_not_found",
-        roleId: req.params.roleId
+        rid: req.params.rid
     });
     else {
-        const ref = req.app.locals.db.collection("roles").doc(req.params.roleId);
+        const ref = req.app.locals.db.collection("roles").doc(req.params.rid);
         await ref.delete();
-        updateRoleCache(req.params.roleId, null);
+        updateRoleCache(req.params.rid, null);
         res.json({status: "ok"});
     }
 });
 
-roles.post("/:roleId", checkAdmin, async (req, res, next) => {
+roles.post("/:rid", checkAdmin, async (req, res, next) => {
     if (!req.body.name) return res.status(400).json({
         reason: "name_required_for_creation",
-        roleId: req.params.roleId
+        rid: req.params.rid
     });
-    if (await getRole(req.params.roleId)) return res.status(403).json({
+    if (await getRole(req.params.rid)) return res.status(403).json({
         reason: "role_already_exists",
-        roleId: req.params.roleId
+        rid: req.params.rid
     });
     else {
-        const ref = req.app.locals.db.collection("roles").doc(req.params.roleId);
-        const role = new Role(req.params.roleId, req.body.name, req.body.desc);
-        await ref.set(role);
-        updateRoleCache(req.params.roleId, role);
+        const ref = req.app.locals.db.collection("roles").doc(req.params.rid);
+        const role = new Role(req.params.rid, req.body.name, req.body.desc);
+        await ref.set(role.toData());
+        updateRoleCache(req.params.rid, role);
         res.json(role);
     }
 });
 
-roles.get("/:roleId/:operation/:cid", checkAdmin, async (req, res, next) => {
-    const doc = await req.app.locals.db.collection("roles").doc(req.params.roleId).get();
+roles.get("/:rid/:operation/:cid", checkAdmin, async (req, res, next) => {
+    const doc = await req.app.locals.db.collection("roles").doc(req.params.rid).get();
     if (!doc.exists) return res.status(404).json({
         reason: "role_not_found",
-        roleId: req.params.roleId
+        rid: req.params.rid
     });
     const role = doc.data() as Role;
     try {
@@ -63,7 +63,7 @@ roles.get("/:roleId/:operation/:cid", checkAdmin, async (req, res, next) => {
     } catch (e) {
         res.status(500).json({
             reason: "error",
-            roleId: req.params.roleId,
+            rid: req.params.rid,
             cid: req.params.cid,
             operation: req.params.operation,
         });

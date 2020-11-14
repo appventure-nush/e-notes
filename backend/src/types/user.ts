@@ -27,10 +27,34 @@ class User {
         await updateUser(this.uid, this);
     }
 
-    async setPermission(cid: string, accepts: boolean) {
-        if (typeof accepts === 'undefined') this.permissions.delete(cid);
-        this.permissions.set(cid, accepts);
+    async setPermissions(permissions: any) {
+        for (const permission of Object.keys(permissions)) this.permissions.set(permission, permissions[permissions]);
         await updateUser(this.uid, this);
+    }
+
+    async setPermission(cid: string, accepts: boolean | string) {
+        if (typeof accepts === 'undefined') this.permissions.delete(cid);
+        if (typeof accepts === 'string') {
+            if (accepts === "undefined" || accepts === "delete") {
+                this.permissions.delete(cid);
+            } else accepts = accepts === "true";
+        }
+        this.permissions.set(cid, accepts as boolean);
+        await updateUser(this.uid, this);
+    }
+
+    async addRole(rid: string) {
+        if (!this.roles.includes(rid)) {
+            this.roles.push(rid);
+            await updateUser(this.uid, this);
+        }
+    }
+
+    async removeRole(rid: string) {
+        if (this.roles.includes(rid)) {
+            this.roles.splice(this.roles.indexOf(rid), 1);
+            await updateUser(this.uid, this);
+        }
     }
 
     accepts(cid: string) {

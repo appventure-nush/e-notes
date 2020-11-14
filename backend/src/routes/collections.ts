@@ -8,7 +8,7 @@ import {getAvailableCollections, checkUser, checkPermissions, checkAdmin} from '
 import Collection from "../types/coll";
 
 collections.get("/", checkUser, async (req, res, next) => {
-    const collections = await getAvailableCollections(req.body.uid);
+    const collections = await getAvailableCollections(req.body.cuid);
     if (collections.length === 0) return res.status(404).json({
         reason: "no_collections_found"
     });
