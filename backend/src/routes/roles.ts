@@ -1,6 +1,6 @@
 import {Router} from 'express';
 import Role from '../types/role';
-import {getRole, updateRoleCache, checkAdmin} from '../utils';
+import {getRole, updateRoleCache, checkAdmin, updateRole} from '../utils';
 
 const roles = Router();
 
@@ -19,9 +19,7 @@ roles.delete("/:rid", checkAdmin, async (req, res, next) => {
         rid: req.params.rid
     });
     else {
-        const ref = req.app.locals.db.collection("roles").doc(req.params.rid);
-        await ref.delete();
-        updateRoleCache(req.params.rid, null);
+        await updateRole(req.params.rid, null);
         res.json({status: "ok"});
     }
 });
@@ -59,7 +57,7 @@ roles.get("/:rid/:operation/:cid", checkAdmin, async (req, res, next) => {
                 operation: req.params.operation,
                 allowed: ['grant', 'deny', 'remove']
             });
-        res.json(role);
+        res.json(role.toData());
     } catch (e) {
         console.log(e);
         res.status(500).json({
