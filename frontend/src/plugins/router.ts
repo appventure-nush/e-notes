@@ -1,7 +1,6 @@
 import Vue from "vue";
 import VueRouter, {RouteConfig} from "vue-router";
 import Main from "@/views/Main.vue";
-
 import {auth} from "@/firebase";
 
 Vue.use(VueRouter);
@@ -17,12 +16,20 @@ const routes: Array<RouteConfig> = [
   {
     path: '/login',
     name: 'Login',
-    component: () => import(/* webpackChunkName: "login" */ '@/views/Login.vue')
+    component: () => import( '@/views/Login.vue')
   },
   {
     path: '/settings',
     name: 'Settings',
-    component: () => import(/* webpackChunkName: "settings" */ '@/views/Settings.vue'),
+    component: () => import('@/views/Settings.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: () => import('@/components/UserManagement.vue'),
     meta: {
       requiresAuth: true
     }
@@ -31,6 +38,7 @@ const routes: Array<RouteConfig> = [
 
 let router = new VueRouter({
   mode: 'history',
+  base: process.env.BASE_URL,
   routes,
 });
 router.beforeEach((to, from, next) => {

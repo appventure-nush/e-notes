@@ -3,6 +3,10 @@ import express from "express";
 import admin from 'firebase-admin';
 import * as bodyParser from 'body-parser';
 import {setup} from './utils';
+import serveStatic from 'serve-static';
+
+const history = require('connect-history-api-fallback');
+
 // @ts-ignore
 import NodeVault from 'node-vault';
 
@@ -15,13 +19,14 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(morgan('dev'));
 app.use("/api", apiRouter);
-app.use('/static', express.static('public'));
-app.get("/", (req, res) => res.send("API End Point: /api"));
+app.use(history());
+app.use(serveStatic(__dirname + '/dist'));
 
 // start the Express server
 app.listen(port, () => {
     console.log(`server started at http://localhost:${port}`);
 });
+
 
 // set up firebase admin with vault
 (async () => {
