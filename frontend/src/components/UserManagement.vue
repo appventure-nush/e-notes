@@ -79,21 +79,19 @@ export default Vue.extend({
     active: [],
     avatar: null,
     open: [],
-    users: Array<User>(),
+    users: [],
   }),
 
   computed: {
     items() {
-      return [
-        {
-          name: "Users",
-          children: this.users,
-        },
-      ]
+      return [{
+        name: "Users",
+        children: this.users,
+      }]
     },
     selected() {
       if (!this.active.length) return undefined
-      const uid = this.active[0]
+      const uid = this.active[0];
       return this.users.find(user => user.uid === uid)
     },
   },
@@ -102,12 +100,11 @@ export default Vue.extend({
 
   methods: {
     async fetchUsers(item: { children: Array<User> }) {
-      return fetcher("/api/users")
+      return await fetcher("/api/users")
         .then(json => {
           console.log("hello!");
-          return item.children.push(...json)
-        })
-        .catch(err => console.warn(err))
+          return item.children.push(...(json.users))
+        }).catch(err => console.warn(err))
     }
   },
 });

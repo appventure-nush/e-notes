@@ -9,4 +9,3 @@ cd ./frontend
 npm run build
 cp -R ./dist ../backend/dist
 cd ../backend
-npm run start
