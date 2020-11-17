@@ -14,3 +14,4 @@ npm run build
 cd ..
 
 cp -R ./frontend/dist ./backend/dist
+cp -R ./frontend/dist ./backend/src

@@ -3,4 +3,4 @@ build
 dist
 node_modules
 .DS_Store
-backend/service-account.json
+service-account.json

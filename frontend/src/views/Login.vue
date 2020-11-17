@@ -11,8 +11,8 @@
         <input v-model.trim="password" type="password" placeholder="******" id="password1"/>
       </div>
       <div class="section">
-        <button class="button" v-on:click="login">Login</button>
-        <button class="button" v-on:click="microsoft">with Microsoft</button>
+        <v-btn class="button" v-on:click="login">Login</v-btn>
+        <v-btn class="button" v-on:click="microsoft">with Microsoft</v-btn>
       </div>
     </v-form>
   </v-container>
