@@ -7,5 +7,10 @@ cd "$parent_path"
 
 cd ./frontend
 npm run build
-cp -R ./dist ../backend/dist
-cd ../backend
+cd ..
+
+cd ./backend
+npm run build
+cd ..
+
+cp -R ./frontend/dist ./backend/dist

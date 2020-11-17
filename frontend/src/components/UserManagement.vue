@@ -79,7 +79,7 @@ export default Vue.extend({
     active: [],
     avatar: null,
     open: [],
-    users: [],
+    users: new Array<User>()
   }),
 
   computed: {
