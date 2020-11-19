@@ -14,15 +14,12 @@
 <script lang="ts">
 import Vue from "vue";
 import User from "@/types/user";
-import {auth, db} from "@/firebase";
 
 export default Vue.extend({
   name: "App",
   data: () => ({
     drawerShown: false,
   }),
-  mounted() {
-  },
   computed: {
     routes(): Array<{ name: string; route: string; icon: string; }> {
       return [

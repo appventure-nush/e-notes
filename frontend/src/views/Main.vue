@@ -1,6 +1,7 @@
 <template>
   <v-container fluid>
-
+    hi
+    <a :href="$router.resolve({name: 'Admin'}).href">link</a>
   </v-container>
 </template>
 
@@ -15,7 +16,6 @@ export default Vue.extend({
     adminSignIn: false
   }),
   components: {
-    Dashboard: Dashboard
   }
 });
 </script>

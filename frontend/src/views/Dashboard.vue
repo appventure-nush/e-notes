@@ -8,8 +8,7 @@
       open-on-click
       hoverable
       v-scroll
-      @update:active="test"
-    >
+      @update:active="test">
     </v-treeview>
   </v-container>
 </template>

@@ -1,22 +1,22 @@
 import {updateRole} from '../utils';
 
 class Role {
-    roleId: string;
+    rid: string;
     name: string;
     desc: string;
     defaultPerm: boolean;
     permissions: Map<string, boolean>;
 
-    constructor(roleId: string | any, name?: string, desc?: string, defaultPerm?: boolean) {
-        if (typeof roleId === 'string') {
-            this.roleId = roleId;
-            this.name = name || roleId;
+    constructor(rid: string | any, name?: string, desc?: string, defaultPerm?: boolean) {
+        if (typeof rid === 'string') {
+            this.rid = rid;
+            this.name = name || rid;
             this.desc = desc || "No description yet.";
             this.permissions = new Map<string, boolean>();
             this.defaultPerm = defaultPerm === true;
         } else {
-            const src = roleId as any;
-            this.roleId = src.roleId;
+            const src = rid as any;
+            this.rid = src.rid;
             this.name = src.name;
             this.desc = src.desc;
             this.permissions = new Map<string, boolean>(Object.entries(src.permissions));
@@ -27,7 +27,7 @@ class Role {
     async setPermission(cid: string, accepts: boolean) {
         if (typeof accepts === 'undefined') this.permissions.delete(cid);
         this.permissions.set(cid, accepts);
-        await updateRole(this.roleId, this);
+        await updateRole(this.rid, this);
     }
 
     accepts(cid: string) {
@@ -40,7 +40,7 @@ class Role {
 
     toData() {
         return {
-            roleId: this.roleId,
+            rid: this.rid,
             name: this.name,
             desc: this.desc,
             defaultPerm: this.defaultPerm,

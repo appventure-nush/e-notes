@@ -1,69 +1,68 @@
 import {Router} from 'express';
 import Role from '../types/role';
-import {getRole, updateRoleCache, checkAdmin} from '../utils';
+import {getRole, updateRoleCache, checkAdmin, updateRole} from '../utils';
 
 const roles = Router();
 
-roles.get("/:roleId", async (req, res, next) => {
-    const role = await getRole(req.params.roleId);
+roles.get("/:rid", async (req, res, next) => {
+    const role = await getRole(req.params.rid);
     if (!role) return res.status(404).json({
         reason: "role_not_found",
-        roleId: req.params.roleId
+        rid: req.params.rid
     })
     else res.json(role);
 });
 
-roles.delete("/:roleId", checkAdmin, async (req, res, next) => {
-    if (!await getRole(req.params.roleId)) return res.status(404).json({
+roles.delete("/:rid", checkAdmin, async (req, res, next) => {
+    if (!await getRole(req.params.rid)) return res.status(404).json({
         reason: "role_not_found",
-        roleId: req.params.roleId
+        rid: req.params.rid
     });
     else {
-        const ref = req.app.locals.db.collection("roles").doc(req.params.roleId);
-        await ref.delete();
-        updateRoleCache(req.params.roleId, null);
+        await updateRole(req.params.rid, null);
         res.json({status: "ok"});
     }
 });
 
-roles.post("/:roleId", checkAdmin, async (req, res, next) => {
+roles.post("/:rid", checkAdmin, async (req, res, next) => {
     if (!req.body.name) return res.status(400).json({
         reason: "name_required_for_creation",
-        roleId: req.params.roleId
+        rid: req.params.rid
     });
-    if (await getRole(req.params.roleId)) return res.status(403).json({
+    if (await getRole(req.params.rid)) return res.status(403).json({
         reason: "role_already_exists",
-        roleId: req.params.roleId
+        rid: req.params.rid
     });
     else {
-        const ref = req.app.locals.db.collection("roles").doc(req.params.roleId);
-        const role = new Role(req.params.roleId, req.body.name, req.body.desc);
-        await ref.set(role);
-        updateRoleCache(req.params.roleId, role);
+        const ref = req.app.locals.db.collection("roles").doc(req.params.rid);
+        const role = new Role(req.params.rid, req.body.name, req.body.desc);
+        await ref.set(role.toData());
+        updateRoleCache(req.params.rid, role);
         res.json(role);
     }
 });
 
-roles.get("/:roleId/:operation/:cid", checkAdmin, async (req, res, next) => {
-    const doc = await req.app.locals.db.collection("roles").doc(req.params.roleId).get();
-    if (!doc.exists) return res.status(404).json({
+roles.get("/:rid/:operation/:cid", checkAdmin, async (req, res, next) => {
+    const role = await getRole(req.params.rid);
+    if (!role) return res.status(404).json({
         reason: "role_not_found",
-        roleId: req.params.roleId
+        rid: req.params.rid
     });
-    const role = doc.data() as Role;
     try {
-        if (req.params.operation === "grant") return await role.setPermission(req.params.cid, true);
-        else if (req.params.operation === "deny") return await role.setPermission(req.params.cid, false);
-        else if (req.params.operation === "remove") return await role.setPermission(req.params.cid, undefined);
+        if (req.params.operation === "grant") await role.setPermission(req.params.cid, true);
+        else if (req.params.operation === "deny") await role.setPermission(req.params.cid, false);
+        else if (req.params.operation === "remove") await role.setPermission(req.params.cid, undefined);
         else return res.status(400).json({
                 reason: "invalid_operation",
                 operation: req.params.operation,
                 allowed: ['grant', 'deny', 'remove']
             });
+        res.json(role.toData());
     } catch (e) {
+        console.log(e);
         res.status(500).json({
             reason: "error",
-            roleId: req.params.roleId,
+            rid: req.params.rid,
             cid: req.params.cid,
             operation: req.params.operation,
         });

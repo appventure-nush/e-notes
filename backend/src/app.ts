@@ -3,31 +3,29 @@ import express from "express";
 import admin from 'firebase-admin';
 import * as bodyParser from 'body-parser';
 import {setup} from './utils';
-// @ts-ignore
-import NodeVault from 'node-vault';
+import serveStatic from 'serve-static';
 
+const history = require('connect-history-api-fallback');
+import NodeVault from 'node-vault';
 import apiRouter from "./routes/api"
 
 const app = express();
-const port = process.env.PORT || 8080;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(morgan('dev'));
 app.use("/api", apiRouter);
-app.use('/static', express.static('public'));
-app.get("/", (req, res) => res.send("API End Point: /api"));
+app.use(history());
+app.use(serveStatic(__dirname + '/dist'));
 
 // start the Express server
-app.listen(port, () => {
-    console.log(`server started at http://localhost:${port}`);
-});
 
 // set up firebase admin with vault
 (async () => {
     try {
-        return require("service-account.json");
+        return require("./service-account.json");
     } catch (e) {
+        console.log(e);
         const vaultClient = NodeVault({endpoint: "https://vault.nush.app"});
         const secretsClient = NodeVault({
             endpoint: "https://vault.nush.app",
@@ -51,3 +49,5 @@ app.listen(port, () => {
     app.locals.auth = admin.auth();
     app.locals.bucket = admin.storage().bucket();
 });
+
+export default app;

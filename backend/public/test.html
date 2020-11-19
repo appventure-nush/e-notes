@@ -9,6 +9,14 @@
 
 <br>
 <pre id="idToken"></pre>
+
+<label for="uid">User ID: </label><input id="uid" placeholder="uid"/><br>
+<label for="cid">Collection ID:</label> <input id="cid" placeholder="cid"/><br>
+<span>users</span>
+<button onclick="getUsers()">Get users</button>
+<button onclick="me()">Get me</button>
+<button onclick="getUser(document.getElementById('uid').value)">Get user</button>
+<br>
 <span>collections</span>
 <button onclick="allColls()">All collection</button>
 <button onclick="readColl()">Read collection</button>
@@ -20,7 +28,9 @@
 <button onclick="makeNote()">make note</button>
 <br>
 <span>roles</span>
-<button onclick="role()">Test role</button>
+<button onclick="makeRole()">Test role</button>
+<button onclick="giveRolePerm()">Give perm to role</button>
+<button onclick="giveRoleToUser()">Give role to user</button>
 <br>
 <button onclick="signIn()">Sign IN</button>
 <button onclick="signOut()">Sign OUT</button>
@@ -30,15 +40,11 @@
     let apiResults = document.getElementById('apiResults');
 
     function allColls() {
-        fetcher("/api/collections")
-            .then(res => res.json())
-            .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
+        fetcher("/api/collections");
     }
 
     function readColl() {
-        fetcher("/api/collections/test")
-            .then(res => res.json())
-            .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
+        fetcher("/api/collections/test");
     }
 
     function makeColl() {
@@ -48,20 +54,15 @@
                 name: "Test Test Test",
                 desc: "Purely for testing purposes"
             })
-        }).then(res => res.json())
-            .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
+        });
     }
 
     function killColl() {
-        fetcher("/api/collections/test", {method: 'DELETE'})
-            .then(res => res.json())
-            .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
+        fetcher("/api/collections/test", {method: 'DELETE'});
     }
 
     function readNotes() {
-        fetcher("/api/collections/test/notes")
-            .then(res => res.json())
-            .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
+        fetcher("/api/collections/test/notes");
     }
 
     function makeNote() {
@@ -70,8 +71,7 @@
                 name: "Test Test Test",
                 desc: "Purely for testing purposes"
             })
-        }).then(res => res.json())
-            .then(res => apiResults.innerText = JSON.stringify(res, null, 4));
+        });
     }
 
     var firebaseConfig = {
@@ -84,6 +84,42 @@
         appId: "1:1002111194265:web:24a8837e5d910ebcd11408",
         measurementId: "G-5CEEWG9PZR"
     };
+
+    function getUsers() {
+        fetcher("/api/users");
+    }
+
+    function getUser(uid) {
+        fetcher("/api/users/" + uid);
+    }
+
+    function me() {
+        fetcher("/api/users/me");
+    }
+
+    function makeRole() {
+        fetcher("/api/roles/test", {
+            method: 'POST',
+            body: JSON.stringify({
+                name: "Test Role",
+                desc: "Very powerful role"
+            })
+        });
+    }
+
+    function giveRolePerm() {
+        fetcher("/api/roles/test/grant/" + document.getElementById('cid').value);
+    }
+
+    function giveRoleToUser() {
+        fetcher("/api/users/" + document.getElementById('uid').value + "/admin/role", {
+            method: 'POST',
+            body: JSON.stringify({
+                rid: "test"
+            })
+        });
+    }
+
     firebase.initializeApp(firebaseConfig);
     firebase.auth().onAuthStateChanged(function (user) {
         let keys = ['displayName', 'email', 'photoURL'];
@@ -121,6 +157,8 @@
     }
 
     function fetcher(url, options) {
-        return fetch(url, updateOptions(options));
+        return fetch(url, updateOptions(options)).then(res => res.json())
+            .then(res => apiResults.innerText = JSON.stringify(res, null, 4))
+            .catch(err => apiResults.innerText = JSON.stringify(err, null, 4));
     }
 </script>
