@@ -12,7 +12,7 @@
       </div>
       <div class="section">
         <button class="button" v-on:click="login">Login</button>
-        <button class="button" v-on:click="microsoft">with Microsoft</button>
+        <button class="button" v-on:click="microsoft">Continue with Microsoft</button>
       </div>
     </v-form>
   </v-container>
@@ -44,11 +44,15 @@ input {
 <script lang="ts">
 import Vue from "vue";
 import {firebase, auth} from "../firebase";
+import Profile from "./Profile.vue"
 
 const provider = new firebase.auth.OAuthProvider("microsoft.com");
 
 export default Vue.extend({
   name: "SignIn",
+  components: {
+    Profile: Profile
+  },
   computed: {},
   data: () => ({
     email: "", password: ""
