@@ -3,7 +3,7 @@
     <v-card>
       <v-col class="mx-auto" max-width="434" tile>
         <v-avatar size="100" style="position:absolute; top: 130px">
-          <v-img src="{{ user.photoURL }}"></v-img>
+          <v-img v-bind:src="user.photoURL"></v-img>
         </v-avatar>
       </v-col>
       <v-list-item color="rgba(0, 0, 0, .4)">
