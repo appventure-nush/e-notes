@@ -29,7 +29,7 @@ const routes: Array<RouteConfig> = [
   {
     path: '/admin',
     name: 'Admin',
-    component: () => import('@/components/UserManagement.vue'),
+    component: () => import('@/views/Admin.vue'),
     meta: {
       requiresAuth: true
     }

@@ -8,7 +8,7 @@ import User from "../types/user";
 
 users.get("/", checkUser, async (req, res, next) => req.app.locals.auth.listUsers(1000).then((list: admin.auth.ListUsersResult) => res.json({
     users: list.users.map(user => ({
-        uid: user.uid, email: user.email, name: user.displayName, pfp: user.photoURL
+        uid: user.uid, email: user.email, name: user.displayName, pfp: user.photoURL || ""
     })), token: list.pageToken
 })));
 

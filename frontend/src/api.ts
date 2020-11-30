@@ -1,5 +1,5 @@
 export function fetcher(url: string, options?: any) {
-  return fetch(url, updateOptions(options)).then(res => res.json());
+  return fetch( "http://localhost:8080"+url, updateOptions(options)).then(res => res.json());
 }
 
 function updateOptions(options?: any) {
@@ -9,10 +9,4 @@ function updateOptions(options?: any) {
     if (!update.headers['Content-Type']) update.headers['Content-Type'] = 'application/json';
   }
   return update;
-}
-
-async function fetchUsers(item: { children: Array<any> }) {
-  return fetcher("/api/users")
-    .then(json => item.children.push(...json))
-    .catch(err => console.warn(err))
 }

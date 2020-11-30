@@ -1,10 +1,12 @@
 import {Router} from 'express';
 import Role from '../types/role';
-import {getRole, updateRoleCache, checkAdmin, updateRole} from '../utils';
+import {getRole, getAllRoles, updateRoleCache, checkAdmin, updateRole, checkUser} from '../utils';
 
 const roles = Router();
 
-roles.get("/:rid", async (req, res, next) => {
+roles.get("/", checkUser, async (req, res) => res.json(await getAllRoles()));
+
+roles.get("/:rid", checkUser, async (req, res) => {
     const role = await getRole(req.params.rid);
     if (!role) return res.status(404).json({
         reason: "role_not_found",
@@ -13,7 +15,16 @@ roles.get("/:rid", async (req, res, next) => {
     else res.json(role);
 });
 
-roles.delete("/:rid", checkAdmin, async (req, res, next) => {
+roles.get("/:rid", checkUser, async (req, res) => {
+    const role = await getRole(req.params.rid);
+    if (!role) return res.status(404).json({
+        reason: "role_not_found",
+        rid: req.params.rid
+    })
+    else res.json(role);
+});
+
+roles.delete("/:rid", checkAdmin, async (req, res) => {
     if (!await getRole(req.params.rid)) return res.status(404).json({
         reason: "role_not_found",
         rid: req.params.rid

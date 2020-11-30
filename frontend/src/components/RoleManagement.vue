@@ -1,7 +1,7 @@
 <template>
   <v-card>
     <v-card-title class="indigo white--text headline">
-      User Directory
+      Role Directory
     </v-card-title>
     <v-row
       class="pa-4"
@@ -10,10 +10,10 @@
         <v-treeview
           :active.sync="active"
           :items="items"
-          :load-children="fetchUsers"
+          :load-children="fetchRoles"
           :open.sync="open"
           activatable
-          item-key="uid"
+          item-key="rid"
           color="warning"
           open-on-click
           transition>
@@ -28,17 +28,16 @@
       <v-divider vertical></v-divider>
 
       <v-col class="d-flex text-center">
-
         <v-scroll-y-transition mode="out-in">
           <div
             v-if="!selected"
             class="title grey--text text--lighten-1 font-weight-light"
             style="align-self: center;">
-            Select a User
+            Select a Role
           </div>
           <v-card
             v-else
-            :key="selected.uid"
+            :key="selected.rid"
             class="pt-6 mx-auto"
             flat
             max-width="400">
@@ -47,10 +46,10 @@
                 {{ selected.name }}
               </h3>
               <div class="blue--text mb-2">
-                {{ selected.email }}
+                {{ selected.desc }}
               </div>
               <div class="blue--text subheading font-weight-bold">
-                {{ selected.uid }}
+                {{ selected.rid }}
               </div>
             </v-card-text>
           </v-card>
@@ -62,48 +61,42 @@
 
 <script lang="ts">
 import Vue from "vue";
-import UserCard from "../components/UserCard.vue";
+import {firebase, auth} from "../firebase";
 import {fetcher} from "@/api";
 
-type User = {
-  uid: string;
+type Role = {
+  rid: string;
   name: string;
-  email: string;
-  pfp: string;
+  desc: string;
 };
 
 export default Vue.extend({
   data: () => ({
     active: [],
-    avatar: null,
     open: [],
-    users: new Array<User>()
+    roles: new Array<Role>()
   }),
 
   computed: {
     items() {
       return [{
-        name: "Users",
-        children: this.users,
+        name: "Roles",
+        children: this.roles,
       }]
     },
     selected() {
       if (!this.active.length) return undefined;
-      const uid = this.active[0];
-      return this.users.find(user => user.uid === uid);
+      const rid = this.active[0];
+      return this.roles.find(role => role.rid === rid);
     },
   },
 
-  watch: {
-    selected: "setAvatar"
-  },
-
   methods: {
-    async fetchUsers(item: { children: Array<User> }) {
-      return await fetcher("/api/users")
-        .then(json => item.children.push(...(json.users)))
+    async fetchRoles(item: { children: Array<Role> }) {
+      return await fetcher("/api/roles")
+        .then(json => item.children.push(...json))
         .catch(err => console.warn(err))
     }
-  }
+  },
 });
 </script>

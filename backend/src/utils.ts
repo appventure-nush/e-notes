@@ -10,8 +10,10 @@ import Collection from "./types/coll";
 // using cache system to reduce reads, idk about write
 // writes shouldn't be that heavy
 // but reads is HEAVY
-const CACHE_AGE = 1000 * 60 * 30; // 30 minutes
+const CACHE_AGE = 1000 * 60 * 60 * 2; // 2 hours
 
+let lastFullRoleRefresh = 0;
+const lastFullUserRefresh = 0;
 const userCache = new Map<string, [User, number]>();
 const roleCache = new Map<string, [Role, number]>();
 const collections: Collection[] = [];
@@ -57,6 +59,7 @@ export async function updateRole(rid: string, value: Role) {
     updateRoleCache(rid, value);
     if (value) await firestore().collection("roles").doc(rid).set(value.toData());
     else await firestore().collection("roles").doc(rid).delete();
+
 }
 
 export function updateUserCache(userId: string, value: User) {
@@ -67,6 +70,19 @@ export function updateUserCache(userId: string, value: User) {
 export function updateRoleCache(rid: string, value: Role) {
     if (value) roleCache.set(rid, [value, Date.now()]);
     else roleCache.delete(rid);
+}
+
+export async function getAllRoles(): Promise<Role[]> {
+    if (Date.now() - lastFullRoleRefresh <= CACHE_AGE) return Array.from(roleCache.values()).map(([value]) => value);
+    const roleDocs = (await firestore().collection("roles").get()).docs;
+    const roles: Role[] = [];
+    for (const roleDoc of roleDocs) {
+        const role = new Role(roleDoc.data());
+        roleCache.set(role.rid, [role, Date.now()]);
+        roles.push(role);
+    }
+    lastFullRoleRefresh = Date.now();
+    return roles;
 }
 
 // permission system in order of priority
