@@ -1,0 +1,7 @@
+{{> firebase/firebase}}
+<script>
+    firebase.auth().onAuthStateChanged(user => {
+        if (user) console.log("user logged in, uid =", user.uid);
+        else console.log("user logged out");
+    });
+</script>

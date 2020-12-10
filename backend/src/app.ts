@@ -11,6 +11,7 @@ import {setup} from './utils';
 import apiRouter from "./routes/api"
 import indexRouter from "./routes/index"
 import usersRouter from "./routes/users"
+import adminRouter from "./routes/admin"
 
 const app = express();
 app.engine('hbs', exphbs({defaultLayout: 'main', extname: '.hbs'}));
@@ -21,6 +22,7 @@ app.use(morgan('dev'));
 app.use("/", indexRouter);
 app.use("/api", apiRouter);
 app.use("/users", usersRouter);
+app.use("/admin", adminRouter);
 
 (async () => {
     try {
