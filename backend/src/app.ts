@@ -12,6 +12,7 @@ import apiRouter from "./routes/api"
 import indexRouter from "./routes/index"
 import usersRouter from "./routes/users"
 import adminRouter from "./routes/admin"
+import path from "path";
 
 const app = express();
 app.engine('hbs', exphbs({defaultLayout: 'main', extname: '.hbs'}));
@@ -23,6 +24,7 @@ app.use("/", indexRouter);
 app.use("/api", apiRouter);
 app.use("/users", usersRouter);
 app.use("/admin", adminRouter);
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 (async () => {
     try {
