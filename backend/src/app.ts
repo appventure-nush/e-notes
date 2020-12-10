@@ -2,30 +2,31 @@ import morgan from 'morgan';
 import express from "express";
 import admin from 'firebase-admin';
 import * as bodyParser from 'body-parser';
-import {setup} from './utils';
-import serveStatic from 'serve-static';
-
-const history = require('connect-history-api-fallback');
+import exphbs from 'express-handlebars';
 import NodeVault from 'node-vault';
+
+// import serveStatic from 'serve-static';
+
+import {setup} from './utils';
 import apiRouter from "./routes/api"
+import indexRouter from "./routes/index"
+import usersRouter from "./routes/users"
 
 const app = express();
-
+app.engine('hbs', exphbs({defaultLayout: 'main', extname: '.hbs'}));
+app.set('view engine', 'hbs');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(morgan('dev'));
+app.use("/", indexRouter);
 app.use("/api", apiRouter);
-app.use(history());
-app.use(serveStatic(__dirname + '/dist'));
+app.use("/users", usersRouter);
 
-// start the Express server
-
-// set up firebase admin with vault
 (async () => {
     try {
         return require("./service-account.json");
     } catch (e) {
-        console.log(e);
+        console.log("Falling back to vault...");
         const vaultClient = NodeVault({endpoint: "https://vault.nush.app"});
         const secretsClient = NodeVault({
             endpoint: "https://vault.nush.app",

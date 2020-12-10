@@ -1,6 +1,6 @@
 import {Router} from 'express';
 import {File} from "@google-cloud/storage/build/src/file";
-import Note from '../types/note';
+import Note from '../../types/note';
 import admin from "firebase-admin";
 import DocumentSnapshot = admin.firestore.DocumentSnapshot;
 

@@ -1,8 +1,8 @@
 import {Router} from 'express';
 
-import roles from './roles';
-import users from './users';
-import collections from './collections';
+import roles from './api/roles';
+import users from './api/users';
+import collections from './api/collections';
 
 const api = Router();
 

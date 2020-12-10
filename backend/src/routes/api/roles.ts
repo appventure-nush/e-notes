@@ -1,6 +1,6 @@
 import {Router} from 'express';
-import Role from '../types/role';
-import {getRole, getAllRoles, updateRoleCache, checkAdmin, updateRole, checkUser} from '../utils';
+import Role from '../../types/role';
+import {getRole, getAllRoles, updateRoleCache, checkAdmin, updateRole, checkUser} from '../../utils';
 
 const roles = Router();
 

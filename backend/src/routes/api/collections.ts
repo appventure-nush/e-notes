@@ -4,8 +4,8 @@ import notesRouter from './notes';
 
 const collections = Router();
 
-import {getAvailableCollections, checkUser, checkPermissions, checkAdmin} from '../utils';
-import Collection from "../types/coll";
+import {getAvailableCollections, checkUser, checkPermissions, checkAdmin} from '../../utils';
+import Collection from "../../types/coll";
 
 collections.get("/", checkUser, async (req, res, next) => {
     const collections = await getAvailableCollections(req.body.cuid);
