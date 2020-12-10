@@ -14,17 +14,35 @@
 <script type="module">
     import {collections, users} from '/js/api.js';
 
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);
     firebase.auth().onAuthStateChanged(function (user) {
-        if (user) {
-
-        } else {
-
-        }
+        if (user)
+            firebase.auth().currentUser.getIdToken(true).then(idToken => {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                return fetch("/", {
+                    method: "POST",
+                    credentials: 'same-origin',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'CSRF-Token': csrfToken
+                    },
+                    body: JSON.stringify({
+                        'idToken': idToken
+                    })
+                });
+            }).then(res => {
+                console.log(res.headers);
+                return res.json();
+            }).then(json => {
+                // if (json.status === 'success') window.location.reload();
+            }).catch(error => console.log("failed to retrieve jwt"));
+        else Cookies.expire("session");
     });
-    function authSignIn() {
+    window.authSignIn = function () {
         firebase.auth().signInWithPopup(new firebase.auth.OAuthProvider('microsoft.com'));
     }
-    function authSignOut() {
+    window.authSignOut = function () {
         firebase.auth().signOut();
     }
 </script>

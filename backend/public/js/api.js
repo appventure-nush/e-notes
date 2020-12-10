@@ -3,7 +3,7 @@ const cacheAge = 1000 * 60 * 5; // 5 minute is fine ig
 const userCache = JSON.parse(localStorage.getItem("userCache") || '{}');
 const collCache = JSON.parse(localStorage.getItem("collCache") || '{}');
 // i dont even care about multiple windows open at same time
-
+const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 const collections = {
     async get(cid) {
         cid = String(cid);
@@ -45,22 +45,19 @@ const users = {
     },
 }
 
-function addAuthHeader(options) {
+function updateOptions(options) {
     const update = {...options};
-    if (localStorage.jwt) {
-        update.headers = {
-            ...update.headers,
-            'Authorization': localStorage.jwt // ah yes jwts, nothing to see here
-        };
-        if (!update.headers['Content-Type']) update.headers['Content-Type'] = 'application/json';
-    }
+    update.headers = {
+        'Content-Type': 'application/json',
+        ...update.headers,
+        'CSRF-Token': token
+    };
+    update.credentials = 'include';
     return update;
 }
 
 function fetcher(url, options) {
-    return fetch(url, addAuthHeader(options)).then(res => res.json())
-        .then(res => apiResults.innerText = JSON.stringify(res, null, 4))
-        .catch(err => apiResults.innerText = JSON.stringify(err, null, 4));
+    return fetch(url, updateOptions(options)).then(res => res.json());
 }
 
 function clearCache() {

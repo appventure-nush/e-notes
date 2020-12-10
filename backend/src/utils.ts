@@ -3,7 +3,7 @@ import Role from './types/role';
 // import Note from "./types/note";
 // import Collection from "./types/coll";
 import express from "express";
-import {auth, firestore} from "firebase-admin";
+import admin, {auth, firestore} from "firebase-admin";
 import Collection from "./types/coll";
 
 // running two at the same time is a bad idea
@@ -21,6 +21,7 @@ const collections: Collection[] = [];
 // const noteCache = new Map<string, [Note, number]>();
 
 export async function getUser(uid: string): Promise<User> { // heavy call function
+    if (!uid) return null;
     if (userCache.has(uid)) {
         const cache = userCache.get(uid);
         if (Date.now() - cache[1] <= CACHE_AGE) return cache[0]; // else carry on
@@ -103,40 +104,71 @@ export function getAvailableCollections(uid: string) { // used in middleware
     return filterAsync(collections, c => hasPermissions(uid, c.cid));
 }
 
-export async function checkUser(req: express.Request, res: express.Response, next: Function) {
+async function getUID(req: express.Request) {
     const idToken = req.header("Authorization");
-    if (!idToken) return res.status(403).send("'Authorization' header not found");
+    const sessionCookie = req.cookies.session;
+    if (idToken) return (await auth().verifyIdToken(idToken)).uid;
+    else if (sessionCookie) return (await auth().verifySessionCookie(sessionCookie, true)).uid;
+    else return null;
+}
+
+export async function checkUser(req: express.Request, res: express.Response, next: Function) {
     try {
-        req.body.cuid = (await auth().verifyIdToken(idToken)).uid;
+        const uid = await getUID(req);
+        if (uid) {
+            req.body.cuid = uid;
+            return next();
+        } else return res.status(403).send("not logged in");
+    } catch (e) {
+        return res.status(403).send("authorization invalid");
+    }
+}
+
+export async function checkUserOptional(req: express.Request, res: express.Response, next: Function) {
+    try {
+        const uid = await getUID(req);
+        if (uid) {
+            req.body.cuid = uid;
+            req.body.user = transformUser(await getUser(uid), await auth().getUser(uid));
+        }
         return next();
     } catch (e) {
-        console.error(e);
+        console.log(e);
         return res.status(403).send("authorization invalid");
     }
 }
 
 export async function checkPermissions(req: express.Request, res: express.Response, next: Function) {
-    const idToken = req.header("Authorization");
-    if (!idToken) return res.status(403).send("'Authorization' header not found");
     try {
-        if (await hasPermissions((await auth().verifyIdToken(idToken)).uid, req.params.cid)) return next();
-        else return res.status(403).send("not authorized");
+        const uid = await getUID(req);
+        if (uid) {
+            if (await hasPermissions(uid, uid)) return next();
+            else return res.status(403).send("not authorized");
+        } else return res.status(403).send("not logged in");
+    } catch (e) {
+        return res.status(403).send("authorization invalid");
+    }
+}
+
+export async function checkAdmin(req: express.Request, res: express.Response, next: Function) {
+    try {
+        const uid = await getUID(req);
+        if (uid) {
+            if ((await getUser(uid)).admin === true) return next();
+            else return res.status(403).send("not admin");
+        } else return res.status(403).send("not logged in");
     } catch (e) {
         console.error(e);
         return res.status(403).send("authorization invalid");
     }
 }
 
-export async function checkAdmin(req: express.Request, res: express.Response, next: Function) {
-    const idToken = req.header("Authorization");
-    if (!idToken) return res.status(403).send("'Authorization' header not found");
-    try {
-        if ((await getUser((await auth().verifyIdToken(idToken)).uid)).admin === true) return next();
-        else return res.status(403).send("not admin");
-    } catch (e) {
-        console.error(e);
-        return res.status(403).send("authorization invalid");
-    }
+export function transformUser(user: User, fbUser: admin.auth.UserRecord) {
+    const data = user.toData() as any;
+    data.email = fbUser.email;
+    data.name = fbUser.displayName;
+    data.pfp = fbUser.photoURL;
+    return data;
 }
 
 export function setup() {

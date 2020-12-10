@@ -3,7 +3,7 @@ import admin from "firebase-admin";
 
 const users = Router();
 
-import {getUser, checkUser, checkAdmin} from '../../utils';
+import {getUser, checkUser, checkAdmin, transformUser} from '../../utils';
 import User from "../../types/user";
 
 users.get("/", checkUser, async (req, res, next) => req.app.locals.auth.listUsers(1000).then((list: admin.auth.ListUsersResult) => res.json({
@@ -60,13 +60,5 @@ users.post("/:uid/admin/role", checkAdmin, async (req, res, next) => {
         res.status(500).send("failed")
     }
 });
-
-function transformUser(user: User, fbUser: admin.auth.UserRecord) {
-    const data = user.toData() as any;
-    data.email = fbUser.email;
-    data.name = fbUser.displayName;
-    data.pfp = fbUser.photoURL;
-    return data;
-}
 
 export default users;
