@@ -1,6 +1,7 @@
 import {Router} from 'express';
 import Role from '../../types/role';
 import {getRole, getAllRoles, updateRoleCache, checkAdmin, updateRole, checkUser} from '../../utils';
+import {firestore} from "firebase-admin";
 
 const roles = Router();
 
@@ -35,7 +36,7 @@ roles.delete("/:rid", checkAdmin, async (req, res) => {
     }
 });
 
-roles.post("/:rid", checkAdmin, async (req, res, next) => {
+roles.post("/:rid", checkAdmin, async (req, res) => {
     if (!req.body.name) return res.status(400).json({
         reason: "name_required_for_creation",
         rid: req.params.rid
@@ -45,7 +46,7 @@ roles.post("/:rid", checkAdmin, async (req, res, next) => {
         rid: req.params.rid
     });
     else {
-        const ref = req.app.locals.db.collection("roles").doc(req.params.rid);
+        const ref = firestore().collection("roles").doc(req.params.rid);
         const role = new Role(req.params.rid, req.body.name, req.body.desc);
         await ref.set(role.toData());
         updateRoleCache(req.params.rid, role);
@@ -53,7 +54,7 @@ roles.post("/:rid", checkAdmin, async (req, res, next) => {
     }
 });
 
-roles.get("/:rid/:operation/:cid", checkAdmin, async (req, res, next) => {
+roles.get("/:rid/:operation/:cid", checkAdmin, async (req, res) => {
     const role = await getRole(req.params.rid);
     if (!role) return res.status(404).json({
         reason: "role_not_found",

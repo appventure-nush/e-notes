@@ -48,7 +48,6 @@ const users = {
 function updateOptions(options) {
     const update = {...options};
     update.headers = {
-        'Content-Type': 'application/json',
         ...update.headers,
         'CSRF-Token': token
     };
@@ -60,6 +59,11 @@ function fetcher(url, options) {
     return fetch(url, updateOptions(options)).then(res => res.json());
 }
 
+function fetchJSON(url, options) {
+    options.headers['Content-Type'] = 'application/json';
+    return fetch(url, updateOptions(options)).then(res => res.json());
+}
+
 function clearCache() {
     localStorage.removeItem("userCache");
     localStorage.removeItem("collCache");
@@ -67,4 +71,4 @@ function clearCache() {
 
 Object.freeze(collections);
 Object.freeze(users);
-export {collections, users, clearCache};
+export {collections, users, clearCache, fetcher};

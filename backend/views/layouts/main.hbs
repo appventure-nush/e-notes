@@ -9,6 +9,20 @@
           integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
     <link href="/css/bootstrap-drawer.min.css" rel="stylesheet">
     <link href="/css/main.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/darkreader@4.9.26/darkreader.min.js"></script>
+    <script>
+        function updateTheme() {
+            let dark;
+            let theme = localStorage.getItem('theme') || 'auto';
+            if (theme === 'auto') dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            else if (theme === 'dark') dark = true;
+            else if (theme === 'light') dark = false;
+            if (dark) DarkReader.enable({brightness: 80, contrast: 110, sepia: 20});
+            else DarkReader.disable();
+        }
+
+        updateTheme();
+    </script>
 </head>
 <body class="has-drawer">
 <div id="drawer" class="drawer dw-xs-10 dw-sm-4 dw-md-3 fold" aria-labelledby="drawer">
@@ -24,7 +38,7 @@
         <div class="drawer-body">
             <div class="card">
                 <div class="row no-gutters">
-                    <img style="border-top-left-radius:.25rem;"
+                    <img style="border-top-left-radius:.25rem;" id="drawer-user-profile-pic"
                          src="{{#if user}}{{#if user.pfp}}{{user.pfp}}{{else}}/images/guest.png{{/if}}
                          {{else}}/images/guest.png{{/if}}" alt="" height="80">
                     <div class="col-md">
@@ -54,6 +68,26 @@
             {{#if user.admin}}
                 <li id="nav_admin" role="presentation"><a href="/admin">Admin</a></li>
             {{/if}}
+            <hr>
+            <li role="presentation">
+                <div class="input-group">
+                    <div class="input-group-prepend"><label class="input-group-text" for="theme_selector">Theme</label>
+                    </div>
+                    <select class="form-control" id="theme_selector" style="-webkit-appearance:none;">
+                        <option value="auto">Auto</option>
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                    <script>
+                        let selector = document.getElementById('theme_selector');
+                        selector.value = localStorage.getItem('theme') || "auto";
+                        selector.onchange = () => {
+                            localStorage.setItem('theme', selector.value);
+                            updateTheme();
+                        }
+                    </script>
+                </div>
+            </li>
         </ul>
         <div class="drawer-footer">
             <a href="https://nush.app" target="_blank"><small>@Appventure

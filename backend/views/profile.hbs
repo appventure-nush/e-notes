@@ -1,0 +1,46 @@
+<form class="mt-4">
+    <div class="form-group">
+        <h4>Profile</h4>
+    </div>
+    <div class="form-group">
+        <label for="nickname">Nickname</label>
+        <input type="text" class="form-control" id="nickname" placeholder="cin >> nickname" value="{{user.nickname}}">
+    </div>
+    <div class="form-group">
+        <label for="profile_pic">
+            <img class="img-thumbnail" onerror="this.onerror=null;this.src='/images/guest.png';" src="{{user.pfp}}"
+                 style="cursor: pointer;max-height: 256px;" id="pfp_preview" alt="Profile Picture"/>
+        </label>
+        <input id="profile_pic" type="file" onchange="changePFP()" hidden><br>
+        <button class="btn btn-primary" type="button" onclick="uploadPFP()" id="upload_btn" disabled="disabled">Upload
+        </button>
+    </div>
+
+    <script type="module">
+        import {fetcher} from "/js/api.js";
+
+        const upload_btn = document.getElementById('upload_btn');
+        const profile_pic = document.getElementById('profile_pic');
+        const pfp_preview = document.getElementById('pfp_preview');
+
+        window.changePFP = function () {
+            const reader = new FileReader();
+            reader.onload = e => pfp_preview.setAttribute('src', e.target.result)
+            reader.readAsDataURL(profile_pic.files[0]);
+            upload_btn.removeAttribute('disabled');
+        }
+
+        window.uploadPFP = function () {
+            const formData = new FormData();
+            formData.append('new_profile_pic', profile_pic.files[0]);
+            const options = {
+                method: 'POST',
+                body: formData
+            };
+            fetcher('/profile/uploadPFP', options).then(result => {
+                if (result.status === "success") document.getElementById('drawer-user-profile-pic').setAttribute('src', result.user.pfp);
+                else alert(result.reason);
+            });
+        }
+    </script>
+</form>

@@ -117,6 +117,7 @@ export async function checkUser(req: express.Request, res: express.Response, nex
         const uid = await getUID(req);
         if (uid) {
             req.body.cuid = uid;
+            req.body.user = transformUser(await getUser(uid), await auth().getUser(uid));
             return next();
         } else return res.status(403).send("not logged in");
     } catch (e) {
@@ -163,7 +164,7 @@ export async function checkAdmin(req: express.Request, res: express.Response, ne
     }
 }
 
-export function transformUser(user: User, fbUser: admin.auth.UserRecord) {
+export function transformUser(user: User, fbUser: auth.UserRecord) {
     const data = user.toData() as any;
     data.email = fbUser.email;
     data.name = fbUser.displayName;

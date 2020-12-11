@@ -1,8 +1,9 @@
 import {Router} from 'express';
 import {checkUserOptional} from '../utils';
-import admin from 'firebase-admin';
+import {auth} from 'firebase-admin';
 import usersRouter from "./users";
 import adminRouter from "./admin";
+import profileRouter from "./profile";
 
 const index = Router();
 
@@ -13,27 +14,28 @@ index.get('/', checkUserOptional, (req, res) => {
 index.post('/', (req, res) => {
     const idToken = req.body.idToken.toString();
     const expiresIn = 60 * 60 * 24 * 5 * 1000;
-    admin.auth()
+    auth()
         .createSessionCookie(idToken, {expiresIn})
         .then((sessionCookie) => {
             const options = {maxAge: expiresIn, httpOnly: true, /*secure: true*/};
             res.cookie('session', sessionCookie, options);
             res.end(JSON.stringify({status: 'success'}));
-        }, error => {
-            res.status(401).send('UNAUTHORIZED REQUEST!');
+        }, _ => {
+            res.status(403).send('NZ2XG2D3NRHTS2KOL5TDISKMGNSH2===');
         });
 });
 index.get('/logout', (req, res) => {
     const sessionCookie = req.cookies.session || '';
     res.clearCookie('session');
-    admin.auth()
+    auth()
         .verifySessionCookie(sessionCookie)
-        .then((decodedClaims) => admin.auth().revokeRefreshTokens(decodedClaims.sub))
-        .then(() => res.redirect('/'))
-        .catch((error) => res.redirect('/'));
+        .then((decodedClaims) => auth().revokeRefreshTokens(decodedClaims.sub))
+        .then(_ => res.redirect('/'))
+        .catch(_ => res.status(403).send('logout failed'));
 });
 
 index.use("/users", usersRouter);
 index.use("/admin", adminRouter);
+index.use("/profile", profileRouter);
 
 export default index;
