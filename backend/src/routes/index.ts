@@ -23,7 +23,7 @@ index.post('/', (req, res) => {
             res.status(401).send('UNAUTHORIZED REQUEST!');
         });
 });
-index.get('logout', (req, res) => {
+index.get('/logout', (req, res) => {
     const sessionCookie = req.cookies.session || '';
     res.clearCookie('session');
     admin.auth()
