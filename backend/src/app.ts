@@ -33,7 +33,7 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 (async () => {
     try {
-        return require("./service-account.json");
+        return require("../service-account.json");
     } catch (e) {
         console.log("Falling back to vault...");
         const vaultClient = NodeVault({endpoint: "https://vault.nush.app"});
