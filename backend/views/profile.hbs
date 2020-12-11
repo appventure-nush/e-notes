@@ -10,10 +10,12 @@
         <label for="profile_pic">
             <img class="img-thumbnail" onerror="this.onerror=null;this.src='/images/guest.png';" src="{{user.pfp}}"
                  style="cursor: pointer;max-height: 256px;" id="pfp_preview" alt="Profile Picture"/>
-        </label>
-        <input id="profile_pic" type="file" onchange="changePFP()" hidden><br>
+        </label><br>
         <button class="btn btn-primary" type="button" onclick="uploadPFP()" id="upload_btn" disabled="disabled">Upload
         </button>
+        <br>
+        <small>Only JPG/PNG/GIF are allowed, images will be fit-cropped to 256&times;256</small>
+        <input id="profile_pic" type="file" onchange="changePFP()" hidden>
     </div>
 
     <script type="module">
@@ -33,11 +35,13 @@
         window.uploadPFP = function () {
             const formData = new FormData();
             formData.append('new_profile_pic', profile_pic.files[0]);
+            upload_btn.setAttribute('disabled', 'disabled');
             const options = {
                 method: 'POST',
                 body: formData
             };
             fetcher('/profile/uploadPFP', options).then(result => {
+                upload_btn.removeAttribute('disabled');
                 if (result.status === "success") document.getElementById('drawer-user-profile-pic').setAttribute('src', result.user.pfp);
                 else alert(result.reason);
             });

@@ -11,6 +11,7 @@ profile.get('/', checkUser, (req, res) => {
     res.render("profile", {user: req.body.user, csrf: req.csrfToken()});
 });
 profile.post('/uploadPFP', checkUser, async (req, res) => {
+    if (!req.files) return res.json({status: 'failed', reason: 'where is the file'});
     let new_profile_pic = req.files.new_profile_pic;
     if (new_profile_pic && "data" in new_profile_pic) {
         let type = imageType(new_profile_pic.data);
