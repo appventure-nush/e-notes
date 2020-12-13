@@ -1,0 +1,29 @@
+> Collections
+    > Notes
+
+<link rel="stylesheet" href="../public/css/collection.css">
+<ul id="myUL">
+    <li><span class="caret">For now the contents in this tree view is hard coded</span>
+        <ul class="nested">
+            <li>Will update to dynamically load contents soon</li>
+            <li><span class="caret">Test folder</span>
+                <ul class="nested">
+                    <li><a href="../public/test.txt">Download!</a></li>
+                </ul>
+            </li>
+        </ul>
+    </li>
+</ul>
+
+<script>
+    window.currentNav = "collection";
+    var toggler = document.getElementsByClassName("caret");
+    var i;
+
+    for (i = 0; i < toggler.length; i++) {
+        toggler[i].addEventListener("click", function() {
+            this.parentElement.querySelector(".nested").classList.toggle("active");
+            this.classList.toggle("caret-down");
+        });
+    }
+</script>

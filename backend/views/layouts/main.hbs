@@ -67,6 +67,7 @@
             <li id="nav_users" role="presentation"><a href="/users">Users</a></li>
             {{#if user.admin}}
                 <li id="nav_admin" role="presentation"><a href="/admin">Admin</a></li>
+                <li id="nav_collection" role="presentation"><a href="/collection">Collections</a></li>
             {{/if}}
             <hr>
             <li role="presentation">
@@ -119,7 +120,8 @@
     const nav = {
         "index": "nav_home",
         "users": "nav_users",
-        "admin": "nav_admin"
+        "admin": "nav_admin",
+        "collection": "nav_collection"
     };
     if (nav[window.currentNav]) document.getElementById(nav[window.currentNav]).classList.add("active");
 </script>
