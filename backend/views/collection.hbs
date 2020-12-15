@@ -6,16 +6,21 @@
         border: #515151 1px solid;
     }
 </style>
+{{#if user.admin}}
+<div class="form-group">
+    <label for="collection_notes_name">Collection Description</label>
+    <input type="file" class="form-control-file" id="collection_notes_name" multiple>
+</div>
 <div class="row" id="admin_panel">
     <div id="tree" class="col-sm-6 col-md-4 col-lg-3"></div>
     <div class="col-sm-6 col-md-8 col-lg-9 justify-content-center" id="display">
         <h4 class="centered">Please select something</h4>
     </div>
 </div>
+{{/if}}
 <script src="/js/bstreeview.min.js"></script>
 <script src="/js/api.js"></script>
 <script>
-    window.currentNav = "admin";
     window.onload = e => {
         async function getTree() {
             var cid = window.location.href.split("/")[window.location.href.split("/").length - 1]

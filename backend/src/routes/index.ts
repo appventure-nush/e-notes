@@ -40,6 +40,5 @@ index.use("/u", userRouter);
 index.use("/c", collRouter);
 index.use("/admin", adminRouter);
 index.use("/profile", profileRouter);
-index.use("/collection", collectionRouter);
 
 export default index;
