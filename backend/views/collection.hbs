@@ -24,15 +24,16 @@
     window.onload = e => {
         async function getTree() {
             var cid = window.location.href.split("/")[window.location.href.split("/").length - 1]
-            let data = collections.get(cid)
+            let notes = notes.getAll(cid);
+            let coll = collections.get(cid);
             let tree = [];
             tree.push({
-                text: `${data.name}`,
-                icon: "fa fa-folder",
-                nodes: ({
-                    id: data.id,
-                    text: `${data.file};`
-                })
+                text: `${coll.name}`,
+                icon: "fa fa-folder"
+                nodes: notes.map(note => ({
+                    id: note.rid,
+                    text: `${note.noteId} ${note.name}`
+                }))
             });
             return tree;
         }
