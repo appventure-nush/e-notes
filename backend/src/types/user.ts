@@ -4,6 +4,7 @@ class User {
     uid: string;
 
     nickname?: string;
+    desc?: string;
     roles: string[];
     admin = false;
     permissions: Map<string, boolean>;
@@ -16,15 +17,11 @@ class User {
         } else {
             this.uid = user.uid;
             this.nickname = user.nickname;
+            this.desc = user.desc;
             this.roles = user.roles;
             this.admin = user.admin;
             this.permissions = new Map(Object.entries(user.permissions));
         }
-    }
-
-    async setNickname(nickname: string) {
-        this.nickname = nickname;
-        await updateUser(this.uid, this);
     }
 
     async setPermissions(permissions: any) {
@@ -69,6 +66,7 @@ class User {
         return {
             uid: this.uid,
             nickname: this.nickname,
+            desc: this.desc,
             roles: this.roles,
             admin: this.admin,
             permissions: autoConvertMapToObject(this.permissions)

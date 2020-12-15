@@ -54,13 +54,14 @@ export async function updateUser(userId: string, value: User) {
     updateUserCache(userId, value);
     if (value) await firestore().collection("users").doc(userId).set(value.toData());
     else await firestore().collection("users").doc(userId).delete();
+    return value;
 }
 
 export async function updateRole(rid: string, value: Role) {
     updateRoleCache(rid, value);
     if (value) await firestore().collection("roles").doc(rid).set(value.toData());
     else await firestore().collection("roles").doc(rid).delete();
-
+    return value;
 }
 
 export function updateUserCache(userId: string, value: User) {

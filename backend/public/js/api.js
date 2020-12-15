@@ -5,7 +5,7 @@ const collCache = JSON.parse(localStorage.getItem("collCache") || '{}');
 // i dont even care about multiple windows open at same time
 const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 const collections = {
-    async get(cid) {
+    get: async function (cid) {
         cid = String(cid);
         if (collCache[cid] && Date.now() - collCache[cid].time < cacheAge) {
             return collCache[cid].coll;
@@ -16,16 +16,16 @@ const collections = {
         localStorage.setItem("collCache", JSON.stringify(collCache));
         return coll;
     },
-    getAll() {
+    getAll: function () {
         return fetcher("/api/collections").then(colls => { // this will disregard any cache the client currently has
             for (let coll of colls) collCache[coll.cid] = {coll, time: Date.now()};
             localStorage.setItem("collCache", JSON.stringify(collCache));
             return colls;
         });
-    },
+    }
 };
 const users = {
-    async get(uid) {
+    get: async function (uid) {
         uid = String(uid);
         if (userCache[uid] && Date.now() - userCache[uid].time < cacheAge) {
             return userCache[uid].user;
@@ -36,8 +36,9 @@ const users = {
         localStorage.setItem("userCache", JSON.stringify(userCache));
         return user;
     },
-    getAll() {
+    getAll: function () {
         return fetcher("/api/users").then(users => { // this will disregard any cache the client currently has
+            users = users.users;
             for (let user of users) userCache[user.uid] = {user, time: Date.now()};
             localStorage.setItem("userCache", JSON.stringify(userCache));
             return users;

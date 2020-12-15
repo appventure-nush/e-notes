@@ -1,4 +1,47 @@
-Admin panel go brrr
-<script>
+<link href="/css/bstreeview.min.css" rel="stylesheet">
+<style>
+    #admin_panel {
+        margin-top: 5em;
+        border-radius: 5px;
+        border: #515151 1px solid;
+    }
+</style>
+<div class="row" id="admin_panel">
+    <div id="tree" class="col-sm-6 col-md-4 col-lg-3"></div>
+    <div class="col-sm-6 col-md-8 col-lg-9 justify-content-center" id="display">
+        <h4 class="centered">Please select something</h4>
+    </div>
+</div>
+<script src="/js/bstreeview.min.js">
     window.currentNav = "admin";
+</script>
+<script type="module">
+    import {users, collections} from '/js/api.js';
+
+    window.onload = e => {
+        async function getTree() {
+            let data = await Promise.all([users.getAll(), collections.getAll()]);
+            let tree = [];
+            tree.push({
+                text: 'Users',
+                icon: "fa fa-folder",
+                nodes: data[0].map(user => ({
+                    id: user.uid,
+                    text: `${user.name}${user.nickname ? ` (${user.nickname})` : ''}`
+                }))
+            });
+            tree.push({
+                text: 'Collections',
+                icon: "fa fa-folder",
+                nodes: data[1].map(coll => ({
+                    id: coll.cid,
+                    text: `${coll.cid} ${coll.name}`
+                }))
+            });
+            return tree;
+        }
+
+        getTree().then(tree => $('#tree').bstreeview({data: tree}))
+
+    }
 </script>

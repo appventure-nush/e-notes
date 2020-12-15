@@ -1,6 +1,6 @@
 import Jimp from 'jimp';
 import {Router} from 'express';
-import {checkUser, getUser, transformUser} from "../utils";
+import {checkUser, getUser, transformUser, updateUser} from "../utils";
 import imageType from "image-type";
 import {auth, storage} from "firebase-admin";
 import User from "../types/user";
@@ -9,6 +9,19 @@ const profile = Router();
 const IMAGE_FORMATS = ['image/gif', 'image/jpeg', 'image/png'];
 profile.get('/', checkUser, (req, res) => {
     res.render("profile", {user: req.body.user, csrf: req.csrfToken()});
+});
+profile.post('/', checkUser, async (req, res) => {
+    const {nickname, desc} = req.body;
+    let user = req.body.user as User;
+    if (nickname) user.nickname = nickname;
+    if (desc) user.desc = desc;
+    try {
+        if (nickname || desc) return res.json({status: 'success', user: await updateUser(user.uid, new User(user))});
+        else return res.json({status: 'failed', reason: 'please give a nickname or a description'});
+    } catch (_) {
+        console.log(_);
+    }
+    res.json({status: 'failed', reason: 'not sure why, not sure where'});
 });
 profile.post('/uploadPFP', checkUser, async (req, res) => {
     if (!req.files) return res.json({status: 'failed', reason: 'where is the file'});

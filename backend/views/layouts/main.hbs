@@ -20,12 +20,11 @@
             if (dark) DarkReader.enable({brightness: 80, contrast: 110, sepia: 20});
             else DarkReader.disable();
         }
-
         updateTheme();
     </script>
 </head>
 <body class="has-drawer">
-<div id="drawer" class="drawer dw-xs-10 dw-sm-4 dw-md-3 fold" aria-labelledby="drawer">
+<div id="drawer" class="drawer dw-xs-10 dw-sm-6 dw-md-4 dw-lg-3 fold" aria-labelledby="drawer">
     <script>if (localStorage.getItem("drawer_is_open") === "true") document.getElementById('drawer').classList.add("open")</script>
     <div class="drawer-controls">
         <a href="#drawer" data-toggle="drawer" aria-foldedopen="false" aria-controls="drawer"
@@ -42,19 +41,20 @@
                          src="{{#if user}}{{#if user.pfp}}{{user.pfp}}{{else}}/images/guest.png{{/if}}
                          {{else}}/images/guest.png{{/if}}" alt="" height="80">
                     <div class="col-md">
-                        <div class="card-body" style="padding: .5rem .8rem;">
-                            <h6 class="card-title">{{#if user}}{{user.name}}{{else}}Guest{{/if}}</h6>
+                        <div class="card-body" style="padding: .3rem .6rem;">
+                            <h6 class="card-text" id="drawer-user-display-name">{{#if user}}{{#if
+                                    user.nickname}}{{user.nickname}}{{else}}{{user.name}}{{/if}}{{else}}
+                                Guest{{/if}}</h6>
+                            {{#if user}}<small class="card-text">@{{user.name}}</small><br>{{/if}}
                             <small class="card-text">{{#if user}}{{user.email}}{{else}}
                                 Please <a href="javascript:window.authSignIn()">login</a>{{/if}}</small>
                         </div>
                     </div>
                 </div>
                 {{#if user}}
-                    {{#if user.desc}}
-                        <div class="card-body">
-                            {{user.desc}}
-                        </div>
-                    {{/if}}
+                    <small class="card-text ml-2" id="drawer-user-desc">
+                        {{user.desc}}
+                    </small>
                     <div class="card-footer">
                         <a href="/logout" class="card-link">Logout</a>
                         <a href="/profile" class="card-link">Profile</a>
@@ -103,13 +103,14 @@
         </div>
     </div>
 </div>
+<script src="/js/main.js"></script>
+<script src="/js/jquery-3.5.1.slim.min.js"></script>
+{{#unless user}}
+    {{> firebase/firebase}}
+{{/unless}}
 <div class="container">
     {{{body}}}
 </div>
-
-{{> firebase/firebase}}
-<script src="/js/main.js"></script>
-<script src="/js/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
         crossorigin="anonymous"></script>
