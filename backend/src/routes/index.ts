@@ -5,8 +5,7 @@ import userRouter from "./u";
 import collRouter from "./c";
 import adminRouter from "./admin";
 import profileRouter from "./profile";
-import collectionRouter from "./collection";
-import createRouter from "./create";
+import collectionRouter from "./c";
 
 const index = Router();
 
@@ -42,6 +41,5 @@ index.use("/c", collRouter);
 index.use("/admin", adminRouter);
 index.use("/profile", profileRouter);
 index.use("/collection", collectionRouter);
-index.use("/create", createRouter);
 
 export default index;
