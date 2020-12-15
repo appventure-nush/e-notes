@@ -12,7 +12,7 @@
     <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav">
             <li class="nav-item">
-                <a class="nav-link" href="#"><i class="fas fa-sync"></i> Cache</a>
+                <a class="nav-link" href="#" onclick="renderCollections()"><i class="fas fa-sync"></i> Cache</a>
             </li>
             {{#if user.admin}}
                 <li class="nav-item">
@@ -67,7 +67,6 @@
                     <button type="button" class="btn btn-secondary" onclick="clearCollection()">Clear</button>
                     <button type="button" class="btn btn-primary" onclick="addCollection()">Add</button>
                 </div>
-                <script src="/js/api.js"></script>
                 <script>
                     const addFormID = document.getElementById('add_form_id');
                     const addFormName = document.getElementById('add_form_name');
@@ -84,7 +83,12 @@
                                 open: addFormOpen.checked
                             })
                         }).then(result => {
-                            console.log(result);
+                            if (result.reason) {
+                                alert(result.reason); // failed
+                            } else {
+                                collections.add(result);
+
+                            }
                         }).catch(e => {
                             console.log(e);
                         })
@@ -100,17 +104,13 @@
     </div>
 {{/if}}
 
-
 <script>
     window.currentNav = "index";
-</script>
-<script type="module">
-    import {collections} from '/js/api.js';
-
     const display = document.getElementById('display')
-    window.onload = e => {
-        async function getCollections() {
-            return (await collections.getAll(true)).map(coll => `<div class="col-lg-3 col-md-4 col-sm-6 card collection_card" id="coll_${coll.cid}">
+
+    function renderCollections() {
+        display.innerHTML = collections.getAll().then(colls => {
+            colls.map(coll => `<div class="col-lg-3 col-md-4 col-sm-6 card collection_card" id="coll_${coll.cid}">
 <div class="card-body">
 <h5 class="card-title">${coll.name}</h5>
 <h6 class="card-subtitle mb-2 text-muted"><pre>${coll.cid}</pre></h6>
@@ -121,8 +121,10 @@
 {{/if}}
 </div>
 </div>`).join('\n');
-        }
+        });
+    }
 
-        getCollections().then(html => display.innerHTML = html);
+    window.onload = _ => {
+        renderCollections();
     }
 </script>

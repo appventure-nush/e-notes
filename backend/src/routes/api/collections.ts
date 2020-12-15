@@ -38,7 +38,11 @@ collections.delete("/:cid", checkAdmin, async (req, res) => {
         res.json({status: "ok"});
     }
 });
-
+collections.post("/", checkAdmin, (req, res) => {
+    res.status(400).json({
+        reason: "collection_id_required"
+    });
+});
 collections.post("/:cid", checkAdmin, async (req, res) => {
     const collection = new Collection(req.params.cid, req.body.name, req.body.desc, req.body.open);
     const ref = firestore().collection("collections").doc(req.params.cid);

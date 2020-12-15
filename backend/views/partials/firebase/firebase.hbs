@@ -1,6 +1,5 @@
 <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-auth.js"></script>
-<!--<script src="/js/api.js"></script>-->
 <script>firebase.initializeApp({
     apiKey: "AIzaSyARHcPTpQ09ekeN91DtgfrAl8kA3bgrcYM",
     authDomain: "e-notes-nush.firebaseapp.com",
@@ -12,8 +11,6 @@
     measurementId: "G-5CEEWG9PZR"
 });</script>
 <script type="module">
-    import {collections, users} from '/js/api.js';
-
     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);
     firebase.auth().onAuthStateChanged(function (user) {
         if (user) firebase.auth().currentUser.getIdToken(true).then(idToken => {
@@ -40,7 +37,5 @@
     window.authSignIn = function () {
         firebase.auth().signInWithPopup(new firebase.auth.OAuthProvider('microsoft.com'));
     }
-    window.authSignOut = function () {
-        firebase.auth().signOut();
-    }
 </script>
+<!--Only loaded if user has not logged in-->
