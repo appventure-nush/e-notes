@@ -16,7 +16,8 @@ const collections = {
         localStorage.setItem("collCache", JSON.stringify(collCache));
         return coll;
     },
-    getAll: function () {
+    getAll: function (useCache) {
+        if (useCache && Object.values(collCache).length > 0) return Object.values(collCache).map(cache => cache.coll);
         return fetcher("/api/collections").then(colls => { // this will disregard any cache the client currently has
             for (let coll of colls) collCache[coll.cid] = {coll, time: Date.now()};
             localStorage.setItem("collCache", JSON.stringify(collCache));
@@ -36,7 +37,8 @@ const users = {
         localStorage.setItem("userCache", JSON.stringify(userCache));
         return user;
     },
-    getAll: function () {
+    getAll: function (useCache) {
+        if (useCache && Object.values(userCache).length > 0) return Object.values(userCache).map(cache => cache.user);
         return fetcher("/api/users").then(users => { // this will disregard any cache the client currently has
             users = users.users;
             for (let user of users) userCache[user.uid] = {user, time: Date.now()};

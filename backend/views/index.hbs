@@ -1,5 +1,53 @@
-Test Test<br>
-<a href="/users">go users</a>
+<style>
+    .collection_card {
+        margin: 0 1em 0.5em;
+    }
+</style>
+<nav class="navbar navbar-expand-lg navbar-light" style="margin-top: 2em">
+    <a class="navbar-brand" href="#">Collections</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="#"><i class="fas fa-sync"></i> Cache</a>
+            </li>
+            {{#if user.admin}}
+                <li class="nav-item">
+                    <a class="nav-link" href="#"><i class="fas fa-plus"></i> New</a>
+                </li>
+            {{/if}}
+        </ul>
+    </div>
+</nav>
+<script src="https://kit.fontawesome.com/c32b3db897.js" crossorigin="anonymous"></script>
+<div id="display" class="row">
+
+</div>
 <script>
     window.currentNav = "index";
+</script>
+<script type="module">
+    import {collections} from '/js/api.js';
+
+    const display = document.getElementById('display')
+    window.onload = e => {
+        async function getCollections() {
+            return (await collections.getAll(true)).map(coll => `<div class="col-lg-3 col-md-4 col-sm-6 card collection_card" id="coll_${coll.cid}">
+<div class="card-body">
+<h5 class="card-title">${coll.name}</h5>
+<h6 class="card-subtitle mb-2 text-muted"><pre>${coll.cid}</pre></h6>
+<p class="card-text">${coll.desc}</p>
+<a href="#${coll.cid}" class="card-link">Open</a>
+{{#if user.admin}}
+<a href="#" class="card-link">Edit</a>
+{{/if}}
+</div>
+</div>`).join('\n');
+        }
+
+        getCollections().then(html => display.innerHTML = html);
+    }
 </script>

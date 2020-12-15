@@ -20,15 +20,25 @@
             if (dark) DarkReader.enable({brightness: 80, contrast: 110, sepia: 20});
             else DarkReader.disable();
         }
+
         updateTheme();
     </script>
 </head>
 <body class="has-drawer">
 <div id="drawer" class="drawer dw-xs-10 dw-sm-6 dw-md-4 dw-lg-3 fold" aria-labelledby="drawer">
-    <script>if (localStorage.getItem("drawer_is_open") === "true") document.getElementById('drawer').classList.add("open")</script>
+    <script>
+        if (localStorage.getItem("drawer_is_open") === "true") document.getElementById('drawer').classList.add("open")
+        else document.getElementById('drawer').classList.remove("open")
+    </script>
     <div class="drawer-controls">
         <a href="#drawer" data-toggle="drawer" aria-foldedopen="false" aria-controls="drawer"
-           class="btn btn-primary btn-sm">Menu</a>
+           class="btn btn-outline-dark btn-sm openc">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots"
+                 viewBox="0 0 16 16">
+                <path fill-rule="evenodd"
+                      d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+            </svg>
+        </a>
     </div>
     <div class="drawer-contents">
         <div class="drawer-heading">
