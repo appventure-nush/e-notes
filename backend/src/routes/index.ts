@@ -4,6 +4,8 @@ import {auth} from 'firebase-admin';
 import usersRouter from "./users";
 import adminRouter from "./admin";
 import profileRouter from "./profile";
+import collectionRouter from "./collection";
+import createRouter from "./create";
 
 const index = Router();
 
@@ -37,5 +39,7 @@ index.get('/logout', (req, res) => {
 index.use("/users", usersRouter);
 index.use("/admin", adminRouter);
 index.use("/profile", profileRouter);
+index.use("/collection", collectionRouter);
+index.use("/create", createRouter);
 
 export default index;
