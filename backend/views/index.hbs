@@ -1,6 +1,8 @@
 <style>
     .collection_card {
-        margin: 0 1em 0.5em;
+        margin: 0.3em 0;
+        padding-left: 8px;
+        padding-right: 8px;
     }
 </style>
 <nav class="navbar navbar-expand-lg navbar-light" style="margin-top: 2em">
@@ -142,7 +144,8 @@
 
     function renderCollections(forceReset = false) {
         collections.getAll(!forceReset).then(colls => {
-            display.innerHTML = colls.map(coll => `<div class="col-lg-3 col-md-5 col-sm-12 card collection_card" id="coll_${coll.cid}">
+            display.innerHTML = colls.map(coll => `<div class="col-lg-3 col-md-5 col-sm-12 collection_card" id="coll_${coll.cid}">
+<div class="card">
 <div class="card-body">
 <h5 class="card-title">${coll.name}</h5>
 <h6 class="card-subtitle mb-2 text-muted"><pre>${coll.cid}</pre></h6>
@@ -151,6 +154,7 @@
 {{#if user.admin}}
 <a href="#" class="card-link" data-toggle="modal" data-target="#admin_collection_popup" data-action="edit" data-cid="${coll.cid}">Edit</a>
 {{/if}}
+</div>
 </div>
 </div>`).join('\n');
         });
