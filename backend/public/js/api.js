@@ -37,13 +37,25 @@ const collections = {
         return colls;
     }
 };
+const notes = {
+    get: async function (cid, rid) {
+        if (!cid) return null;
+        cid = String(cid);
+        rid = String(rid);
+        let note = await fetcher(`/api/collections/${cid}/notes/${rid}`)
+        if (note.reason) note = null;
+        return note;
+    },
+    getAll: async function (cid) {
+        return Array.from(await fetcher(`/api/collections/${cid}/notes`));
+    }
+};
 const users = {
     get: async function (uid) {
         uid = String(uid);
         if (userCache[uid] && Date.now() - userCache[uid].time < cacheAge) {
             return userCache[uid].user;
         }
-        // '/' is actually allowed uwu
         let user = await fetcher(`/api/users/${uid}`)
         userCache[user.uid] = {user, time: Date.now()};
         localStorage.setItem("userCache", JSON.stringify(userCache));
@@ -86,6 +98,8 @@ function clearCache() {
 
 Object.freeze(collections);
 Object.freeze(users);
+Object.freeze(notes);
 window.collections = collections;
-window.fetcher = fetcher;
 window.users = users;
+window.notes = notes;
+window.fetcher = fetcher;
