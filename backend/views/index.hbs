@@ -12,11 +12,12 @@
     <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav">
             <li class="nav-item">
-                <a class="nav-link" href="#" onclick="renderCollections()"><i class="fas fa-sync"></i> Cache</a>
+                <a class="nav-link" href="#" onclick="renderCollections(true)"><i class="fas fa-sync"></i> Cache</a>
             </li>
             {{#if user.admin}}
                 <li class="nav-item">
-                    <a class="nav-link" href="#" data-toggle="modal" data-target="#admin_add_collection">
+                    <a class="nav-link" href="#" data-action="add"
+                       data-toggle="modal" data-target="#admin_collection_popup">
                         <i class="fas fa-plus"></i> New
                     </a>
                 </li>
@@ -30,11 +31,13 @@
 </div>
 
 {{#if user.admin}}
-    <div class="modal fade" id="admin_add_collection" tabindex="-1" aria-labelledby="add_label" aria-hidden="true">
+    <!--  There are questionable code  -->
+    <div class="modal fade" id="admin_collection_popup" tabindex="-1" aria-labelledby="collection_popup_title"
+         aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="add_label">Add collection</h5>
+                    <h5 class="modal-title" id="collection_popup_title"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -42,61 +45,90 @@
                 <div class="modal-body">
                     <form>
                         <div class="form-group">
-                            <label for="add_form_id">Collection ID</label>
-                            <input type="text" class="form-control" id="add_form_id" aria-describedby="add_form_id_help"
+                            <label for="collection_form_id">Collection ID</label>
+                            <input type="text" class="form-control" id="collection_form_id"
+                                   aria-describedby="add_form_id_help"
                                    placeholder="CS1131A">
                             <small id="add_form_id_help" class="form-text text-muted">Please don't use spaces</small>
                         </div>
                         <div class="form-group">
-                            <label for="add_form_name">Collection Name</label>
-                            <input type="text" class="form-control" id="add_form_name"
+                            <label for="collection_form_name">Collection Name</label>
+                            <input type="text" class="form-control" id="collection_form_name"
                                    placeholder="Introduction to Programming">
                         </div>
                         <div class="form-group">
-                            <label for="add_form_desc">Collection Description</label>
-                            <input type="text" class="form-control" id="add_form_desc" placeholder="UwU">
+                            <label for="collection_form_desc">Collection Description</label>
+                            <input type="text" class="form-control" id="collection_form_desc" placeholder="UwU">
                         </div>
                         <div class="form-group form-check">
-                            <input type="checkbox" class="form-check-input" id="add_form_open_check">
-                            <label class="form-check-label" for="add_form_open_check">Open for all</label>
+                            <input type="checkbox" class="form-check-input" id="collection_form_open_check">
+                            <label class="form-check-label" for="collection_form_open_check">Open for all</label>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-secondary" onclick="clearCollection()">Clear</button>
-                    <button type="button" class="btn btn-primary" onclick="addCollection()">Add</button>
+                    <button type="button" class="btn btn-secondary" onclick="clearFields()">Clear</button>
+                    <button id="actionBtn" type="button" class="btn btn-primary"
+                            onclick="actionBtnClicked(this.innerText.toLowerCase())"></button>
                 </div>
                 <script>
-                    const addFormID = document.getElementById('add_form_id');
-                    const addFormName = document.getElementById('add_form_name');
-                    const addFormDesc = document.getElementById('add_form_desc');
-                    const addFormOpen = document.getElementById('add_form_open_check');
+                    const idInput = document.getElementById('collection_form_id');
+                    const nameInput = document.getElementById('collection_form_name');
+                    const descInput = document.getElementById('collection_form_desc');
+                    const openToAll = document.getElementById('collection_form_open_check');
 
-                    function addCollection() {
-                        fetcher(`/api/collections/${addFormID.value}`, {
+                    const actionBtn = document.getElementById('actionBtn');
+
+                    // i hate jquery
+                    $('#admin_collection_popup').on('show.bs.modal', async e => {
+                        if ($(e.relatedTarget).data('action') === 'add') {
+                            $('#collection_popup_title').text('Add collection');
+                            idInput.disabled = false;
+                            actionBtn.innerText = "Add";
+                            clearFields();
+                        } else {
+                            $('#collection_popup_title').text('Edit collection');
+                            let cid = $(e.relatedTarget).data('cid');
+                            let coll = await collections.get(cid);
+                            idInput.value = coll.cid;
+                            idInput.disabled = true;
+                            nameInput.value = coll.name;
+                            descInput.value = coll.desc;
+                            openToAll.checked = coll.open;
+                            actionBtn.innerText = "Edit";
+                        }
+                    });
+
+                    function actionBtnClicked(action) {
+                        actionBtn.disabled = true;
+                        fetcher(`/api/collections/${idInput.value}`, {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
                             body: JSON.stringify({
-                                name: addFormName.value,
-                                desc: addFormDesc.value,
-                                open: addFormOpen.checked
+                                action: (action === 'add' ? 'add' : 'edit'),
+                                name: nameInput.value,
+                                desc: descInput.value,
+                                open: openToAll.checked
                             })
                         }).then(result => {
+                            actionBtn.disabled = false;
                             if (result.reason) {
                                 alert(result.reason); // failed
                             } else {
-                                collections.add(result);
-
+                                $('#admin_collection_popup').modal('hide');
+                                collections.update(result);
+                                renderCollections();
                             }
                         }).catch(e => {
                             console.log(e);
                         })
                     }
 
-                    function clearCollection() {
-                        addFormID.value = addFormName.value = addFormDesc.value = "";
-                        addFormOpen.checked = false;
+                    function clearFields() {
+                        if (actionBtn.innerText === "Add") idInput.value = "";
+                        nameInput.value = descInput.value = "";
+                        openToAll.checked = false;
                     }
                 </script>
             </div>
@@ -108,16 +140,16 @@
     window.currentNav = "index";
     const display = document.getElementById('display')
 
-    function renderCollections() {
-        display.innerHTML = collections.getAll().then(colls => {
-            colls.map(coll => `<div class="col-lg-3 col-md-4 col-sm-6 card collection_card" id="coll_${coll.cid}">
+    function renderCollections(forceReset = false) {
+        collections.getAll(!forceReset).then(colls => {
+            display.innerHTML = colls.map(coll => `<div class="col-lg-3 col-md-5 col-sm-12 card collection_card" id="coll_${coll.cid}">
 <div class="card-body">
 <h5 class="card-title">${coll.name}</h5>
 <h6 class="card-subtitle mb-2 text-muted"><pre>${coll.cid}</pre></h6>
 <p class="card-text">${coll.desc}</p>
-<a href="#${coll.cid}" class="card-link">Open</a>
+<a href="/c/${coll.cid}" class="card-link">Open</a>
 {{#if user.admin}}
-<a href="#" class="card-link">Edit</a>
+<a href="#" class="card-link" data-toggle="modal" data-target="#admin_collection_popup" data-action="edit" data-cid="${coll.cid}">Edit</a>
 {{/if}}
 </div>
 </div>`).join('\n');

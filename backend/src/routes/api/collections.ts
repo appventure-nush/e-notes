@@ -43,17 +43,20 @@ collections.post("/", checkAdmin, (req, res) => {
         reason: "collection_id_required"
     });
 });
+// maybe i will separate them
 collections.post("/:cid", checkAdmin, async (req, res) => {
-    const collection = new Collection(req.params.cid, req.body.name, req.body.desc, req.body.open);
     const ref = firestore().collection("collections").doc(req.params.cid);
-    if ((await ref.get()).exists) return res.status(403).json({
-        reason: "collection_already_exists",
-        cid: req.params.cid
-    });
-    else {
-        await ref.set(collection.toData());
-        res.json(collection);
-    }
+    let documentSnapshot = await ref.get();
+    let collection;
+    if (documentSnapshot.exists) {
+        if (req.body.action && req.body.action === "add") return res.status(400).json({reason: "collection_already_exist"});
+        collection = new Collection(documentSnapshot.data());
+        if (req.body.name) collection.name = req.body.name;
+        if (req.body.desc) collection.desc = req.body.desc;
+        if (req.body.open) collection.open = (req.body.open === "open");
+    } else collection = new Collection(req.params.cid, req.body.name, req.body.desc, req.body.open);
+    await ref.set(collection.toData());
+    res.json(collection);
 });
 
 collections.use("/:cid/notes", checkPermissions, (req, res, next) => {
