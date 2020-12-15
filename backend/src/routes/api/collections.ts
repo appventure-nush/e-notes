@@ -40,7 +40,7 @@ collections.delete("/:cid", checkAdmin, async (req, res) => {
 });
 
 collections.post("/:cid", checkAdmin, async (req, res) => {
-    const collection = new Collection(req.params.cid, req.body.name, req.body.desc);
+    const collection = new Collection(req.params.cid, req.body.name, req.body.desc, req.body.open);
     const ref = firestore().collection("collections").doc(req.params.cid);
     if ((await ref.get()).exists) return res.status(403).json({
         reason: "collection_already_exists",

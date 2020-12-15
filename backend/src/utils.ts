@@ -3,7 +3,7 @@ import Role from './types/role';
 // import Note from "./types/note";
 // import Collection from "./types/coll";
 import express from "express";
-import admin, {auth, firestore} from "firebase-admin";
+import {auth, firestore} from "firebase-admin";
 import Collection from "./types/coll";
 
 // running two at the same time is a bad idea
@@ -13,7 +13,6 @@ import Collection from "./types/coll";
 const CACHE_AGE = 1000 * 60 * 60 * 2; // 2 hours
 
 let lastFullRoleRefresh = 0;
-const lastFullUserRefresh = 0;
 const userCache = new Map<string, [User, number]>();
 const roleCache = new Map<string, [Role, number]>();
 const collections: Collection[] = [];
@@ -89,14 +88,17 @@ export async function getAllRoles(): Promise<Role[]> {
 
 // permission system in order of priority
 // 1) user defined (per-user-permissions, user.additional)
-// 2) role rejection (specified not allow)
-// 3) role acceptance (specified allow)
-// 4) role default (default allow) there is no default reject
+// 2) collection defined as open
+// 3) role rejection (specified not allow)
+// 4) role acceptance (specified allow)
+// 5) role default (default allow) there is no default reject
 export async function hasPermissions(uid: string, cid: string) { // used in middleware
     const user = await getUser(uid);
+    let collection = collections.find(coll => coll.cid === cid);
     if (user.admin) return true; // well, here we go, an admin
     if (user.accepts(cid)) return true;
     if (user.rejects(cid)) return false;
+    if (collection.open) return true;
     const roles = await Promise.all(user.roles.map(rid => getRole(rid)));
     return (!roles.some(role => role.rejects(cid))) && roles.some(role => role.accepts(cid));
 }

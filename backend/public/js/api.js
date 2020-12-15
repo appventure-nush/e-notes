@@ -76,4 +76,3 @@ Object.freeze(collections);
 Object.freeze(users);
 window.collections = collections;
 window.users = users;
-export {collections, users, clearCache, fetcher};

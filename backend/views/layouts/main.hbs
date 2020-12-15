@@ -134,7 +134,11 @@
         "admin": "nav_admin",
         "collection": "nav_collection"
     };
-    if (nav[window.currentNav]) document.getElementById(nav[window.currentNav]).classList.add("active");
+    if (nav[window.currentNav]) {
+        let nav_item = document.getElementById(nav[window.currentNav]);
+        nav_item.classList.add("active");
+        nav_item.querySelector('a').setAttribute('href', '#');
+    }
 </script>
 </body>
 </html>

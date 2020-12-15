@@ -16,7 +16,9 @@
             </li>
             {{#if user.admin}}
                 <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fas fa-plus"></i> New</a>
+                    <a class="nav-link" href="#" data-toggle="modal" data-target="#admin_add_collection">
+                        <i class="fas fa-plus"></i> New
+                    </a>
                 </li>
             {{/if}}
         </ul>
@@ -26,6 +28,79 @@
 <div id="display" class="row">
 
 </div>
+
+{{#if user.admin}}
+    <div class="modal fade" id="admin_add_collection" tabindex="-1" aria-labelledby="add_label" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="add_label">Add collection</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="add_form_id">Collection ID</label>
+                            <input type="text" class="form-control" id="add_form_id" aria-describedby="add_form_id_help"
+                                   placeholder="CS1131A">
+                            <small id="add_form_id_help" class="form-text text-muted">Please don't use spaces</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="add_form_name">Collection Name</label>
+                            <input type="text" class="form-control" id="add_form_name"
+                                   placeholder="Introduction to Programming">
+                        </div>
+                        <div class="form-group">
+                            <label for="add_form_desc">Collection Description</label>
+                            <input type="text" class="form-control" id="add_form_desc" placeholder="UwU">
+                        </div>
+                        <div class="form-group form-check">
+                            <input type="checkbox" class="form-check-input" id="add_form_open_check">
+                            <label class="form-check-label" for="add_form_open_check">Open for all</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" onclick="clearCollection()">Clear</button>
+                    <button type="button" class="btn btn-primary" onclick="addCollection()">Add</button>
+                </div>
+                <script src="/js/api.js"></script>
+                <script>
+                    const addFormID = document.getElementById('add_form_id');
+                    const addFormName = document.getElementById('add_form_name');
+                    const addFormDesc = document.getElementById('add_form_desc');
+                    const addFormOpen = document.getElementById('add_form_open_check');
+
+                    function addCollection() {
+                        fetcher(`/api/collections/${addFormID.value}`, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                name: addFormName.value,
+                                desc: addFormDesc.value,
+                                open: addFormOpen.checked
+                            })
+                        }).then(result => {
+                            console.log(result);
+                        }).catch(e => {
+                            console.log(e);
+                        })
+                    }
+
+                    function clearCollection() {
+                        addFormID.value = addFormName.value = addFormDesc.value = "";
+                        addFormOpen.checked = false;
+                    }
+                </script>
+            </div>
+        </div>
+    </div>
+{{/if}}
+
+
 <script>
     window.currentNav = "index";
 </script>
