@@ -37,10 +37,8 @@
         <small>Only JPG/PNG/GIF are allowed, images will be fit-cropped to 256&times;256</small>
         <input id="profile_pic" type="file" onchange="changePFP()" hidden/>
     </div>
-
-    <script type="module">
-        import {fetcher} from "/js/api.js";
-
+    <script src="/js/api.js"></script>
+    <script>
         const user_info = {nickname: '{{user.nickname}}', desc: '{{user.desc}}'};
 
         const upload_btn = document.getElementById('upload_btn');

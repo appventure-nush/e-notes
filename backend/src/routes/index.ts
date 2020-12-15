@@ -1,7 +1,8 @@
 import {Router} from 'express';
 import {checkUserOptional} from '../utils';
 import {auth} from 'firebase-admin';
-import usersRouter from "./users";
+import userRouter from "./u";
+import collRouter from "./c";
 import adminRouter from "./admin";
 import profileRouter from "./profile";
 import collectionRouter from "./collection";
@@ -36,7 +37,8 @@ index.get('/logout', (req, res) => {
         .catch(_ => res.status(403).send('logout failed'));
 });
 
-index.use("/users", usersRouter);
+index.use("/u", userRouter);
+index.use("/c", collRouter);
 index.use("/admin", adminRouter);
 index.use("/profile", profileRouter);
 index.use("/collection", collectionRouter);

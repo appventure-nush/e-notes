@@ -6,5 +6,8 @@ const collection = Router();
 collection.get('/', checkUserOptional, (req, res) => {
     res.render("collection", {user: req.body.user, csrf: req.csrfToken()});
 })
+collection.get('/:cid', checkUserOptional, (req, res) => {
+    res.render("collection", {user: req.body.user, csrf: req.csrfToken()});
+})
 
 export default collection;

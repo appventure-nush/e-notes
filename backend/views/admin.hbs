@@ -12,12 +12,10 @@
         <h4 class="centered">Please select something</h4>
     </div>
 </div>
-<script src="/js/bstreeview.min.js">
+<script src="/js/bstreeview.min.js"></script>
+<script src="/js/api.js"></script>
+<script>
     window.currentNav = "admin";
-</script>
-<script type="module">
-    import {users, collections} from '/js/api.js';
-
     window.onload = e => {
         async function getTree() {
             let data = await Promise.all([users.getAll(), collections.getAll()]);
@@ -40,8 +38,6 @@
             });
             return tree;
         }
-
         getTree().then(tree => $('#tree').bstreeview({data: tree}))
-
     }
 </script>

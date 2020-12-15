@@ -1,5 +1,4 @@
 "use strict";
-import {users, collections} from './api';
 
 class User {
     uid;

@@ -77,7 +77,6 @@
             <li id="nav_users" role="presentation"><a href="/users">Users</a></li>
             {{#if user.admin}}
                 <li id="nav_admin" role="presentation"><a href="/admin">Admin</a></li>
-                <li id="nav_collection" role="presentation"><a href="/collection">Collections</a></li>
             {{/if}}
             <hr>
             <li role="presentation">
@@ -110,9 +109,11 @@
                           d="M5.172 10.828a.5.5 0 0 0 .707 0l4.096-4.096V9.5a.5.5 0 1 0 1 0V5.525a.5.5 0 0 0-.5-.5H6.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707z"/>
                 </svg>
             </small></a>
+            <script src="/js/s_hl.js"></script>
         </div>
     </div>
 </div>
+<script src="/js/api.js"></script>
 <script src="/js/main.js"></script>
 <script src="/js/jquery-3.5.1.slim.min.js"></script>
 {{#unless user}}
@@ -131,10 +132,13 @@
     const nav = {
         "index": "nav_home",
         "users": "nav_users",
-        "admin": "nav_admin",
-        "collection": "nav_collection"
+        "admin": "nav_admin"
     };
-    if (nav[window.currentNav]) document.getElementById(nav[window.currentNav]).classList.add("active");
+    if (nav[window.currentNav]) {
+        let nav_item = document.getElementById(nav[window.currentNav]);
+        nav_item.classList.add("active");
+        nav_item.querySelector('a').setAttribute('href', '#');
+    }
 </script>
 </body>
 </html>

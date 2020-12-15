@@ -1,28 +1,40 @@
 // TODO add more api functions
-const cacheAge = 1000 * 60 * 5; // 5 minute is fine ig
+const cacheAge = 1000 * 60 * 60; // 1 hour is fine ig
 const userCache = JSON.parse(localStorage.getItem("userCache") || '{}');
 const collCache = JSON.parse(localStorage.getItem("collCache") || '{}');
 // i dont even care about multiple windows open at same time
 const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 const collections = {
+    update: function (coll) {
+        collCache[coll.cid] = {coll, time: Date.now()};
+        localStorage.setItem("collCache", JSON.stringify(collCache));
+        return coll;
+    },
     get: async function (cid) {
+        if (!cid) return null;
         cid = String(cid);
         if (collCache[cid] && Date.now() - collCache[cid].time < cacheAge) {
             return collCache[cid].coll;
         }
         // '/' is actually allowed uwu
         let coll = await fetcher(`/api/collections/${cid}`)
-        collCache[coll.cid] = {coll, time: Date.now()};
+        if (coll.reason) {
+            delete collCache[cid];
+            coll = null;
+        } else collCache[coll.cid] = {coll, time: Date.now()};
         localStorage.setItem("collCache", JSON.stringify(collCache));
         return coll;
     },
-    getAll: function (useCache) {
+    getAll: async function (useCache = true) {
+        for (let cache of Object.values(collCache)) // update expired cache
+            if (Date.now() - cache.time >= cacheAge) {
+                await this.get(cache.coll.cid);
+            }
         if (useCache && Object.values(collCache).length > 0) return Object.values(collCache).map(cache => cache.coll);
-        return fetcher("/api/collections").then(colls => { // this will disregard any cache the client currently has
-            for (let coll of colls) collCache[coll.cid] = {coll, time: Date.now()};
-            localStorage.setItem("collCache", JSON.stringify(collCache));
-            return colls;
-        });
+        const colls = Array.from(await fetcher("/api/collections"));
+        for (let coll of colls) collCache[coll.cid] = {coll, time: Date.now()};
+        localStorage.setItem("collCache", JSON.stringify(collCache));
+        return colls;
     }
 };
 const users = {
@@ -75,5 +87,5 @@ function clearCache() {
 Object.freeze(collections);
 Object.freeze(users);
 window.collections = collections;
+window.fetcher = fetcher;
 window.users = users;
-export {collections, users, clearCache, fetcher};
