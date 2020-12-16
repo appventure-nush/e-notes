@@ -1,5 +1,5 @@
 <div class="row" style="margin-top: 2em">
-    <div class="col-3">
+    <div class="col-md-3">
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title">{{coll.name}}</h5>
@@ -7,11 +7,12 @@
                 <p class="card-text">{{coll.desc}}</p>
             </div>
         </div>
-        <div id="list">
-
+        <div class="card" style="margin-top: 2em">
+            <ul class="list-group list-group-flush" id="list">
+            </ul>
         </div>
     </div>
-    <div class="col-9">
+    <div class="col-md-9">
         <nav class="navbar navbar-expand-lg navbar-light">
             <a class="navbar-brand" href="#">Notes</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
@@ -26,7 +27,7 @@
                     {{#if user.admin}}
                         <li class="nav-item">
                             <a class="nav-link" href="#" data-action="add"
-                               data-toggle="modal" data-target="#admin_collection_popup">
+                               data-toggle="modal" data-target="#admin_note_popup">
                                 <i class="fas fa-plus"></i> New
                             </a>
                         </li>
@@ -40,6 +41,161 @@
         </div>
     </div>
 </div>
+{{#if user.admin}}
+    <div class="modal fade" id="admin_note_popup" tabindex="-1" aria-labelledby="note_popup_title"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="note_popup_title"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="note_form_id">Note ID</label>
+                            <input type="text" class="form-control" id="note_form_id"
+                                   aria-describedby="add_form_id_help"
+                                   placeholder="Empty for random ID">
+                            <small id="add_form_id_help" class="form-text text-muted">Please don't use spaces</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="note_form_name">Note Name</label>
+                            <input type="text" class="form-control" id="note_form_name"
+                                   placeholder="Any descriptive name">
+                        </div>
+                        <div class="form-group">
+                            <label for="note_form_desc">Note Description</label>
+                            <input type="text" class="form-control" id="note_form_desc"
+                                   placeholder="Helpful information">
+                        </div>
+                        <div class="form-group">
+                            <label for="note_form_desc">Note Description</label>
+                            <input type="text" class="form-control" id="note_form_desc"
+                                   placeholder="Helpful information">
+                        </div>
+                        <div class="form-group">
+                            <label for="note_form_file">Note Source</label>
+                            <input type="file" class="form-control" id="note_form_file">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" onclick="clearFields()">Clear</button>
+                    <button id="deleteBtn" type="button" class="btn btn-danger" onclick="initDelete()">Delete
+                    </button>
+                    <button id="actionBtn" type="button" class="btn btn-primary"
+                            onclick="actionBtnClicked(this.innerText.toLowerCase())"></button>
+                </div>
+                <script>
+                    const idInput = document.getElementById('note_form_id');
+                    const nameInput = document.getElementById('note_form_name');
+                    const descInput = document.getElementById('note_form_desc');
+                    const fileInput = document.getElementById('note_form_file');
+
+                    const actionBtn = document.getElementById('actionBtn');
+                    const deleteBtn = document.getElementById('deleteBtn');
+
+                    // i hate jquery
+                    $('#admin_note_popup').on('show.bs.modal', async e => {
+                        if ($(e.relatedTarget).data('action') === 'add') {
+                            $('#note_popup_title').text('Add collection');
+                            idInput.disabled = false;
+                            actionBtn.innerText = "Add";
+                            deleteBtn.style.display = "none";
+                            clearFields();
+                        } else {
+                            $('#note_popup_title').text('Edit collection');
+                            let cid = $(e.relatedTarget).data('cid');
+                            let coll = await collections.get(cid);
+                            idInput.value = coll.cid;
+                            idInput.disabled = true;
+                            nameInput.value = coll.name;
+                            descInput.value = coll.desc;
+                            fileInput.value = "";
+                            actionBtn.innerText = "Edit";
+                            deleteBtn.style.display = "inline-block";
+                        }
+                        idInput.setAttribute('placeholder', 'Empty for random ID');
+                        deleteBtn.innerText = "Delete";
+                        deleteBtn.onclick = initDelete;
+                    });
+
+                    const genRanHex = size => [...Array(size)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
+
+                    function actionBtnClicked(action) {
+                        if (action === 'add' && !fileInput.files[0]) return alert("Please include a file!");
+                        actionBtn.disabled = true;
+                        if (!idInput.value) console.log('random id', idInput.value = genRanHex(6));
+                        fetcher(`/api/collections/${coll.cid}/notes/${idInput.value}`, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                action: (action === 'add' ? 'add' : 'edit'),
+                                nid: idInput.value,
+                                name: nameInput.value,
+                                desc: descInput.value
+                            })
+                        }).then(result => {
+                            if (result.reason) throw result.reason;
+                            renderNotes();
+                            if (fileInput.files[0]) {
+                                const formData = new FormData();
+                                formData.append('note_source', fileInput.files[0]);
+                                return fetcher(`/api/collections/${coll.cid}/notes/${idInput.value}/upload`, {
+                                    method: 'POST',
+                                    body: formData
+                                });
+                            } else throw "handled";
+                        }).then(fileRes => {
+                            actionBtn.disabled = false;
+                            console.log(fileRes);
+                        }).catch(e => {
+                            actionBtn.disabled = false;
+                            console.log(e);
+                        });
+                    }
+
+                    function initDelete() {
+                        let cid = idInput.value;
+                        $('#collection_popup_title').text(`Delete ${cid}? Please re-enter the id!`);
+                        idInput.disabled = false;
+                        idInput.value = "";
+                        idInput.setAttribute('placeholder', cid);
+
+                        deleteBtn.innerText = "Confirm";
+                        deleteBtn.onclick = () => {
+                            if (idInput.value === cid) {
+                                deleteBtn.disabled = true;
+                                fetcher(`/api/collections/${idInput.value}`, {
+                                    method: 'DELETE'
+                                }).then(result => {
+                                    deleteBtn.disabled = false;
+                                    if (result.reason) {
+                                        alert(result.reason); // failed
+                                    } else {
+                                        $('#admin_note_popup').modal('hide');
+                                        collections.delete(cid);
+                                        renderNotes();
+                                    }
+                                }).catch(e => {
+                                    console.log(e);
+                                });
+                            } else alert("ID mismatch!");
+                        }
+                    }
+
+                    function clearFields() {
+                        idInput.value = nameInput.value = descInput.value = fileInput.value = "";
+                    }
+                </script>
+            </div>
+        </div>
+    </div>
+{{/if}}
 <script>
     const coll = {cid: '{{coll.cid}}', name: '{{coll.name}}', desc: '{{coll.desc}}'};
 
@@ -49,10 +205,7 @@
     async function renderNotes() {
         let notes = await window.notes
                 .getAll(coll.cid);
-        console.log(notes);
-        list.innerHTML = notes.map(note => `
-            <pre>${JSON.stringify(note)}</pre>
-        `).join("");
+        list.innerHTML = notes.map(note => `<li class="list-group-item">${note.name}</li>`).join("");
     }
 
     window.onload = e => {

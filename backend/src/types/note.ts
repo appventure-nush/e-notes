@@ -1,25 +1,25 @@
 class Note {
     cid: string;
-    noteId: string;
+    nid: string;
     name: string;
     desc: string;
-    releaseTime: number;
+    lastEdit: number;
     url: string;
 
-    constructor(noteId: string | any, cid?: string, name?: string, desc?: string) {
-        if (typeof noteId === 'string') {
+    constructor(nid: string | any, cid?: string, name?: string, desc?: string) {
+        if (typeof nid === 'string') {
             this.cid = cid;
-            this.noteId = noteId;
-            this.name = name || noteId;
+            this.nid = nid;
+            this.name = name || nid;
             this.desc = desc || "No description yet.";
-            this.releaseTime = Date.now();
+            this.lastEdit = Date.now();
         } else {
-            const src = noteId as any;
+            const src = nid as any;
             this.cid = src.cid;
-            this.noteId = src.noteId;
+            this.nid = src.nid;
             this.name = src.name;
             this.desc = src.desc;
-            this.releaseTime = src.releaseTime;
+            this.lastEdit = src.lastEdit;
             this.url = src.url;
         }
     }
@@ -27,10 +27,10 @@ class Note {
     toData() {
         return {
             cid: this.cid,
-            nodeId: this.noteId,
+            nid: this.nid,
             name: this.name,
             desc: this.desc,
-            releaseTime: this.releaseTime,
+            lastEdit: this.lastEdit,
             url: this.url
         };
     }

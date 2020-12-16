@@ -56,6 +56,8 @@ collections.post("/:cid", checkAdmin, async (req, res) => {
 
 collections.use("/:cid/notes", checkPermissions, (req, res, next) => {
     req.body.cid = req.params.cid;
+    let collection = getCollection(req.params.cid);
+    if (!collection) return res.status(404).json({reason: "collection_not_found"});
     next();
 }, notesRouter);
 
