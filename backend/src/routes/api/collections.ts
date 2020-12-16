@@ -17,7 +17,7 @@ collections.get("/", checkUser, async (req, res) => {
 });
 
 collections.get("/:cid", checkPermissions, async (req, res) => {
-    let collection = getCollection(req.params.cid);
+    const collection = getCollection(req.params.cid);
 
     if (!collection) return res.status(404).json({
         reason: "collection_not_found",
@@ -27,7 +27,7 @@ collections.get("/:cid", checkPermissions, async (req, res) => {
 });
 
 collections.delete("/:cid", checkAdmin, async (req, res) => {
-    let collection = getCollection(req.params.cid);
+    const collection = getCollection(req.params.cid);
     if (!collection) return res.status(404).json({
         reason: "collection_not_found",
         cid: req.params.cid

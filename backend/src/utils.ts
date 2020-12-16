@@ -94,7 +94,7 @@ export async function getAllRoles(): Promise<Role[]> {
 // 5) role default (default allow) there is no default reject
 export async function hasPermissions(uid: string, cid: string) { // used in middleware
     const user = await getUser(uid);
-    let collection = collections.find(coll => coll.cid === cid);
+    const collection = collections.find(coll => coll.cid === cid);
     if (user.admin) return true; // well, here we go, an admin
     if (user.accepts(cid)) return true;
     if (user.rejects(cid)) return false;

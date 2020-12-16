@@ -34,7 +34,7 @@ notes.post("/:note_id", checkAdmin, async (req, res) => {
 });
 notes.post("/:note_id/upload", checkAdmin, async (req, res) => {
     if (!req.files) return res.json({status: 'failed', reason: 'where is the file'});
-    let new_note_source = req.files.note_source;
+    const new_note_source = req.files.note_source;
     if (new_note_source && "data" in new_note_source) {
         const ref = firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.note_id);
         const doc = await ref.get();

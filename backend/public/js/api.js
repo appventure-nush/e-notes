@@ -21,7 +21,6 @@ const collections = {
     },
     delete: function (cid) {
         delete collCache[cid];
-        console.log(collCache);
         localStorage.setItem("collCache", JSON.stringify(collCache));
     },
     get: async function (cid) {

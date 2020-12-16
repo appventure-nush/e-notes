@@ -12,7 +12,7 @@ profile.get('/', checkUser, (req, res) => {
 });
 profile.post('/', checkUser, async (req, res) => {
     const {nickname, desc} = req.body;
-    let user = req.body.user as User;
+    const user = req.body.user as User;
     if (nickname) user.nickname = nickname;
     if (desc) user.desc = desc;
     try {
@@ -25,15 +25,15 @@ profile.post('/', checkUser, async (req, res) => {
 });
 profile.post('/uploadPFP', checkUser, async (req, res) => {
     if (!req.files) return res.json({status: 'failed', reason: 'where is the file'});
-    let new_profile_pic = req.files.new_profile_pic;
+    const new_profile_pic = req.files.new_profile_pic;
     if (new_profile_pic && "data" in new_profile_pic) {
-        let type = imageType(new_profile_pic.data);
+        const type = imageType(new_profile_pic.data);
         if (type && type.mime.toUpperCase() === new_profile_pic.mimetype.toUpperCase()) {
             if (IMAGE_FORMATS.includes(type.mime.toLowerCase())) {
                 try {
-                    let file = storage().bucket().file(`users/pfp/${req.body.cuid}.${type.ext}`);
+                    const file = storage().bucket().file(`users/pfp/${req.body.cuid}.${type.ext}`);
                     await file.save(new Uint8Array(await (await Jimp.read(new_profile_pic.data)).cover(256, 256).quality(80).getBufferAsync(type.mime)), {resumable: false});
-                    let url = (await file.getSignedUrl({
+                    const url = (await file.getSignedUrl({
                         action: 'read',
                         expires: '01-01-2500'
                     }))[0];

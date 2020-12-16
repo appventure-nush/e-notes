@@ -153,21 +153,23 @@
 
                         deleteBtn.innerText = "Confirm";
                         deleteBtn.onclick = () => {
-                            deleteBtn.disabled = true;
-                            if (idInput.value === cid) fetcher(`/api/collections/${idInput.value}`, {
-                                method: 'DELETE'
-                            }).then(result => {
-                                deleteBtn.disabled = false;
-                                if (result.reason) {
-                                    alert(result.reason); // failed
-                                } else {
-                                    $('#admin_collection_popup').modal('hide');
-                                    collections.delete(cid);
-                                    renderCollections();
-                                }
-                            }).catch(e => {
-                                console.log(e);
-                            }); else alert("ID mismatch!");
+                            if (idInput.value === cid) {
+                                deleteBtn.disabled = true;
+                                fetcher(`/api/collections/${idInput.value}`, {
+                                    method: 'DELETE'
+                                }).then(result => {
+                                    deleteBtn.disabled = false;
+                                    if (result.reason) {
+                                        alert(result.reason); // failed
+                                    } else {
+                                        $('#admin_collection_popup').modal('hide');
+                                        collections.delete(cid);
+                                        renderCollections();
+                                    }
+                                }).catch(e => {
+                                    console.log(e);
+                                });
+                            } else alert("ID mismatch!");
                         }
                     }
 
