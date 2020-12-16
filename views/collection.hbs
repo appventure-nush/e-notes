@@ -1,10 +1,26 @@
 <div class="row" style="margin-top: 2em">
     <div class="col-lg-3">
         <div class="card mt-4">
+            <p class="card-header">{{coll.name}}</p>
             <div class="card-body">
-                <h5 class="card-title">{{coll.name}}</h5>
                 <pre>{{coll.cid}}</pre>
                 <p class="card-text">{{coll.desc}}</p>
+                {{#if coll.open}}
+                    <span class="badge badge-success">Public</span>
+                {{else}}
+                    <span class="badge badge-danger">Private</span>
+                {{/if}}
+            </div>
+            <div class="card-footer">
+                <a href="/" class="card-link">Back</a>
+            </div>
+        </div>
+        <div class="card mt-2" id="note_card" style="display: none;">
+            <p class="card-header">Note Info</p>
+            <div class="card-body">
+                <h6 class="card-title" id="note_name"></h6>
+                <pre id="note_id"></pre>
+                <p class="card-text" id="note_desc"></p>
             </div>
         </div>
         <div class="card mt-2">
@@ -206,11 +222,16 @@
     </div>
 {{/if}}
 <script>
+    let cnote;
     let cnotes;
     const coll = {cid: '{{coll.cid}}', name: '{{coll.name}}', desc: '{{coll.desc}}'};
     const list = document.getElementById('list');
     const display = document.getElementById('display');
-    const shadowRoot = display.attachShadow({mode: 'open'});
+    window.shadowRoot = display.attachShadow({mode: 'open'});
+    const noteId = document.getElementById('note_id');
+    const noteCard = document.getElementById('note_card');
+    const noteName = document.getElementById('note_name');
+    const noteDesc = document.getElementById('note_desc');
 
     async function renderNotes() {
         list.innerHTML = (cnotes = await window.notes
@@ -218,19 +239,27 @@
     }
 
     function showNote(nid) {
-        let note = cnotes.find(n => n.nid === nid);
+        if (cnote && cnote.nid === nid) return;
+        cnote = cnotes.find(n => n.nid === nid);
+        noteId.innerText = cnote.nid;
+        noteCard.style.display = "block";
+        noteName.innerText = cnote.name;
+        noteDesc.innerText = cnote.desc;
         document.querySelectorAll(".list-group-item.active").forEach(elem => elem.classList.remove('active'));
-        document.getElementById(`list_${note.nid}`).classList.add('active');
-        fetch(note.url).then(res => {
-            console.log(res);
-            return res.text();
-        }).then(text => {
-            console.log(text);
+        document.getElementById(`list_${cnote.nid}`).classList.add('active');
+        fetch(cnote.url).then(res => res.text()).then(text => {
             shadowRoot.innerHTML = text + "\n<style>.container{width: auto !important;}</style>"; // small hax
             updateTheme(); // shadow dom is retarded
         });
     }
 
+    window.onhashchange = e => {
+        let elementToFocus = shadowRoot.getElementById(window.location.hash.slice(1));
+        elementToFocus = elementToFocus || shadowRoot.querySelector(`[name='${window.location.hash.slice(1)}']`);
+        if (elementToFocus) {
+            elementToFocus.scrollIntoView();
+        }
+    }
     window.onload = e => {
         renderNotes();
     }

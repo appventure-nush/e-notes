@@ -49,10 +49,17 @@ const collections = {
                 await this.get(cache.coll.cid);
             }
         if (useCache && Object.values(collCache).length > 0) return Object.values(collCache).map(cache => cache.coll);
-        const colls = Array.from(await fetcher("/api/collections"));
-        for (let coll of colls) collCache[coll.cid] = {coll, time: Date.now()};
-        localStorage.setItem("collCache", JSON.stringify(collCache));
-        return colls;
+        try {
+            const colls = Array.from(await fetcher("/api/collections"));
+            for (let coll of colls) collCache[coll.cid] = {coll, time: Date.now()};
+            localStorage.setItem("collCache", JSON.stringify(collCache));
+            return colls;
+        } catch (e) {
+            const colls = [];
+            collCache = {};
+            localStorage.setItem("collCache", JSON.stringify(collCache));
+            return colls;
+        }
     }
 };
 const notes = {

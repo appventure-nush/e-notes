@@ -1,11 +1,9 @@
-FROM node:12-alpine
-
-RUN adduser -S vue
-USER vue
-RUN mkdir /home/vue
-WORKDIR /home/vue
-COPY --chown=vue:root . .
-WORKDIR backend
-
-RUN npm ci
+FROM node:14
+WORKDIR /usr/src/app
+COPY package*.json ./
+RUN npm install
 RUN npm run build
+RUN npm run start
+COPY . .
+EXPOSE 8080
+CMD [ "npm", "start" ]
