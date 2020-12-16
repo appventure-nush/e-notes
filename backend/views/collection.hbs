@@ -1,18 +1,18 @@
 <div class="row" style="margin-top: 2em">
-    <div class="col-md-3">
-        <div class="card">
+    <div class="col-lg-3">
+        <div class="card mt-4">
             <div class="card-body">
                 <h5 class="card-title">{{coll.name}}</h5>
                 <pre>{{coll.cid}}</pre>
                 <p class="card-text">{{coll.desc}}</p>
             </div>
         </div>
-        <div class="card" style="margin-top: 2em">
+        <div class="card mt-2">
             <ul class="list-group list-group-flush" id="list">
             </ul>
         </div>
     </div>
-    <div class="col-md-9">
+    <div class="col-lg-9">
         <nav class="navbar navbar-expand-lg navbar-light">
             <a class="navbar-brand" href="#">Notes</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
@@ -36,6 +36,11 @@
             </div>
         </nav>
         <script src="https://kit.fontawesome.com/c32b3db897.js" crossorigin="anonymous"></script>
+        <style>
+            #display::before {
+                padding-top: 150%;
+            }
+        </style>
         <div id="display">
 
         </div>
@@ -64,7 +69,7 @@
                         <div class="form-group">
                             <label for="note_form_name">Note Name</label>
                             <input type="text" class="form-control" id="note_form_name"
-                                   placeholder="Any descriptive name">
+                                   placeholder="Empty for file name without extension">
                         </div>
                         <div class="form-group">
                             <label for="note_form_desc">Note Description</label>
@@ -130,6 +135,7 @@
                         if (action === 'add' && !fileInput.files[0]) return alert("Please include a file!");
                         actionBtn.disabled = true;
                         if (!idInput.value) console.log('random id', idInput.value = genRanHex(6));
+                        if (action === 'add' && !nameInput.value) nameInput.value = fileInput.files[0].name.replace(/\.[^/.]+$/, "");
                         fetcher(`/api/collections/${coll.cid}/notes/${idInput.value}`, {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
@@ -141,7 +147,6 @@
                             })
                         }).then(result => {
                             if (result.reason) throw result.reason;
-                            renderNotes();
                             if (fileInput.files[0]) {
                                 const formData = new FormData();
                                 formData.append('note_source', fileInput.files[0]);
@@ -152,10 +157,14 @@
                             } else throw "handled";
                         }).then(fileRes => {
                             actionBtn.disabled = false;
+                            $('#admin_note_popup').modal('hide');
                             console.log(fileRes);
+                            renderNotes();
                         }).catch(e => {
                             actionBtn.disabled = false;
+                            $('#admin_note_popup').modal('hide');
                             console.log(e);
+                            renderNotes();
                         });
                     }
 
@@ -197,15 +206,29 @@
     </div>
 {{/if}}
 <script>
+    let cnotes;
     const coll = {cid: '{{coll.cid}}', name: '{{coll.name}}', desc: '{{coll.desc}}'};
-
     const list = document.getElementById('list');
     const display = document.getElementById('display');
+    const shadowRoot = display.attachShadow({mode: 'open'});
 
     async function renderNotes() {
-        let notes = await window.notes
-                .getAll(coll.cid);
-        list.innerHTML = notes.map(note => `<li class="list-group-item">${note.name}</li>`).join("");
+        list.innerHTML = (cnotes = await window.notes
+                .getAll(coll.cid)).map(note => `<li id="list_${note.nid}" class="list-group-item" onclick="showNote('${note.nid}')">${note.name}</li>`).join("");
+    }
+
+    function showNote(nid) {
+        let note = cnotes.find(n => n.nid === nid);
+        document.querySelectorAll(".list-group-item.active").forEach(elem => elem.classList.remove('active'));
+        document.getElementById(`list_${note.nid}`).classList.add('active');
+        fetch(note.url).then(res => {
+            console.log(res);
+            return res.text();
+        }).then(text => {
+            console.log(text);
+            shadowRoot.innerHTML = text + "\n<style>.container{width: auto !important;}</style>"; // small hax
+            updateTheme(); // shadow dom is retarded
+        });
     }
 
     window.onload = e => {

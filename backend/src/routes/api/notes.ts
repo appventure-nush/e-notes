@@ -56,6 +56,7 @@ notes.post("/:nid/upload", checkAdmin, async (req, res) => {
             action: 'read',
             expires: '01-01-2500'
         }))[0];
+        console.log("url=", note.url);
         await ref.set(note.toData());
         res.json({
             status: 'success',
