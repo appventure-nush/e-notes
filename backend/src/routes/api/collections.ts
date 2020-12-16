@@ -4,7 +4,7 @@ import notesRouter from './notes';
 
 const collections = Router();
 
-import {getAvailableCollections, checkUser, checkPermissions, checkAdmin} from '../../utils';
+import {getAvailableCollections, checkUser, checkPermissions, checkAdmin, getCollection} from '../../utils';
 import Collection from "../../types/coll";
 import {firestore} from "firebase-admin";
 
@@ -17,24 +17,22 @@ collections.get("/", checkUser, async (req, res) => {
 });
 
 collections.get("/:cid", checkPermissions, async (req, res) => {
-    const doc = await firestore().collection("collections").doc(req.params.cid).get();
+    let collection = getCollection(req.params.cid);
 
-    if (!doc.exists) return res.status(404).json({
+    if (!collection) return res.status(404).json({
         reason: "collection_not_found",
         cid: req.params.cid
     })
-    else res.json(doc.data());
+    else res.json(collection.toData());
 });
 
 collections.delete("/:cid", checkAdmin, async (req, res) => {
-    const ref = firestore().collection("collections").doc(req.params.cid);
-
-    if (!(await ref.get()).exists) return res.status(404).json({
+    let collection = getCollection(req.params.cid);
+    if (!collection) return res.status(404).json({
         reason: "collection_not_found",
         cid: req.params.cid
-    });
-    else {
-        await ref.delete();
+    }); else {
+        await firestore().collection("collections").doc(req.params.cid).delete();
         res.json({status: "ok"});
     }
 });
@@ -45,17 +43,14 @@ collections.post("/", checkAdmin, (req, res) => {
 });
 // maybe i will separate them
 collections.post("/:cid", checkAdmin, async (req, res) => {
-    const ref = firestore().collection("collections").doc(req.params.cid);
-    let documentSnapshot = await ref.get();
-    let collection;
-    if (documentSnapshot.exists) {
+    let collection = getCollection(req.params.cid);
+    if (collection) {
         if (req.body.action && req.body.action === "add") return res.status(400).json({reason: "collection_already_exist"});
-        collection = new Collection(documentSnapshot.data());
         if (req.body.name) collection.name = req.body.name;
         if (req.body.desc) collection.desc = req.body.desc;
         if (req.body.open) collection.open = (req.body.open === "open");
     } else collection = new Collection(req.params.cid, req.body.name, req.body.desc, req.body.open);
-    await ref.set(collection.toData());
+    await firestore().collection("collections").doc(req.params.cid).set(collection.toData());
     res.json(collection);
 });
 

@@ -8,12 +8,7 @@ const notes = Router();
 
 notes.get("/", async (req, res) => { // a lot of info
     const snapshot = await firestore().collection("collections").doc(req.body.cid).collection("notes").get();
-
-    if (snapshot.empty) return res.status(404).json({
-        reason: "no_notes_found",
-        cid: req.body.cid
-    });
-    else res.json(snapshot.docs.map((doc: DocumentSnapshot) => doc.data()));
+    res.json(snapshot.docs.map((doc: DocumentSnapshot) => doc.data()));
 });
 
 notes.get("/:note_id", async (req, res) => {

@@ -175,6 +175,11 @@ export function transformUser(user: User, fbUser: auth.UserRecord) {
     return data;
 }
 
+export function getCollection(cid: string): Collection { // heavy call function
+    if (!cid) return null;
+    return collections.find(coll => coll.cid === cid);
+}
+
 export function setup() {
     firestore().collection('collections').onSnapshot(querySnapshot => collections.splice(0, collections.length, ...querySnapshot.docs.map(doc => new Collection(doc.data()))));
     auth();

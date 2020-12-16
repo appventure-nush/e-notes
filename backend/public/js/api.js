@@ -1,7 +1,16 @@
 // TODO add more api functions
 const cacheAge = 1000 * 60 * 60; // 1 hour is fine ig
-const userCache = JSON.parse(localStorage.getItem("userCache") || '{}');
-const collCache = JSON.parse(localStorage.getItem("collCache") || '{}');
+let userCache;
+let collCache;
+try {
+    userCache = JSON.parse(localStorage.getItem("userCache") || '{}');
+    collCache = JSON.parse(localStorage.getItem("collCache") || '{}');
+} catch (e) {
+    userCache = {};
+    collCache = {};
+    localStorage.setItem("userCache", JSON.stringify(userCache));
+    localStorage.setItem("collCache", JSON.stringify(collCache));
+}
 // i dont even care about multiple windows open at same time
 const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 const collections = {
@@ -9,6 +18,11 @@ const collections = {
         collCache[coll.cid] = {coll, time: Date.now()};
         localStorage.setItem("collCache", JSON.stringify(collCache));
         return coll;
+    },
+    delete: function (cid) {
+        delete collCache[cid];
+        console.log(collCache);
+        localStorage.setItem("collCache", JSON.stringify(collCache));
     },
     get: async function (cid) {
         if (!cid) return null;

@@ -4,6 +4,14 @@
         padding-left: 8px;
         padding-right: 8px;
     }
+
+    .modal:nth-of-type(even) {
+        z-index: 1052 !important;
+    }
+
+    .modal-backdrop.show:nth-of-type(even) {
+        z-index: 1051 !important;
+    }
 </style>
 <nav class="navbar navbar-expand-lg navbar-light" style="margin-top: 2em">
     <a class="navbar-brand" href="#">Collections</a>
@@ -50,17 +58,18 @@
                             <label for="collection_form_id">Collection ID</label>
                             <input type="text" class="form-control" id="collection_form_id"
                                    aria-describedby="add_form_id_help"
-                                   placeholder="CS1131A">
+                                   placeholder="ID is used in url">
                             <small id="add_form_id_help" class="form-text text-muted">Please don't use spaces</small>
                         </div>
                         <div class="form-group">
                             <label for="collection_form_name">Collection Name</label>
                             <input type="text" class="form-control" id="collection_form_name"
-                                   placeholder="Introduction to Programming">
+                                   placeholder="Any descriptive name">
                         </div>
                         <div class="form-group">
                             <label for="collection_form_desc">Collection Description</label>
-                            <input type="text" class="form-control" id="collection_form_desc" placeholder="UwU">
+                            <input type="text" class="form-control" id="collection_form_desc"
+                                   placeholder="Helpful information">
                         </div>
                         <div class="form-group form-check">
                             <input type="checkbox" class="form-check-input" id="collection_form_open_check">
@@ -71,6 +80,8 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-secondary" onclick="clearFields()">Clear</button>
+                    <button id="deleteBtn" type="button" class="btn btn-danger" onclick="initDelete()">Delete
+                    </button>
                     <button id="actionBtn" type="button" class="btn btn-primary"
                             onclick="actionBtnClicked(this.innerText.toLowerCase())"></button>
                 </div>
@@ -81,6 +92,7 @@
                     const openToAll = document.getElementById('collection_form_open_check');
 
                     const actionBtn = document.getElementById('actionBtn');
+                    const deleteBtn = document.getElementById('deleteBtn');
 
                     // i hate jquery
                     $('#admin_collection_popup').on('show.bs.modal', async e => {
@@ -88,6 +100,7 @@
                             $('#collection_popup_title').text('Add collection');
                             idInput.disabled = false;
                             actionBtn.innerText = "Add";
+                            deleteBtn.style.display = "none";
                             clearFields();
                         } else {
                             $('#collection_popup_title').text('Edit collection');
@@ -99,7 +112,11 @@
                             descInput.value = coll.desc;
                             openToAll.checked = coll.open;
                             actionBtn.innerText = "Edit";
+                            deleteBtn.style.display = "inline-block";
                         }
+                        idInput.setAttribute('placeholder', 'ID is used in url');
+                        deleteBtn.innerText = "Delete";
+                        deleteBtn.onclick = initDelete;
                     });
 
                     function actionBtnClicked(action) {
@@ -125,6 +142,33 @@
                         }).catch(e => {
                             console.log(e);
                         })
+                    }
+
+                    function initDelete() {
+                        let cid = idInput.value;
+                        $('#collection_popup_title').text(`Delete ${cid}? Please re-enter the id!`);
+                        idInput.disabled = false;
+                        idInput.value = "";
+                        idInput.setAttribute('placeholder', cid);
+
+                        deleteBtn.innerText = "Confirm";
+                        deleteBtn.onclick = () => {
+                            deleteBtn.disabled = true;
+                            if (idInput.value === cid) fetcher(`/api/collections/${idInput.value}`, {
+                                method: 'DELETE'
+                            }).then(result => {
+                                deleteBtn.disabled = false;
+                                if (result.reason) {
+                                    alert(result.reason); // failed
+                                } else {
+                                    $('#admin_collection_popup').modal('hide');
+                                    collections.delete(cid);
+                                    renderCollections();
+                                }
+                            }).catch(e => {
+                                console.log(e);
+                            }); else alert("ID mismatch!");
+                        }
                     }
 
                     function clearFields() {
