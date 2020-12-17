@@ -1,16 +1,15 @@
 import User from './types/user';
 import Role from './types/role';
 // import Note from "./types/note";
-// import Collection from "./types/coll";
+import Collection from "./types/coll";
 import express from "express";
 import {auth, firestore} from "firebase-admin";
-import Collection from "./types/coll";
-
 // running two at the same time is a bad idea
 // using cache system to reduce reads, idk about write
 // writes shouldn't be that heavy
 // but reads is HEAVY
-const CACHE_AGE = 1000 * 60 * 60 * 2; // 2 hours
+const CACHE_AGE = 1000 * 60 * 60 * 24; // 1 day
+import {info, error} from './logger';
 
 let lastFullRoleRefresh = 0;
 const userCache = new Map<string, [User, number]>();
@@ -115,7 +114,7 @@ async function getUID(req: express.Request) {
     else return null;
 }
 
-export async function checkUser(req: express.Request, res: express.Response, next: Function) {
+export async function checkUser(req: express.Request, res: express.Response, next: () => any) {
     try {
         const uid = await getUID(req);
         if (uid) {
@@ -124,11 +123,12 @@ export async function checkUser(req: express.Request, res: express.Response, nex
             return next();
         } else return res.status(403).send("not logged in");
     } catch (e) {
+        await error('auth failed', {func: 'checkUserOptional', body: req.body, path: req.path});
         return res.status(403).send("authorization invalid");
     }
 }
 
-export async function checkUserOptional(req: express.Request, res: express.Response, next: Function) {
+export async function checkUserOptional(req: express.Request, res: express.Response, next: () => any) {
     try {
         const uid = await getUID(req);
         if (uid) {
@@ -137,12 +137,12 @@ export async function checkUserOptional(req: express.Request, res: express.Respo
         }
         return next();
     } catch (e) {
-        console.log(e);
+        await error('auth failed', {func: 'checkUserOptional', body: req.body, path: req.path});
         return res.status(403).send("authorization invalid");
     }
 }
 
-export async function checkPermissions(req: express.Request, res: express.Response, next: Function) {
+export async function checkPermissions(req: express.Request, res: express.Response, next: () => any) {
     try {
         const uid = await getUID(req);
         if (uid) {
@@ -150,11 +150,12 @@ export async function checkPermissions(req: express.Request, res: express.Respon
             else return res.status(403).send("not authorized");
         } else return res.status(403).send("not logged in");
     } catch (e) {
+        await error('auth failed', {func: 'checkPermissions', body: req.body, path: req.path});
         return res.status(403).send("authorization invalid");
     }
 }
 
-export async function checkAdmin(req: express.Request, res: express.Response, next: Function) {
+export async function checkAdmin(req: express.Request, res: express.Response, next: () => any) {
     try {
         const uid = await getUID(req);
         if (uid) {
@@ -162,7 +163,7 @@ export async function checkAdmin(req: express.Request, res: express.Response, ne
             else return res.status(403).send("not admin");
         } else return res.status(403).send("not logged in");
     } catch (e) {
-        console.error(e);
+        await error('auth failed', {func: 'checkAdmin', body: req.body, path: req.path});
         return res.status(403).send("authorization invalid");
     }
 }

@@ -72,3 +72,4 @@ node_modules
 .DS_Store
 service-account.json
 syntax_hl.js
+logging.json

@@ -24,7 +24,7 @@ notes.get("/:nid", async (req, res) => {
 notes.post("/:nid", checkAdmin, async (req, res) => {
     const ref = firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid);
     let note;
-    let documentSnapshot = await ref.get();
+    const documentSnapshot = await ref.get();
     if (documentSnapshot.exists) {
         if (req.body.action && req.body.action === "add") return res.status(400).json({reason: "note_already_exist"});
         note = new Note(documentSnapshot.data());
@@ -40,8 +40,8 @@ notes.post("/:nid", checkAdmin, async (req, res) => {
 });
 notes.post("/:nid/upload", checkAdmin, async (req, res) => {
     if (!req.files) return res.json({status: 'failed', reason: 'where is the file'});
-    const new_note_source = req.files.note_source;
-    if (new_note_source && "data" in new_note_source) {
+    const newNoteSource = req.files.note_source;
+    if (newNoteSource && "data" in newNoteSource) {
         const ref = firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid);
         const doc = await ref.get();
         if (!doc.exists) return res.status(404).json({
@@ -51,16 +51,15 @@ notes.post("/:nid/upload", checkAdmin, async (req, res) => {
         });
         const note = new Note(doc.data());
         const file = storage().bucket().file(`collections/${req.body.cid}/notes/${req.params.nid}.html`);
-        await file.save(new Uint8Array(new_note_source.data), {resumable: false});
+        await file.save(new Uint8Array(newNoteSource.data), {resumable: false});
         note.url = (await file.getSignedUrl({
             action: 'read',
             expires: '01-01-2500'
         }))[0];
-        console.log("url=", note.url);
         await ref.set(note.toData());
         res.json({
             status: 'success',
-            note: note
+            note
         });
     } else return res.json({status: 'failed', reason: 'where is the file'});
 });

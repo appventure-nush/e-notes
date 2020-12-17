@@ -13,11 +13,11 @@ const debug = debug_("backend:server");
 import http = require("http");
 
 /**
- * Get port from environment and store in Express.
+ * Get PORT from environment and store in Express.
  */
 
-const port = normalizePort(process.env.PORT || "8080");
-app.set("port", port);
+const PORT = normalizePort(process.env.PORT || "8080");
+app.set("PORT", PORT);
 
 /**
  * Create HTTP server.
@@ -26,30 +26,21 @@ app.set("port", port);
 const server = http.createServer(app);
 
 /**
- * Listen on provided port, on all network interfaces.
+ * Listen on provided PORT, on all network interfaces.
  */
 
-server.listen(port);
+server.listen(PORT);
 server.on("error", onError);
 server.on("listening", onListening);
 
 /**
- * Normalize a port into a number, string, or false.
+ * Normalize a PORT into a number, string, or false.
  */
 
 function normalizePort(val: string) {
     const port = parseInt(val, 10);
-
-    if (isNaN(port)) {
-        // named pipe
-        return val;
-    }
-
-    if (port >= 0) {
-        // port number
-        return port;
-    }
-
+    if (isNaN(port)) return val;
+    if (port >= 0) return port;
     return false;
 }
 
@@ -62,18 +53,18 @@ function onError(error: NodeJS.ErrnoException) {
         throw error;
     }
 
-    const bind = typeof port === "string"
-        ? `Pipe ${port}`
-        : `Port ${port}`;
+    const bind = typeof PORT === "string"
+        ? `Pipe ${PORT}`
+        : `Port ${PORT}`;
 
     // handle specific listen errors with friendly messages
     switch (error.code) {
         case "EACCES":
-            console.error(`${bind} requires elevated privileges`);
+            debug(`${bind} requires elevated privileges`);
             process.exit(1);
             break;
         case "EADDRINUSE":
-            console.error(`${bind} is already in use`);
+            debug(`${bind} is already in use`);
             process.exit(1);
             break;
         default:

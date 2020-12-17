@@ -1,18 +1,16 @@
+import csrf from 'csurf';
 import morgan from 'morgan';
-import express, {NextFunction, Request, Response} from "express";
-import admin from 'firebase-admin';
-import * as bodyParser from 'body-parser';
-import exphbs from 'express-handlebars';
 import NodeVault from 'node-vault';
-// import serveStatic from 'serve-static';
+import admin from 'firebase-admin';
+import exphbs from 'express-handlebars';
+import cookieParser from 'cookie-parser';
+import fileUpload from 'express-fileupload';
+import express, {NextFunction, Request, Response} from "express";
 
 import {setup} from './utils';
 import apiRouter from "./routes/api"
 import indexRouter from "./routes/index"
 
-const csrf = require('csurf');
-const cookieParser = require('cookie-parser');
-const fileUpload = require('express-fileupload');
 import path from "path";
 
 const app = express();
@@ -37,7 +35,6 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
     try {
         return require("../service-account.json");
     } catch (e) {
-        console.log("Falling back to vault...");
         const vaultClient = NodeVault({endpoint: "https://vault.nush.app"});
         const secretsClient = NodeVault({
             endpoint: "https://vault.nush.app",
