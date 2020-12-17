@@ -21,8 +21,7 @@ let logging: Logging;
 })().then(cred => {
     logging = new Logging({projectId: 'e-notes-nush', credentials: cred});
     log = logging.log("_Default");
-}).catch(_ => {
-})
+});
 
 export function info(text: string, meta = {}) {
     if (!log) return;
