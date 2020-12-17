@@ -132,6 +132,7 @@
                                 renderCollections();
                             }
                         }).catch(e => {
+                            actionBtn.disabled = false;
                             console.log(e);
                         })
                     }
@@ -159,6 +160,7 @@
                                         renderCollections();
                                     }
                                 }).catch(e => {
+                                    deleteBtn.disabled = false;
                                     console.log(e);
                                 });
                             } else alert("ID mismatch!");
@@ -182,6 +184,7 @@
 
     function renderCollections(forceReset = false) {
         collections.getAll(!forceReset).then(colls => {
+            console.log(colls);
             display.innerHTML = colls.map(coll => `<div class="col-lg-3 col-md-5 col-sm-12 collection_card" id="coll_${coll.cid}">
 <div class="card">
 <div class="card-body">
@@ -192,6 +195,7 @@
 {{#if user.admin}}
 <a href="#" class="card-link" data-toggle="modal" data-target="#admin_collection_popup" data-action="edit" data-cid="${coll.cid}">Edit</a>
 {{/if}}
+${coll.open ? '<span class="badge badge-success">Public</span>' : '<span class="badge badge-danger">Private</span>'}
 </div>
 </div>
 </div>`).join('\n');

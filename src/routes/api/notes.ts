@@ -38,6 +38,16 @@ notes.post("/:nid", checkAdmin, async (req, res) => {
     await ref.set(note.toData());
     res.json(note);
 });
+notes.delete("/:nid", checkAdmin, async (req, res) => {
+    const ref = firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid);
+    const documentSnapshot = await ref.get();
+    if (documentSnapshot.exists) {
+        const file = storage().bucket().file(`collections/${req.body.cid}/notes/${req.params.nid}.html`);
+        await ref.delete();
+        await file.delete();
+    }
+    res.json({status: "ok"});
+});
 notes.post("/:nid/upload", checkAdmin, async (req, res) => {
     if (!req.files) return res.json({status: 'failed', reason: 'where is the file'});
     const newNoteSource = req.files.note_source;

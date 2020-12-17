@@ -37,10 +37,13 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="renderNotes()"><i class="fas fa-sync"></i> Cache</a>
-                    </li>
                     {{#if user.admin}}
+                        <li class="nav-item">
+                            <a id="editBtn" class="nav-link disabled" href="#" data-action="edit"
+                               data-toggle="modal" data-target="#admin_note_popup">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#" data-action="add"
                                data-toggle="modal" data-target="#admin_note_popup">
@@ -93,13 +96,8 @@
                                    placeholder="Helpful information">
                         </div>
                         <div class="form-group">
-                            <label for="note_form_desc">Note Description</label>
-                            <input type="text" class="form-control" id="note_form_desc"
-                                   placeholder="Helpful information">
-                        </div>
-                        <div class="form-group">
                             <label for="note_form_file">Note Source</label>
-                            <input type="file" class="form-control" id="note_form_file">
+                            <input type="file" class="form-control-file" id="note_form_file">
                         </div>
                     </form>
                 </div>
@@ -120,22 +118,22 @@
                     const actionBtn = document.getElementById('actionBtn');
                     const deleteBtn = document.getElementById('deleteBtn');
 
+                    const editBtn = document.getElementById('editBtn');
+
                     // i hate jquery
                     $('#admin_note_popup').on('show.bs.modal', async e => {
                         if ($(e.relatedTarget).data('action') === 'add') {
-                            $('#note_popup_title').text('Add collection');
+                            $('#note_popup_title').text('Add note');
                             idInput.disabled = false;
                             actionBtn.innerText = "Add";
                             deleteBtn.style.display = "none";
                             clearFields();
                         } else {
-                            $('#note_popup_title').text('Edit collection');
-                            let cid = $(e.relatedTarget).data('cid');
-                            let coll = await collections.get(cid);
-                            idInput.value = coll.cid;
+                            $('#note_popup_title').text('Edit note');
+                            idInput.value = cnote.nid;
                             idInput.disabled = true;
-                            nameInput.value = coll.name;
-                            descInput.value = coll.desc;
+                            nameInput.value = cnote.name;
+                            descInput.value = cnote.desc;
                             fileInput.value = "";
                             actionBtn.innerText = "Edit";
                             deleteBtn.style.display = "inline-block";
@@ -185,28 +183,30 @@
                     }
 
                     function initDelete() {
-                        let cid = idInput.value;
-                        $('#collection_popup_title').text(`Delete ${cid}? Please re-enter the id!`);
+                        let nid = idInput.value;
+                        $('#note_popup_title').text(`Delete ${nid}? Please re-enter the id!`);
                         idInput.disabled = false;
                         idInput.value = "";
-                        idInput.setAttribute('placeholder', cid);
+                        idInput.setAttribute('placeholder', nid);
 
                         deleteBtn.innerText = "Confirm";
                         deleteBtn.onclick = () => {
-                            if (idInput.value === cid) {
+                            if (idInput.value === nid) {
                                 deleteBtn.disabled = true;
-                                fetcher(`/api/collections/${idInput.value}`, {
+                                fetcher(`/api/collections/${coll.cid}/notes/${idInput.value}`, {
                                     method: 'DELETE'
                                 }).then(result => {
                                     deleteBtn.disabled = false;
+                                    showNote(null);
                                     if (result.reason) {
                                         alert(result.reason); // failed
                                     } else {
                                         $('#admin_note_popup').modal('hide');
-                                        collections.delete(cid);
                                         renderNotes();
                                     }
                                 }).catch(e => {
+                                    showNote(null);
+                                    deleteBtn.disabled = false;
                                     console.log(e);
                                 });
                             } else alert("ID mismatch!");
@@ -236,29 +236,47 @@
     async function renderNotes() {
         list.innerHTML = (cnotes = await window.notes
                 .getAll(coll.cid)).map(note => `<li id="list_${note.nid}" class="list-group-item" onclick="showNote('${note.nid}')">${note.name}</li>`).join("");
+        if (localStorage.getItem('activeNote')) showNote(localStorage.getItem('activeNote'));
     }
 
     function showNote(nid) {
-        if (cnote && cnote.nid === nid) return;
-        cnote = cnotes.find(n => n.nid === nid);
-        noteId.innerText = cnote.nid;
-        noteCard.style.display = "block";
-        noteName.innerText = cnote.name;
-        noteDesc.innerText = cnote.desc;
-        document.querySelectorAll(".list-group-item.active").forEach(elem => elem.classList.remove('active'));
-        document.getElementById(`list_${cnote.nid}`).classList.add('active');
-        fetch(cnote.url).then(res => res.text()).then(text => {
-            shadowRoot.innerHTML = text + "\n<style>.container{width: auto !important;}</style>"; // small hax
-            updateTheme(); // shadow dom is retarded
-        });
+        if (!nid) {
+            cnote = null;
+            {{#if user.admin}}
+                editBtn.classList.add('disabled');
+            {{/if}}
+            noteId.innerText = "";
+            noteCard.style.display = "none";
+            noteName.innerText = "";
+            noteDesc.innerText = "";
+            document.querySelectorAll("#list .list-group-item.active").forEach(elem => elem.classList.remove('active'));
+            localStorage.removeItem('activeNote');
+            shadowRoot.innerHTML = "";
+        } else {
+            if (cnote && cnote.nid === nid) return;
+            cnote = cnotes.find(n => n.nid === nid);
+            if (!cnote) return;
+            {{#if user.admin}}
+                editBtn.classList.remove('disabled');
+            {{/if}}
+            noteId.innerText = cnote.nid;
+            noteCard.style.display = "block";
+            noteName.innerText = cnote.name;
+            noteDesc.innerText = cnote.desc;
+            document.querySelectorAll("#list .list-group-item.active").forEach(elem => elem.classList.remove('active'));
+            document.getElementById(`list_${cnote.nid}`).classList.add('active');
+            localStorage.setItem('activeNote', nid);
+            fetch(cnote.url).then(res => res.text()).then(text => {
+                shadowRoot.innerHTML = text + "\n<style>.container{width: auto !important;}</style>"; // small hax
+                updateTheme(); // shadow dom is retarded
+            });
+        }
     }
 
-    window.onhashchange = e => {
+    window.onhashchange = e => { // support anchor clicking
         let elementToFocus = shadowRoot.getElementById(window.location.hash.slice(1));
         elementToFocus = elementToFocus || shadowRoot.querySelector(`[name='${window.location.hash.slice(1)}']`);
-        if (elementToFocus) {
-            elementToFocus.scrollIntoView();
-        }
+        if (elementToFocus) elementToFocus.scrollIntoView();
     }
     window.onload = e => {
         renderNotes();
