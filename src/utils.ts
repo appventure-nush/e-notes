@@ -6,18 +6,18 @@ import express from "express";
 import {auth, firestore} from "firebase-admin";
 import {error} from './logger';
 
-let users: User[] = [];
-let roles: Role[] = [];
-let collections: Collection[] = [];
+const users: User[] = [];
+const roles: Role[] = [];
+const collections: Collection[] = [];
 
 export async function getUser(uid: string): Promise<User> { // heavy call function
     if (!uid) return null;
-    const user = await auth().getUser(uid);
-    if (!user) return null;
+    const fbUser = await auth().getUser(uid);
+    if (!fbUser) return null;
     let userObj = users.find(user => user.uid === uid);
     if (!userObj) {
-        userObj = new User(user.uid);
-        await firestore().collection("users").doc(user.uid).set(userObj.toData());
+        userObj = new User(fbUser.uid);
+        await firestore().collection("users").doc(fbUser.uid).set(userObj.toData());
     }
     return userObj;
 }
@@ -68,8 +68,8 @@ export async function hasPermissions(uid: string, cid: string) { // used in midd
     if (user.accepts(cid)) return true;
     if (user.rejects(cid)) return false;
     if (collection.open) return true;
-    const roles = await Promise.all(user.roles.map(rid => getRole(rid)));
-    return (!roles.some(role => role.rejects(cid))) && roles.some(role => role.accepts(cid));
+    const userRoles = await Promise.all(user.roles.map(rid => getRole(rid)));
+    return (!userRoles.some(role => role.rejects(cid))) && userRoles.some(role => role.accepts(cid));
 }
 
 export function getAvailableCollections(uid: string) { // used in middleware
@@ -155,7 +155,7 @@ export async function setup() {
     // probably not very efficient
     firestore().collection('collections').onSnapshot(querySnapshot => {
         querySnapshot.docChanges().forEach(change => {
-            let cid = change.doc.data().cid;
+            const cid = change.doc.data().cid;
             if (change.type === "added") collections.push(new Collection(change.doc.data()));
             else if (change.type === "removed") collections.splice(collections.findIndex(coll => coll.cid === cid), 1);
             else if (change.type === "modified") collections[collections.findIndex(coll => coll.cid === cid)] = new Collection(change.doc.data());
@@ -163,7 +163,7 @@ export async function setup() {
     });
     firestore().collection('roles').onSnapshot(querySnapshot => {
         querySnapshot.docChanges().forEach(change => {
-            let rid = change.doc.data().rid;
+            const rid = change.doc.data().rid;
             if (change.type === "added") roles.push(new Role(change.doc.data()));
             else if (change.type === "removed") roles.splice(roles.findIndex(role => role.rid === rid), 1);
             else if (change.type === "modified") roles[roles.findIndex(role => role.rid === rid)] = new Role(change.doc.data());
@@ -171,7 +171,7 @@ export async function setup() {
     });
     firestore().collection('users').onSnapshot(querySnapshot => {
         querySnapshot.docChanges().forEach(change => {
-            let uid = change.doc.data().uid;
+            const uid = change.doc.data().uid;
             if (change.type === "added") users.push(new User(change.doc.data()));
             else if (change.type === "removed") users.splice(users.findIndex(user => user.uid === uid), 1);
             else if (change.type === "modified") users[users.findIndex(user => user.uid === uid)] = new User(change.doc.data());
