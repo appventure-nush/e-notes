@@ -1,5 +1,5 @@
 <style>
-    .collection_card {
+    .collection-card {
         margin: 0.3em 0;
         padding-left: 8px;
         padding-right: 8px;
@@ -19,7 +19,7 @@
             {{#if user.admin}}
                 <li class="nav-item">
                     <a class="nav-link" href="#" data-action="add"
-                       data-toggle="modal" data-target="#admin_collection_popup">
+                       data-toggle="modal" data-target="#admin-collection-popup">
                         <i class="fas fa-plus"></i> New
                     </a>
                 </li>
@@ -34,12 +34,12 @@
 
 {{#if user.admin}}
     <!--  There are questionable code  -->
-    <div class="modal fade" id="admin_collection_popup" tabindex="-1" aria-labelledby="collection_popup_title"
+    <div class="modal fade" id="admin-collection-popup" tabindex="-1" aria-labelledby="collection-popup-title"
          aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="collection_popup_title"></h5>
+                    <h5 class="modal-title" id="collection-popup-title"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -47,25 +47,25 @@
                 <div class="modal-body">
                     <form>
                         <div class="form-group">
-                            <label for="collection_form_id">Collection ID</label>
-                            <input type="text" class="form-control" id="collection_form_id"
-                                   aria-describedby="add_form_id_help"
+                            <label for="collection-form-id">Collection ID</label>
+                            <input type="text" class="form-control" id="collection-form-id"
+                                   aria-describedby="add-form-id-help"
                                    placeholder="ID is used in url">
-                            <small id="add_form_id_help" class="form-text text-muted">Please don't use spaces</small>
+                            <small id="add-form-id-help" class="form-text text-muted">Please don't use spaces</small>
                         </div>
                         <div class="form-group">
-                            <label for="collection_form_name">Collection Name</label>
-                            <input type="text" class="form-control" id="collection_form_name"
+                            <label for="collection-form-name">Collection Name</label>
+                            <input type="text" class="form-control" id="collection-form-name"
                                    placeholder="Any descriptive name">
                         </div>
                         <div class="form-group">
-                            <label for="collection_form_desc">Collection Description</label>
-                            <input type="text" class="form-control" id="collection_form_desc"
+                            <label for="collection-form-desc">Collection Description</label>
+                            <input type="text" class="form-control" id="collection-form-desc"
                                    placeholder="Helpful information">
                         </div>
                         <div class="form-group form-check">
-                            <input type="checkbox" class="form-check-input" id="collection_form_open_check">
-                            <label class="form-check-label" for="collection_form_open_check">Open for all</label>
+                            <input type="checkbox" class="form-check-input" id="collection-form-open-check">
+                            <label class="form-check-label" for="collection-form-open-check">Open for all</label>
                         </div>
                     </form>
                 </div>
@@ -78,24 +78,24 @@
                             onclick="actionBtnClicked(this.innerText.toLowerCase())"></button>
                 </div>
                 <script>
-                    const idInput = document.getElementById('collection_form_id');
-                    const nameInput = document.getElementById('collection_form_name');
-                    const descInput = document.getElementById('collection_form_desc');
-                    const openToAll = document.getElementById('collection_form_open_check');
+                    const idInput = document.getElementById('collection-form-id');
+                    const nameInput = document.getElementById('collection-form-name');
+                    const descInput = document.getElementById('collection-form-desc');
+                    const openToAll = document.getElementById('collection-form-open-check');
 
                     const actionBtn = document.getElementById('actionBtn');
                     const deleteBtn = document.getElementById('deleteBtn');
 
                     // i hate jquery
-                    $('#admin_collection_popup').on('show.bs.modal', async e => {
+                    $('#admin-collection-popup').on('show.bs.modal', async e => {
                         if ($(e.relatedTarget).data('action') === 'add') {
-                            $('#collection_popup_title').text('Add collection');
+                            $('#collection-popup-title').text('Add collection');
                             idInput.disabled = false;
                             actionBtn.innerText = "Add";
                             deleteBtn.style.display = "none";
                             clearFields();
                         } else {
-                            $('#collection_popup_title').text('Edit collection');
+                            $('#collection-popup-title').text('Edit collection');
                             let cid = $(e.relatedTarget).data('cid');
                             let coll = await collections.get(cid);
                             idInput.value = coll.cid;
@@ -127,7 +127,7 @@
                             if (result.reason) {
                                 alert(result.reason); // failed
                             } else {
-                                $('#admin_collection_popup').modal('hide');
+                                $('#admin-collection-popup').modal('hide');
                                 collections.update(idInput.value, result);
                                 renderCollections();
                             }
@@ -139,7 +139,7 @@
 
                     function initDelete() {
                         let cid = idInput.value;
-                        $('#collection_popup_title').text(`Delete ${cid}? Please re-enter the id!`);
+                        $('#collection-popup-title').text(`Delete ${cid}? Please re-enter the id!`);
                         idInput.disabled = false;
                         idInput.value = "";
                         idInput.setAttribute('placeholder', cid);
@@ -155,7 +155,7 @@
                                     if (result.reason) {
                                         alert(result.reason); // failed
                                     } else {
-                                        $('#admin_collection_popup').modal('hide');
+                                        $('#admin-collection-popup').modal('hide');
                                         collections.delete(cid);
                                         renderCollections();
                                     }
@@ -185,7 +185,7 @@
     function renderCollections(forceReset = false) {
         collections.getAll(!forceReset).then(colls => {
             console.log(colls);
-            display.innerHTML = colls.map(coll => `<div class="col-lg-3 col-md-5 col-sm-12 collection_card" id="coll_${coll.cid}">
+            display.innerHTML = colls.map(coll => `<div class="col-lg-3 col-md-5 col-sm-12 collection-card" id="coll-${coll.cid}">
 <div class="card">
 <div class="card-body">
 <h5 class="card-title">${coll.name}</h5>
@@ -194,7 +194,7 @@ ${coll.open ? '<span class="badge badge-success">Public</span>' : '<span class="
 <p class="card-text">${coll.desc}</p>
 <a href="/c/${coll.cid}/" class="card-link">Open</a>
 {{#if user.admin}}
-<a href="#" class="card-link" data-toggle="modal" data-target="#admin_collection_popup" data-action="edit" data-cid="${coll.cid}">Edit</a>
+<a href="#" class="card-link" data-toggle="modal" data-target="#admin-collection-popup" data-action="edit" data-cid="${coll.cid}">Edit</a>
 {{/if}}
 </div>
 </div>

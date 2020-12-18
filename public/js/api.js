@@ -79,6 +79,7 @@ function clearCache() {
     localStorage.removeItem("userCache");
     localStorage.removeItem("collCache");
     localStorage.removeItem("roleCache");
+    cache = {};
 }
 
 Object.freeze(collections);

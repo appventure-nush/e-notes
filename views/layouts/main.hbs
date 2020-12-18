@@ -63,9 +63,15 @@
                     </div>
                 </div>
                 {{#if user}}
-                    <small class="card-text ml-2" id="drawer-user-desc">
-                        {{user.desc}}
-                    </small>
+                    <div class="card-body p-2">
+                        <p class="card-text mb-1" id="user-roles">
+                            {{#if user.admin}}<span class="badge badge-danger">Admin</span>{{/if}}
+                            {{#each user.roles}}<span class="badge badge-secondary">{{this}}</span>{{/each}}
+                        </p>
+                        <small class="card-text muted" id="drawer-user-desc">
+                            {{user.desc}}
+                        </small>
+                    </div>
                     <div class="card-footer">
                         <a href="/logout" class="card-link">Logout</a>
                         <a href="/profile" class="card-link">Profile</a>

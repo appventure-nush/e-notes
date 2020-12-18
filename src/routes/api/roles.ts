@@ -1,6 +1,6 @@
 import {Router} from 'express';
 import Role from '../../types/role';
-import {getRole, getAllRoles, updateRoleCache, checkAdmin, updateRole, checkUser} from '../../utils';
+import {getRole, getAllRoles, checkAdmin, updateRole, checkUser} from '../../utils';
 import {firestore} from "firebase-admin";
 import {error} from "../../logger";
 
@@ -50,7 +50,6 @@ roles.post("/:rid", checkAdmin, async (req, res) => {
         const ref = firestore().collection("roles").doc(req.params.rid);
         const role = new Role(req.params.rid, req.body.name, req.body.desc);
         await ref.set(role.toData());
-        updateRoleCache(req.params.rid, role);
         res.json(role);
     }
 });

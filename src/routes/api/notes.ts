@@ -1,24 +1,20 @@
 import {Router} from 'express';
 import Note from '../../types/note';
-import admin, {firestore, storage} from "firebase-admin";
-import {checkAdmin} from "../../utils";
-import DocumentSnapshot = admin.firestore.DocumentSnapshot;
+import {firestore, storage} from "firebase-admin";
+import {checkAdmin, getNote, getNotes, updateNote} from "../../utils";
 
 const notes = Router();
 
-notes.get("/", async (req, res) => { // a lot of info
-    const snapshot = await firestore().collection("collections").doc(req.body.cid).collection("notes").get();
-    res.json(snapshot.docs.map((doc: DocumentSnapshot) => doc.data()));
-});
+notes.get("/", async (req, res) => res.json(await getNotes(req.body.cid)));
 
 notes.get("/:nid", async (req, res) => {
-    const doc = await firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid).get();
-    if (!doc.exists) return res.status(404).json({
+    const note = await getNote(req.body.cid, req.params.nid);
+    if (!note) return res.status(404).json({
         reason: "note_not_found",
         cid: req.body.cid,
         nid: req.params.nid
     });
-    else res.json(doc.data());
+    else res.json(note);
 });
 
 notes.post("/:nid", checkAdmin, async (req, res) => {
@@ -35,16 +31,15 @@ notes.post("/:nid", checkAdmin, async (req, res) => {
     } else {
         note = new Note(req.params.nid, req.body.cid, req.body.name, req.body.desc);
     }
+    updateNote(req.body.cid, req.params.nid, note);
     await ref.set(note.toData());
     res.json(note);
 });
 notes.delete("/:nid", checkAdmin, async (req, res) => {
     const ref = firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid);
-    const documentSnapshot = await ref.get();
-    if (documentSnapshot.exists) {
-        const file = storage().bucket().file(`collections/${req.body.cid}/notes/${req.params.nid}.html`);
-        await ref.delete();
-        await file.delete();
+    if ((await ref.get()).exists) {
+        updateNote(req.body.cid, req.params.nid, null);
+        await Promise.all([ref.delete(), storage().bucket().file(`collections/${req.body.cid}/notes/${req.params.nid}.html`).delete()]);
     }
     res.json({status: "ok"});
 });
@@ -66,6 +61,7 @@ notes.post("/:nid/upload", checkAdmin, async (req, res) => {
             action: 'read',
             expires: '01-01-2500'
         }))[0];
+        updateNote(req.body.cid, req.params.nid, note);
         await ref.set(note.toData());
         res.json({
             status: 'success',
@@ -73,9 +69,5 @@ notes.post("/:nid/upload", checkAdmin, async (req, res) => {
         });
     } else return res.json({status: 'failed', reason: 'where is the file'});
 });
-
-function escape(str: string) {
-    return str.replace(/[\s\/]+/g, '_');
-}
 
 export default notes;

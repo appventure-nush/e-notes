@@ -14,13 +14,13 @@ index.get('/', checkUserOptional, (req, res) => {
 
 index.post('/', (req, res) => {
     const idToken = req.body.idToken.toString();
-    const expiresIn = 60 * 60 * 24 * 5 * 1000;
+    const expiresIn = 1000 * 60 * 60 * 24 * 7;
     auth()
         .createSessionCookie(idToken, {expiresIn})
         .then((sessionCookie) => {
-            const options = {maxAge: expiresIn, httpOnly: true, /*secure: true*/};
+            const options = {maxAge: expiresIn, httpOnly: true, secure: process.env.ENVIRONMENT !== 'local'};
             res.cookie('session', sessionCookie, options);
-            res.end(JSON.stringify({status: 'success'}));
+            res.json({status: 'success'});
         }, _ => {
             res.status(403).send('NZ2XG2D3NRHTS2KOL5TDISKMGNSH2===');
         });

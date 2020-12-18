@@ -14,10 +14,13 @@ profile.get('/', checkUser, (req, res) => {
 profile.post('/', checkUser, async (req, res) => {
     const {nickname, desc} = req.body;
     const user = req.body.user as User;
-    if (nickname) user.nickname = nickname;
-    if (desc) user.desc = desc;
+    if (nickname || typeof nickname === 'string') user.nickname = nickname;
+    if (desc || typeof nickname === 'string') user.desc = desc;
     try {
-        if (nickname || desc) return res.json({status: 'success', user: await updateUser(user.uid, new User(user))});
+        if (nickname || desc || typeof nickname === 'string' || typeof nickname === 'string') return res.json({
+            status: 'success',
+            user: await updateUser(user.uid, new User(user))
+        });
         else return res.json({status: 'failed', reason: 'please give a nickname or a description'});
     } catch (e) {
         await error("profile change error", {message: e.message, body: req.body, uid: user.uid});

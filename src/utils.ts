@@ -1,14 +1,19 @@
 import User from './types/user';
 import Role from './types/role';
-// import Note from "./types/note";
+import Note from "./types/note";
 import Collection from "./types/coll";
 import express from "express";
-import {auth, firestore} from "firebase-admin";
+import admin, {auth, firestore} from "firebase-admin";
 import {error} from './logger';
+import DocumentSnapshot = admin.firestore.DocumentSnapshot;
 
 const users: User[] = [];
 const roles: Role[] = [];
 const collections: Collection[] = [];
+const noteCache: Map<string, {
+    notes: Note[],
+    cacheDate: number
+}> = new Map();
 
 export async function getUser(uid: string): Promise<User> { // heavy call function
     if (!uid) return null;
@@ -42,17 +47,51 @@ export async function updateRole(rid: string, value: Role) {
 }
 
 export function updateUserCache(uid: string, value: User) {
-    if (value) users[users.findIndex(user => user.uid === uid)] = value;
-    else users.splice(users.findIndex(user => user.uid === uid), 1);
+    if (value) {
+        let index = users.findIndex(user => user.uid === uid);
+        if (index === -1) users.push(value);
+        else users[index] = value;
+    } else users.splice(users.findIndex(user => user.uid === uid), 1);
 }
 
 export function updateRoleCache(rid: string, value: Role) {
-    if (value) roles[roles.findIndex(role => role.rid === rid)] = value;
-    else roles.splice(roles.findIndex(role => role.rid === rid), 1);
+    if (value) {
+        let index = roles.findIndex(role => role.rid === rid);
+        roles[index] = value;
+        if (index === -1) roles.push(value);
+        else roles[index] = value;
+    } else roles.splice(roles.findIndex(role => role.rid === rid), 1);
 }
 
 export function getAllRoles(): Role[] {
     return roles;
+}
+
+export async function getNote(cid: string, nid: string): Promise<Note> {
+    return (await getNotes(cid)).find(note => note.nid === nid);
+}
+
+export async function getNotes(cid: string): Promise<Note[]> {
+    let coll = noteCache.get(cid);
+    if (!coll) {
+        if (!getCollection(cid)) return null;
+        let allNotes = await firestore().collection("collections").doc(cid).collection("notes").get();
+        noteCache.set(cid, coll = {
+            cacheDate: Date.now(),
+            notes: allNotes.docs.map((doc: DocumentSnapshot) => new Note(doc.data()))
+        });
+    }
+    return coll.notes;
+}
+
+export function updateNote(cid: string, nid: string, note: Note) {
+    let coll = noteCache.get(cid);
+    if (!coll) return;
+    if (note) {
+        let index = coll.notes.findIndex(n => n.nid === nid);
+        if (index === -1) coll.notes.push(note);
+        else coll.notes[index] = note;
+    } else coll.notes.splice(coll.notes.findIndex(n => n.nid === nid), 1);
 }
 
 // permission system in order of priority

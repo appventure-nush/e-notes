@@ -45,14 +45,14 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
         });
         return (await secretsClient.read("apps/data/enotes")).data.data.service_account;
     }
-})().then((serviceAccount: object | admin.ServiceAccount) => {
+})().then(async (serviceAccount: object | admin.ServiceAccount) => {
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
         storageBucket: "e-notes-nush.appspot.com"
     });
-    setup();
-    app.locals.bucket = admin.storage().bucket();
     admin.firestore().settings({ignoreUndefinedProperties: true});
+    app.locals.bucket = admin.storage().bucket();
+    await setup();
 });
 
 export default app;
