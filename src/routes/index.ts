@@ -9,7 +9,7 @@ import profileRouter from "./profile";
 const index = Router();
 
 index.get('/', checkUserOptional, (req, res) => {
-    res.render("index", {user: req.body.user, csrf: req.csrfToken()});
+    res.render("index", {user: req.body.user, csrf: req.csrfToken(), logout: req.query.logout});
 });
 
 index.post('/', (req, res) => {
@@ -31,7 +31,7 @@ index.get('/logout', (req, res) => {
     auth()
         .verifySessionCookie(sessionCookie)
         .then((decodedClaims) => auth().revokeRefreshTokens(decodedClaims.sub))
-        .then(_ => res.redirect('/'))
+        .then(_ => res.redirect('/?logout=true'))
         .catch(_ => res.status(403).send('logout failed'));
 });
 

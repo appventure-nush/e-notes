@@ -22,7 +22,7 @@ export async function getUser(uid: string): Promise<User> { // heavy call functi
     return userObj;
 }
 
-export async function getRole(rid: string): Promise<Role> { // heavy call function
+export function getRole(rid: string): Role { // heavy call function
     if (!rid) return null;
     return roles.find(role => role.rid === rid);
 }
@@ -63,12 +63,13 @@ export function getAllRoles(): Role[] {
 // 5) role default (default allow) there is no default reject
 export async function hasPermissions(uid: string, cid: string) { // used in middleware
     const user = await getUser(uid);
+    if (!user) return false;
     const collection = collections.find(coll => coll.cid === cid);
     if (user.admin) return true; // well, here we go, an admin
     if (user.accepts(cid)) return true;
     if (user.rejects(cid)) return false;
     if (collection.open) return true;
-    const userRoles = await Promise.all(user.roles.map(rid => getRole(rid)));
+    const userRoles = user.roles.map(rid => getRole(rid));
     return (!userRoles.some(role => role.rejects(cid))) && userRoles.some(role => role.accepts(cid));
 }
 

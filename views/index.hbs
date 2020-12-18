@@ -203,6 +203,9 @@ ${coll.open ? '<span class="badge badge-success">Public</span>' : '<span class="
     }
 
     window.onload = _ => {
+        {{#if req.query.logout}}
+            clearCache();
+        {{/if}}
         renderCollections();
     }
 </script>
