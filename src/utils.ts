@@ -108,7 +108,7 @@ export async function hasPermissions(uid: string, cid: string) { // used in midd
     if (user.accepts(cid)) return true;
     if (user.rejects(cid)) return false;
     if (collection.open) return true;
-    const userRoles = user.roles.map(rid => getRole(rid));
+    const userRoles = user.roles.map(rid => getRole(rid)).filter(role => !(!role));
     return (!userRoles.some(role => role.rejects(cid))) && userRoles.some(role => role.accepts(cid));
 }
 
