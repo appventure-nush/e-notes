@@ -28,8 +28,8 @@
 <body class="has-drawer">
 <div id="drawer" class="drawer dw-xs-10 dw-sm-6 dw-md-4 dw-lg-3 fold" aria-labelledby="drawer">
     <script>
-        if (localStorage.getItem("drawer_is_open") === "true") document.getElementById('drawer').classList.add("open")
-        else document.getElementById('drawer').classList.remove("open")
+        if (localStorage.getItem("drawer_is_open") === "false") document.getElementById('drawer').classList.remove("open")
+        else document.getElementById('drawer').classList.add("open")
     </script>
     <div class="drawer-controls">
         <a href="#drawer" data-toggle="drawer" aria-foldedopen="false" aria-controls="drawer"

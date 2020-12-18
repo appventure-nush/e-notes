@@ -128,7 +128,7 @@
                                 alert(result.reason); // failed
                             } else {
                                 $('#admin_collection_popup').modal('hide');
-                                collections.update(result);
+                                collections.update(idInput.value, result);
                                 renderCollections();
                             }
                         }).catch(e => {
@@ -192,7 +192,7 @@
 <h6 class="card-subtitle text-muted"><pre class="mb-1">${coll.cid}</pre></h6>
 ${coll.open ? '<span class="badge badge-success">Public</span>' : '<span class="badge badge-danger">Private</span>'}
 <p class="card-text">${coll.desc}</p>
-<a href="/c/${coll.cid}" class="card-link">Open</a>
+<a href="/c/${coll.cid}/" class="card-link">Open</a>
 {{#if user.admin}}
 <a href="#" class="card-link" data-toggle="modal" data-target="#admin_collection_popup" data-action="edit" data-cid="${coll.cid}">Edit</a>
 {{/if}}

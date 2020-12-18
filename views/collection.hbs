@@ -236,7 +236,7 @@
     async function renderNotes() {
         list.innerHTML = (cnotes = await window.notes
                 .getAll(coll.cid)).map(note => `<li id="list_${note.nid}" class="list-group-item" onclick="showNote('${note.nid}')">${note.name}</li>`).join("");
-        if (localStorage.getItem('activeNote')) showNote(localStorage.getItem('activeNote'));
+        showNote('{{nid}}');
     }
 
     function showNote(nid) {
@@ -250,7 +250,6 @@
             noteName.innerText = "";
             noteDesc.innerText = "";
             document.querySelectorAll("#list .list-group-item.active").forEach(elem => elem.classList.remove('active'));
-            localStorage.removeItem('activeNote');
             shadowRoot.innerHTML = "";
         } else {
             if (cnote && cnote.nid === nid) return;
@@ -265,12 +264,12 @@
             noteDesc.innerText = cnote.desc;
             document.querySelectorAll("#list .list-group-item.active").forEach(elem => elem.classList.remove('active'));
             document.getElementById(`list_${cnote.nid}`).classList.add('active');
-            localStorage.setItem('activeNote', nid);
             fetch(cnote.url).then(res => res.text()).then(text => {
                 shadowRoot.innerHTML = text + "\n<style>.container{width: auto !important;}</style>"; // small hax
                 updateTheme(); // shadow dom is retarded
             });
         }
+        window.history.pushState("", "", `/c/${coll.cid}/${nid ? nid : ''}`);
     }
 
     window.onhashchange = e => { // support anchor clicking

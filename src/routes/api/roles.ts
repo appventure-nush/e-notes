@@ -6,7 +6,7 @@ import {error} from "../../logger";
 
 const roles = Router();
 
-roles.get("/", checkUser, async (req, res) => res.json(await getAllRoles()));
+roles.get("/", checkUser, (req, res) => res.json(getAllRoles()));
 
 roles.get("/:rid", checkUser, async (req, res) => {
     const role = await getRole(req.params.rid);

@@ -4,54 +4,33 @@ import Role from './types/role';
 import Collection from "./types/coll";
 import express from "express";
 import {auth, firestore} from "firebase-admin";
-// running two at the same time is a bad idea
-// using cache system to reduce reads, idk about write
-// writes shouldn't be that heavy
-// but reads is HEAVY
-const CACHE_AGE = 1000 * 60 * 60 * 24; // 1 day
-import {info, error} from './logger';
+import {error} from './logger';
 
-let lastFullRoleRefresh = 0;
-const userCache = new Map<string, [User, number]>();
-const roleCache = new Map<string, [Role, number]>();
-const collections: Collection[] = [];
-// const collCache = new Map<string, [Collection, number]>();
-// const noteCache = new Map<string, [Note, number]>();
+let users: User[] = [];
+let roles: Role[] = [];
+let collections: Collection[] = [];
 
 export async function getUser(uid: string): Promise<User> { // heavy call function
     if (!uid) return null;
-    if (userCache.has(uid)) {
-        const cache = userCache.get(uid);
-        if (Date.now() - cache[1] <= CACHE_AGE) return cache[0]; // else carry on
-    }
     const user = await auth().getUser(uid);
-    const userDoc = await firestore().collection("users").doc(user.uid).get();
-    let userObj: User;
-    if (!userDoc.exists) {
+    if (!user) return null;
+    let userObj = users.find(user => user.uid === uid);
+    if (!userObj) {
         userObj = new User(user.uid);
-        await userDoc.ref.set(userObj.toData());
-    } else userObj = new User(userDoc.data());
-    userCache.set(user.uid, [userObj, Date.now()]);
+        await firestore().collection("users").doc(user.uid).set(userObj.toData());
+    }
     return userObj;
 }
 
 export async function getRole(rid: string): Promise<Role> { // heavy call function
     if (!rid) return null;
-    if (roleCache.has(rid)) {
-        const cache = roleCache.get(rid);
-        if (Date.now() - cache[1] <= CACHE_AGE) return cache[0]; // else carry on
-    }
-    const roleDoc = await firestore().collection("roles").doc(rid).get();
-    if (!roleDoc.exists) return null;
-    const role = new Role(roleDoc.data());
-    roleCache.set(role.rid, [role, Date.now()]);
-    return role;
+    return roles.find(role => role.rid === rid);
 }
 
-export async function updateUser(userId: string, value: User) {
-    updateUserCache(userId, value);
-    if (value) await firestore().collection("users").doc(userId).set(value.toData());
-    else await firestore().collection("users").doc(userId).delete();
+export async function updateUser(uid: string, value: User) {
+    updateUserCache(uid, value);
+    if (value) await firestore().collection("users").doc(uid).set(value.toData());
+    else await firestore().collection("users").doc(uid).delete();
     return value;
 }
 
@@ -62,26 +41,17 @@ export async function updateRole(rid: string, value: Role) {
     return value;
 }
 
-export function updateUserCache(userId: string, value: User) {
-    if (value) userCache.set(userId, [value, Date.now()]);
-    else userCache.delete(userId);
+export function updateUserCache(uid: string, value: User) {
+    if (value) users[users.findIndex(user => user.uid === uid)] = value;
+    else users.splice(users.findIndex(user => user.uid === uid), 1);
 }
 
 export function updateRoleCache(rid: string, value: Role) {
-    if (value) roleCache.set(rid, [value, Date.now()]);
-    else roleCache.delete(rid);
+    if (value) roles[roles.findIndex(role => role.rid === rid)] = value;
+    else roles.splice(roles.findIndex(role => role.rid === rid), 1);
 }
 
-export async function getAllRoles(): Promise<Role[]> {
-    if (Date.now() - lastFullRoleRefresh <= CACHE_AGE) return Array.from(roleCache.values()).map(([value]) => value);
-    const roleDocs = (await firestore().collection("roles").get()).docs;
-    const roles: Role[] = [];
-    for (const roleDoc of roleDocs) {
-        const role = new Role(roleDoc.data());
-        roleCache.set(role.rid, [role, Date.now()]);
-        roles.push(role);
-    }
-    lastFullRoleRefresh = Date.now();
+export function getAllRoles(): Role[] {
     return roles;
 }
 
@@ -138,7 +108,7 @@ export async function checkUserOptional(req: express.Request, res: express.Respo
         return next();
     } catch (e) {
         await error('auth failed', {func: 'checkUserOptional', body: req.body, path: req.path});
-        return res.status(403).send("authorization invalid");
+        return res.redirect("/logout");
     }
 }
 
@@ -181,9 +151,32 @@ export function getCollection(cid: string): Collection { // heavy call function
     return collections.find(coll => coll.cid === cid);
 }
 
-export function setup() {
-    firestore().collection('collections').onSnapshot(querySnapshot => collections.splice(0, collections.length, ...querySnapshot.docs.map(doc => new Collection(doc.data()))));
-    auth();
+export async function setup() {
+    // probably not very efficient
+    firestore().collection('collections').onSnapshot(querySnapshot => {
+        querySnapshot.docChanges().forEach(change => {
+            let cid = change.doc.data().cid;
+            if (change.type === "added") collections.push(new Collection(change.doc.data()));
+            else if (change.type === "removed") collections.splice(collections.findIndex(coll => coll.cid === cid), 1);
+            else if (change.type === "modified") collections[collections.findIndex(coll => coll.cid === cid)] = new Collection(change.doc.data());
+        });
+    });
+    firestore().collection('roles').onSnapshot(querySnapshot => {
+        querySnapshot.docChanges().forEach(change => {
+            let rid = change.doc.data().rid;
+            if (change.type === "added") roles.push(new Role(change.doc.data()));
+            else if (change.type === "removed") roles.splice(roles.findIndex(role => role.rid === rid), 1);
+            else if (change.type === "modified") roles[roles.findIndex(role => role.rid === rid)] = new Role(change.doc.data());
+        });
+    });
+    firestore().collection('users').onSnapshot(querySnapshot => {
+        querySnapshot.docChanges().forEach(change => {
+            let uid = change.doc.data().uid;
+            if (change.type === "added") users.push(new User(change.doc.data()));
+            else if (change.type === "removed") users.splice(users.findIndex(user => user.uid === uid), 1);
+            else if (change.type === "modified") users[users.findIndex(user => user.uid === uid)] = new User(change.doc.data());
+        });
+    });
 }
 
 function mapAsync<T, U>(array: T[], callback: (value: T, index: number, array: T[]) => Promise<U>): Promise<U[]> {

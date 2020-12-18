@@ -15,8 +15,12 @@
     </div>
     <div class="form-group">
         <label for="desc">Status</label>
-        <input onkeypress="fieldsChanged(this)" type="text" class="form-control" id="desc" placeholder="UwU"
+        <input onkeypress="fieldsChanged(this)" type="text" class="form-control" id="desc" placeholder="OwO"
                value="{{user.desc}}"/>
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input onkeypress="fieldsChanged(this)" type="password" class="form-control" id="password" placeholder="UwU"/>
     </div>
     <div class="btn-group" role="group" aria-label="Basic example">
         <button class="btn btn-primary" type="button" onclick="updateProfile()" id="update_btn" disabled="disabled">
@@ -48,6 +52,7 @@
         const update_btn = document.getElementById('update_btn');
         const reset_btn = document.getElementById('reset_btn');
         const nickname = document.getElementById('nickname');
+        const password = document.getElementById('password');
         const desc = document.getElementById('desc');
 
         window.fieldsChanged = function (elem) {
@@ -66,7 +71,8 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     nickname: nickname.classList.contains('changed') ? nickname.value : undefined,
-                    desc: desc.classList.contains('changed') ? desc.value : undefined
+                    desc: desc.classList.contains('changed') ? desc.value : undefined,
+                    password: password.classList.contains('changed') ? password.value : undefined,
                 })
             }).then(result => {
                 update_btn.removeAttribute('disabled');
