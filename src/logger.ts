@@ -23,7 +23,7 @@ let logging: Logging;
     log = logging.log("_Default");
 });
 
-export function info(text: string, meta = {}) {
+export function info(text: string | {}, meta = {}) {
     if (!log) return;
     const metadata = {
         jsonPayload: meta,
@@ -32,7 +32,7 @@ export function info(text: string, meta = {}) {
     return log.info(log.entry(metadata, text));
 }
 
-export function error(text: string, meta = {}) {
+export function error(text: string | {}, meta = {}) {
     if (!log) return;
     const metadata = {
         jsonPayload: meta,

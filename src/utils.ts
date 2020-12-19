@@ -103,16 +103,21 @@ export function updateNote(cid: string, nid: string, note: Note) {
 export async function hasPermissions(uid: string, cid: string) { // used in middleware
     const user = await getUser(uid);
     if (!user) return false;
-    const collection = collections.find(coll => coll.cid === cid);
+    const collection = getCollection(cid);
     if (user.admin) return true; // well, here we go, an admin
     if (user.accepts(cid)) return true;
     if (user.rejects(cid)) return false;
+    console.log('cid', cid);
     if (collection.open) return true;
     const userRoles = user.roles.map(rid => getRole(rid)).filter(role => !(!role));
-    return (!userRoles.some(role => role.rejects(cid))) && userRoles.some(role => role.accepts(cid));
+
+    let reject = !userRoles.some(role => role.rejects(cid));
+    let accept = userRoles.some(role => role.accepts(cid));
+    console.log(reject, accept);
+    return reject && accept;
 }
 
-export function getAvailableCollections(uid: string) { // used in middleware
+export async function getAvailableCollections(uid: string) { // used in middleware
     return filterAsync(collections, c => hasPermissions(uid, c.cid));
 }
 
@@ -133,7 +138,7 @@ export async function checkUser(req: express.Request, res: express.Response, nex
             return next();
         } else return res.status(403).send("not logged in");
     } catch (e) {
-        await error('auth failed', {func: 'checkUserOptional', body: req.body, path: req.path});
+        await error({func: 'checkUserOptional', body: req.body, path: req.path});
         return res.status(403).send("authorization invalid");
     }
 }
@@ -147,7 +152,7 @@ export async function checkUserOptional(req: express.Request, res: express.Respo
         }
         return next();
     } catch (e) {
-        await error('auth failed', {func: 'checkUserOptional', body: req.body, path: req.path});
+        await error({func: 'checkUserOptional', body: req.body, path: req.path});
         return res.redirect("/logout");
     }
 }
@@ -156,11 +161,12 @@ export async function checkPermissions(req: express.Request, res: express.Respon
     try {
         const uid = await getUID(req);
         if (uid) {
-            if (await hasPermissions(uid, uid)) return next();
+            if (await hasPermissions(uid, req.params.cid)) return next();
             else return res.status(403).send("not authorized");
         } else return res.status(403).send("not logged in");
     } catch (e) {
-        await error('auth failed', {func: 'checkPermissions', body: req.body, path: req.path});
+        console.log(e);
+        await error({func: 'checkPermissions', body: req.body, path: req.path});
         return res.status(403).send("authorization invalid");
     }
 }
@@ -173,7 +179,7 @@ export async function checkAdmin(req: express.Request, res: express.Response, ne
             else return res.status(403).send("not admin");
         } else return res.status(403).send("not logged in");
     } catch (e) {
-        await error('auth failed', {func: 'checkAdmin', body: req.body, path: req.path});
+        await error({func: 'checkAdmin', body: req.body, path: req.path});
         return res.status(403).send("authorization invalid");
     }
 }

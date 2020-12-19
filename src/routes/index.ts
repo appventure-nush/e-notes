@@ -1,8 +1,8 @@
 import {Router} from 'express';
 import {checkUserOptional} from '../utils';
 import {auth} from 'firebase-admin';
-import userRouter from "./u";
-import collRouter from "./c";
+import userRouter from "./users";
+import collRouter from "./collections";
 import adminRouter from "./admin";
 import profileRouter from "./profile";
 
