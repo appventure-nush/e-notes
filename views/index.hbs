@@ -174,6 +174,32 @@
             </div>
         </div>
     </div>
+
+
+    <div class="modal fade" id="delete_collection_popup" tabindex="-1" aria-labelledby="delete_collection_title"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="delete_collection_title">Delete Collection</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this collection? This action is IRREVERSIBLE
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" onclick="deleteColl()">Delete</button>
+                <script>
+                    import Collections from "../src/routes/api/collections";
+                    function deleteColl() {
+                        Collections.delete;
+                    }
+                </script>
+            </div>
+        </div>
+    </div>
 {{/if}}
 
 <script>
@@ -191,6 +217,7 @@
 <a href="/c/${coll.cid}" class="card-link">Open</a>
 {{#if user.admin}}
 <a href="#" class="card-link" data-toggle="modal" data-target="#admin_collection_popup" data-action="edit" data-cid="${coll.cid}">Edit</a>
+<a href="#" class="card-link" data-toggle="modal" data-target="#delete_collection_popup" data-action="delete" data-cid="${coll.cid}">Delete</a>
 {{/if}}
 </div>
 </div>
