@@ -107,13 +107,11 @@ export async function hasPermissions(uid: string, cid: string) { // used in midd
     if (user.admin) return true; // well, here we go, an admin
     if (user.accepts(cid)) return true;
     if (user.rejects(cid)) return false;
-    console.log('cid', cid);
     if (collection.open) return true;
     const userRoles = user.roles.map(rid => getRole(rid)).filter(role => !(!role));
 
     let reject = !userRoles.some(role => role.rejects(cid));
     let accept = userRoles.some(role => role.accepts(cid));
-    console.log(reject, accept);
     return reject && accept;
 }
 
@@ -165,7 +163,6 @@ export async function checkPermissions(req: express.Request, res: express.Respon
             else return res.status(403).send("not authorized");
         } else return res.status(403).send("not logged in");
     } catch (e) {
-        console.log(e);
         await error({func: 'checkPermissions', body: req.body, path: req.path});
         return res.status(403).send("authorization invalid");
     }
