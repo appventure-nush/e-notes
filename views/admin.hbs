@@ -18,7 +18,7 @@
     window.currentNav = "admin";
     window.onload = e => {
         async function getTree() {
-            let data = await Promise.all([users.getAll(), collections.getAll()]);
+            let data = await Promise.all([users.getAll(), roles.getAll()]);
             let tree = [];
             tree.push({
                 text: 'Users',
@@ -29,11 +29,11 @@
                 }))
             });
             tree.push({
-                text: 'Collections',
+                text: 'Roles',
                 icon: "fa fa-folder",
-                nodes: data[1].map(coll => ({
-                    id: coll.cid,
-                    text: `${coll.cid} ${coll.name}`
+                nodes: data[1].map(roll => ({
+                    id: roll.rid,
+                    text: `${roll.name}`
                 }))
             });
             return tree;
