@@ -137,7 +137,7 @@ export async function checkUser(req: express.Request, res: express.Response, nex
         } else return res.status(403).send("not logged in");
     } catch (e) {
         await error({func: 'checkUserOptional', body: req.body, path: req.path});
-        return res.status(403).send("authorization invalid");
+        return res.redirect('/login');
     }
 }
 
@@ -164,7 +164,7 @@ export async function checkPermissions(req: express.Request, res: express.Respon
         } else return res.status(403).send("not logged in");
     } catch (e) {
         await error({func: 'checkPermissions', body: req.body, path: req.path});
-        return res.status(403).send("authorization invalid");
+        return res.redirect('/login');
     }
 }
 
@@ -177,7 +177,7 @@ export async function checkAdmin(req: express.Request, res: express.Response, ne
         } else return res.status(403).send("not logged in");
     } catch (e) {
         await error({func: 'checkAdmin', body: req.body, path: req.path});
-        return res.status(403).send("authorization invalid");
+        return res.redirect('/login');
     }
 }
 
