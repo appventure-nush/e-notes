@@ -27,10 +27,7 @@
                     'idToken': idToken
                 })
             });
-        }).then(res => {
-            console.log(res.headers);
-            return res.json();
-        }).then(json => {
+        }).then(res => res.json()).then(json => {
             if (json.status === 'success') window.location.reload();
         }).catch(error => console.log("failed to retrieve jwt"));
     });

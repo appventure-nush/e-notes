@@ -9,11 +9,7 @@ import Collection from "../../types/coll";
 import {firestore} from "firebase-admin";
 
 collections.get("/", checkUser, async (req, res) => {
-    const collections = await getAvailableCollections(req.body.cuid);
-    if (collections.length === 0) return res.status(404).json({
-        reason: "no_collections_found"
-    });
-    else res.json(collections);
+    res.json(await getAvailableCollections(req.body.cuid));
 });
 
 collections.get("/:cid", checkPermissions, async (req, res) => {
@@ -56,7 +52,7 @@ collections.post("/:cid", checkAdmin, async (req, res) => {
 
 collections.use("/:cid/notes", checkPermissions, (req, res, next) => {
     req.body.cid = req.params.cid;
-    let collection = getCollection(req.params.cid);
+    const collection = getCollection(req.params.cid);
     if (!collection) return res.status(404).json({reason: "collection_not_found"});
     next();
 }, notesRouter);

@@ -1,30 +1,26 @@
 import {Router} from 'express';
 import Note from '../../types/note';
-import admin, {firestore, storage} from "firebase-admin";
-import {checkAdmin} from "../../utils";
-import DocumentSnapshot = admin.firestore.DocumentSnapshot;
+import {firestore, storage} from "firebase-admin";
+import {checkAdmin, getNote, getNotes, updateNote} from "../../utils";
 
 const notes = Router();
 
-notes.get("/", async (req, res) => { // a lot of info
-    const snapshot = await firestore().collection("collections").doc(req.body.cid).collection("notes").get();
-    res.json(snapshot.docs.map((doc: DocumentSnapshot) => doc.data()));
-});
+notes.get("/", async (req, res) => res.json(await getNotes(req.body.cid)));
 
 notes.get("/:nid", async (req, res) => {
-    const doc = await firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid).get();
-    if (!doc.exists) return res.status(404).json({
+    const note = await getNote(req.body.cid, req.params.nid);
+    if (!note) return res.status(404).json({
         reason: "note_not_found",
         cid: req.body.cid,
         nid: req.params.nid
     });
-    else res.json(doc.data());
+    else res.json(note);
 });
 
 notes.post("/:nid", checkAdmin, async (req, res) => {
     const ref = firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid);
     let note;
-    let documentSnapshot = await ref.get();
+    const documentSnapshot = await ref.get();
     if (documentSnapshot.exists) {
         if (req.body.action && req.body.action === "add") return res.status(400).json({reason: "note_already_exist"});
         note = new Note(documentSnapshot.data());
@@ -35,13 +31,22 @@ notes.post("/:nid", checkAdmin, async (req, res) => {
     } else {
         note = new Note(req.params.nid, req.body.cid, req.body.name, req.body.desc);
     }
+    updateNote(req.body.cid, req.params.nid, note);
     await ref.set(note.toData());
     res.json(note);
 });
+notes.delete("/:nid", checkAdmin, async (req, res) => {
+    const ref = firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid);
+    if ((await ref.get()).exists) {
+        updateNote(req.body.cid, req.params.nid, null);
+        await Promise.all([ref.delete(), storage().bucket().file(`collections/${req.body.cid}/notes/${req.params.nid}.html`).delete()]);
+    }
+    res.json({status: "ok"});
+});
 notes.post("/:nid/upload", checkAdmin, async (req, res) => {
     if (!req.files) return res.json({status: 'failed', reason: 'where is the file'});
-    const new_note_source = req.files.note_source;
-    if (new_note_source && "data" in new_note_source) {
+    const newNoteSource = req.files.note_source;
+    if (newNoteSource && "data" in newNoteSource) {
         const ref = firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid);
         const doc = await ref.get();
         if (!doc.exists) return res.status(404).json({
@@ -51,22 +56,18 @@ notes.post("/:nid/upload", checkAdmin, async (req, res) => {
         });
         const note = new Note(doc.data());
         const file = storage().bucket().file(`collections/${req.body.cid}/notes/${req.params.nid}.html`);
-        await file.save(new Uint8Array(new_note_source.data), {resumable: false});
+        await file.save(new Uint8Array(newNoteSource.data), {resumable: false});
         note.url = (await file.getSignedUrl({
             action: 'read',
             expires: '01-01-2500'
         }))[0];
-        console.log("url=", note.url);
+        updateNote(req.body.cid, req.params.nid, note);
         await ref.set(note.toData());
         res.json({
             status: 'success',
-            note: note
+            note
         });
     } else return res.json({status: 'failed', reason: 'where is the file'});
 });
-
-function escape(str: string) {
-    return str.replace(/[\s\/]+/g, '_');
-}
 
 export default notes;

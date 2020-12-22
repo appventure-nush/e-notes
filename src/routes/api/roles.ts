@@ -1,11 +1,12 @@
 import {Router} from 'express';
 import Role from '../../types/role';
-import {getRole, getAllRoles, updateRoleCache, checkAdmin, updateRole, checkUser} from '../../utils';
+import {getRole, getAllRoles, checkAdmin, updateRole, checkUser} from '../../utils';
 import {firestore} from "firebase-admin";
+import {error} from "../../logger";
 
 const roles = Router();
 
-roles.get("/", checkUser, async (req, res) => res.json(await getAllRoles()));
+roles.get("/", checkUser, (req, res) => res.json(getAllRoles()));
 
 roles.get("/:rid", checkUser, async (req, res) => {
     const role = await getRole(req.params.rid);
@@ -49,7 +50,6 @@ roles.post("/:rid", checkAdmin, async (req, res) => {
         const ref = firestore().collection("roles").doc(req.params.rid);
         const role = new Role(req.params.rid, req.body.name, req.body.desc);
         await ref.set(role.toData());
-        updateRoleCache(req.params.rid, role);
         res.json(role);
     }
 });
@@ -71,7 +71,12 @@ roles.get("/:rid/:operation/:cid", checkAdmin, async (req, res) => {
             });
         res.json(role.toData());
     } catch (e) {
-        console.log(e);
+        await error('role edit error', {
+            message: e.message,
+            rid: req.params.rid,
+            cid: req.params.cid,
+            operation: req.params.operation
+        });
         res.status(500).json({
             reason: "error",
             rid: req.params.rid,

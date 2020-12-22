@@ -4,6 +4,7 @@ import {checkUser, getUser, transformUser, updateUser} from "../utils";
 import imageType from "image-type";
 import {auth, storage} from "firebase-admin";
 import User from "../types/user";
+import {error} from "../logger";
 
 const profile = Router();
 const IMAGE_FORMATS = ['image/gif', 'image/jpeg', 'image/png'];
@@ -13,13 +14,16 @@ profile.get('/', checkUser, (req, res) => {
 profile.post('/', checkUser, async (req, res) => {
     const {nickname, desc} = req.body;
     const user = req.body.user as User;
-    if (nickname) user.nickname = nickname;
-    if (desc) user.desc = desc;
+    if (nickname || typeof nickname === 'string') user.nickname = nickname;
+    if (desc || typeof nickname === 'string') user.desc = desc;
     try {
-        if (nickname || desc) return res.json({status: 'success', user: await updateUser(user.uid, new User(user))});
+        if (nickname || desc || typeof nickname === 'string' || typeof nickname === 'string') return res.json({
+            status: 'success',
+            user: await updateUser(user.uid, new User(user))
+        });
         else return res.json({status: 'failed', reason: 'please give a nickname or a description'});
-    } catch (_) {
-        console.log(_);
+    } catch (e) {
+        await error("profile change error", {message: e.message, body: req.body, uid: user.uid});
     }
     res.json({status: 'failed', reason: 'not sure why, not sure where'});
 });
@@ -42,7 +46,12 @@ profile.post('/uploadPFP', checkUser, async (req, res) => {
                         user: transformUser(new User(req.body.user), await auth().updateUser(req.body.cuid, {photoURL: url}))
                     });
                 } catch (e) {
-                    console.log(e);
+                    await error("pfp change error", {
+                        message: e.message,
+                        body: req.body,
+                        type,
+                        uid: req.body.cuid
+                    });
                     res.json({status: 'failed', reason: 'please contact an admin'});
                 }
             } else return res.json({status: 'failed', reason: 'only gif/jpg/png allowed!'});

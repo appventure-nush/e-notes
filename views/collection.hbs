@@ -1,3 +1,12 @@
+<style>
+    .card-header .fa {
+        transition: .3s transform ease-in-out;
+    }
+
+    .card-header.collapsed .fa {
+        transform: rotate(90deg);
+    }
+</style>
 <div class="row" style="margin-top: 2em">
     <div class="col-lg-3">
         <div class="card mt-4">
@@ -15,60 +24,60 @@
                 <a href="/" class="card-link">Back</a>
             </div>
         </div>
-        <div class="card mt-2" id="note_card" style="display: none;">
-            <p class="card-header">Note Info</p>
-            <div class="card-body">
-                <h6 class="card-title" id="note_name"></h6>
-                <pre id="note_id"></pre>
-                <p class="card-text" id="note_desc"></p>
-            </div>
-        </div>
         <div class="card mt-2">
-            <ul class="list-group list-group-flush" id="list">
+            <p class="card-header d-flex" data-toggle="collapse" data-target="#note-list" aria-expanded="true"
+               aria-controls="note-info">Note List <i class="fa fa-chevron-down ml-auto align-middle"></i></p>
+            <ul class="list-group list-group-flush collapse show" id="note-list">
             </ul>
+        </div>
+        <div class="card mt-2" id="note-card" style="display: none;">
+            <p class="card-header d-flex" data-toggle="collapse" data-target="#note-info" aria-expanded="true"
+               aria-controls="note-info">Note Info <i class="fa fa-chevron-down ml-auto align-middle"></i></p>
+            <div id="note-info" class="card-body collapse show">
+                <h6 class="card-title" id="note-name"></h6>
+                <pre id="note-id"></pre>
+                <p class="card-text" id="note-desc"></p>
+                <small class="card-text muted" id="note-time"></small>
+            </div>
         </div>
     </div>
     <div class="col-lg-9">
-        <nav class="navbar navbar-expand-lg navbar-light">
-            <a class="navbar-brand" href="#">Notes</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" onclick="renderNotes()"><i class="fas fa-sync"></i> Cache</a>
-                    </li>
-                    {{#if user.admin}}
+        {{#if user.admin}}
+            <nav class="navbar navbar-expand-lg navbar-light">
+                <a class="navbar-brand" href="#">Notes</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a id="editBtn" class="nav-link disabled" href="#" data-action="edit"
+                               data-toggle="modal" data-target="#admin-note-popup">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#" data-action="add"
-                               data-toggle="modal" data-target="#admin_note_popup">
+                               data-toggle="modal" data-target="#admin-note-popup">
                                 <i class="fas fa-plus"></i> New
                             </a>
                         </li>
-                    {{/if}}
-                </ul>
-            </div>
-        </nav>
+                    </ul>
+                </div>
+            </nav>
+        {{/if}}
         <script src="https://kit.fontawesome.com/c32b3db897.js" crossorigin="anonymous"></script>
-        <style>
-            #display::before {
-                padding-top: 150%;
-            }
-        </style>
-        <div id="display">
-
-        </div>
+        <div id="display"></div>
     </div>
 </div>
 {{#if user.admin}}
-    <div class="modal fade" id="admin_note_popup" tabindex="-1" aria-labelledby="note_popup_title"
+    <div class="modal fade" id="admin-note-popup" tabindex="-1" aria-labelledby="note-popup-title"
          aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="note_popup_title"></h5>
+                    <h5 class="modal-title" id="note-popup-title"></h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -76,30 +85,25 @@
                 <div class="modal-body">
                     <form>
                         <div class="form-group">
-                            <label for="note_form_id">Note ID</label>
-                            <input type="text" class="form-control" id="note_form_id"
-                                   aria-describedby="add_form_id_help"
+                            <label for="note-form-id">Note ID</label>
+                            <input type="text" class="form-control" id="note-form-id"
+                                   aria-describedby="add-form-id-help"
                                    placeholder="Empty for random ID">
-                            <small id="add_form_id_help" class="form-text text-muted">Please don't use spaces</small>
+                            <small id="add-form-id-help" class="form-text text-muted">Please don't use spaces</small>
                         </div>
                         <div class="form-group">
-                            <label for="note_form_name">Note Name</label>
-                            <input type="text" class="form-control" id="note_form_name"
+                            <label for="note-form-name">Note Name</label>
+                            <input type="text" class="form-control" id="note-form-name"
                                    placeholder="Empty for file name without extension">
                         </div>
                         <div class="form-group">
-                            <label for="note_form_desc">Note Description</label>
-                            <input type="text" class="form-control" id="note_form_desc"
+                            <label for="note-form-desc">Note Description</label>
+                            <input type="text" class="form-control" id="note-form-desc"
                                    placeholder="Helpful information">
                         </div>
                         <div class="form-group">
-                            <label for="note_form_desc">Note Description</label>
-                            <input type="text" class="form-control" id="note_form_desc"
-                                   placeholder="Helpful information">
-                        </div>
-                        <div class="form-group">
-                            <label for="note_form_file">Note Source</label>
-                            <input type="file" class="form-control" id="note_form_file">
+                            <label for="note-form-file">Note Source</label>
+                            <input type="file" class="form-control-file" id="note-form-file">
                         </div>
                     </form>
                 </div>
@@ -112,30 +116,30 @@
                             onclick="actionBtnClicked(this.innerText.toLowerCase())"></button>
                 </div>
                 <script>
-                    const idInput = document.getElementById('note_form_id');
-                    const nameInput = document.getElementById('note_form_name');
-                    const descInput = document.getElementById('note_form_desc');
-                    const fileInput = document.getElementById('note_form_file');
+                    const idInput = document.getElementById('note-form-id');
+                    const nameInput = document.getElementById('note-form-name');
+                    const descInput = document.getElementById('note-form-desc');
+                    const fileInput = document.getElementById('note-form-file');
 
                     const actionBtn = document.getElementById('actionBtn');
                     const deleteBtn = document.getElementById('deleteBtn');
 
+                    const editBtn = document.getElementById('editBtn');
+
                     // i hate jquery
-                    $('#admin_note_popup').on('show.bs.modal', async e => {
+                    $('#admin-note-popup').on('show.bs.modal', async e => {
                         if ($(e.relatedTarget).data('action') === 'add') {
-                            $('#note_popup_title').text('Add collection');
+                            $('#note-popup-title').text('Add note');
                             idInput.disabled = false;
                             actionBtn.innerText = "Add";
                             deleteBtn.style.display = "none";
                             clearFields();
                         } else {
-                            $('#note_popup_title').text('Edit collection');
-                            let cid = $(e.relatedTarget).data('cid');
-                            let coll = await collections.get(cid);
-                            idInput.value = coll.cid;
+                            $('#note-popup-title').text('Edit note');
+                            idInput.value = cnote.nid;
                             idInput.disabled = true;
-                            nameInput.value = coll.name;
-                            descInput.value = coll.desc;
+                            nameInput.value = cnote.name;
+                            descInput.value = cnote.desc;
                             fileInput.value = "";
                             actionBtn.innerText = "Edit";
                             deleteBtn.style.display = "inline-block";
@@ -173,40 +177,42 @@
                             } else throw "handled";
                         }).then(fileRes => {
                             actionBtn.disabled = false;
-                            $('#admin_note_popup').modal('hide');
+                            $('#admin-note-popup').modal('hide');
                             console.log(fileRes);
-                            renderNotes();
+                            renderNotes(cnote ? cnote.nid : null);
                         }).catch(e => {
                             actionBtn.disabled = false;
-                            $('#admin_note_popup').modal('hide');
+                            $('#admin-note-popup').modal('hide');
                             console.log(e);
-                            renderNotes();
+                            renderNotes(cnote ? cnote.nid : null);
                         });
                     }
 
                     function initDelete() {
-                        let cid = idInput.value;
-                        $('#collection_popup_title').text(`Delete ${cid}? Please re-enter the id!`);
+                        let nid = idInput.value;
+                        $('#note-popup-title').text(`Delete ${nid}? Please re-enter the id!`);
                         idInput.disabled = false;
                         idInput.value = "";
-                        idInput.setAttribute('placeholder', cid);
+                        idInput.setAttribute('placeholder', nid);
 
                         deleteBtn.innerText = "Confirm";
                         deleteBtn.onclick = () => {
-                            if (idInput.value === cid) {
+                            if (idInput.value === nid) {
                                 deleteBtn.disabled = true;
-                                fetcher(`/api/collections/${idInput.value}`, {
+                                fetcher(`/api/collections/${coll.cid}/notes/${idInput.value}`, {
                                     method: 'DELETE'
                                 }).then(result => {
                                     deleteBtn.disabled = false;
+                                    showNote(null);
                                     if (result.reason) {
                                         alert(result.reason); // failed
                                     } else {
-                                        $('#admin_note_popup').modal('hide');
-                                        collections.delete(cid);
+                                        $('#admin-note-popup').modal('hide');
                                         renderNotes();
                                     }
                                 }).catch(e => {
+                                    showNote(null);
+                                    deleteBtn.disabled = false;
                                     console.log(e);
                                 });
                             } else alert("ID mismatch!");
@@ -221,46 +227,68 @@
         </div>
     </div>
 {{/if}}
+<script src="/js/moment.min.js"></script>
 <script>
     let cnote;
     let cnotes;
     const coll = {cid: '{{coll.cid}}', name: '{{coll.name}}', desc: '{{coll.desc}}'};
-    const list = document.getElementById('list');
+    const list = document.getElementById('note-list');
     const display = document.getElementById('display');
     window.shadowRoot = display.attachShadow({mode: 'open'});
-    const noteId = document.getElementById('note_id');
-    const noteCard = document.getElementById('note_card');
-    const noteName = document.getElementById('note_name');
-    const noteDesc = document.getElementById('note_desc');
+    const noteId = document.getElementById('note-id');
+    const noteCard = document.getElementById('note-card');
+    const noteName = document.getElementById('note-name');
+    const noteDesc = document.getElementById('note-desc');
+    const noteTime = document.getElementById('note-time');
 
-    async function renderNotes() {
+    async function renderNotes(nid) {
         list.innerHTML = (cnotes = await window.notes
-                .getAll(coll.cid)).map(note => `<li id="list_${note.nid}" class="list-group-item" onclick="showNote('${note.nid}')">${note.name}</li>`).join("");
+                .getAll(coll.cid)).map(note => `<li id="list-${note.nid}" class="list-group-item" onclick="showNote('${note.nid}')">${note.name}</li>`).join("");
+        showNote(nid);
     }
 
     function showNote(nid) {
-        if (cnote && cnote.nid === nid) return;
-        cnote = cnotes.find(n => n.nid === nid);
-        noteId.innerText = cnote.nid;
-        noteCard.style.display = "block";
-        noteName.innerText = cnote.name;
-        noteDesc.innerText = cnote.desc;
-        document.querySelectorAll(".list-group-item.active").forEach(elem => elem.classList.remove('active'));
-        document.getElementById(`list_${cnote.nid}`).classList.add('active');
-        fetch(cnote.url).then(res => res.text()).then(text => {
-            shadowRoot.innerHTML = text + "\n<style>.container{width: auto !important;}</style>"; // small hax
-            updateTheme(); // shadow dom is retarded
-        });
+        document.querySelectorAll("#note-list .list-group-item.active").forEach(elem => elem.classList.remove('active'));
+        if (!nid) {
+            cnote = null;
+            {{#if user.admin}}
+                editBtn.classList.add('disabled');
+            {{/if}}
+            noteId.innerText = noteName.innerText = noteDesc.innerText = noteTime.innerText = "";
+            noteCard.style.display = "none";
+            shadowRoot.innerHTML = "";
+        } else {
+            if (cnote && cnote.nid === nid) return;
+            cnote = cnotes.find(n => n.nid === nid);
+            if (!cnote) return;
+            {{#if user.admin}}
+                editBtn.classList.remove('disabled');
+            {{/if}}
+            noteId.innerText = cnote.nid;
+            noteCard.style.display = "block";
+            noteName.innerText = cnote.name;
+            noteDesc.innerText = cnote.desc;
+            let now = moment();
+            let lastEdit = moment(cnote.lastEdit);
+            let dateStr = lastEdit.year() !== now.year() ? lastEdit.format("MMM D YYYY") :
+                    lastEdit.month() !== now.month() ? lastEdit.format("MMM D h:mm a") :
+                            lastEdit.date() !== now.date() ? lastEdit.format("Do h:mm:ss a") : 'Today ' + lastEdit.format("h:mm:ss a");
+            noteTime.innerText = `Last edited • ${dateStr}`;
+            document.getElementById(`list-${cnote.nid}`).classList.add('active');
+            fetch(cnote.url).then(res => res.text()).then(text => {
+                shadowRoot.innerHTML = text + "\n<style>.container{width: auto !important;}</style>"; // small hax
+                updateTheme(); // shadow dom is retarded
+            });
+        }
+        window.history.pushState("", "", `/c/${coll.cid}/${nid ? nid : ''}`);
     }
 
-    window.onhashchange = e => {
+    window.onhashchange = e => { // support anchor clicking
         let elementToFocus = shadowRoot.getElementById(window.location.hash.slice(1));
         elementToFocus = elementToFocus || shadowRoot.querySelector(`[name='${window.location.hash.slice(1)}']`);
-        if (elementToFocus) {
-            elementToFocus.scrollIntoView();
-        }
+        if (elementToFocus) elementToFocus.scrollIntoView();
     }
     window.onload = e => {
-        renderNotes();
+        renderNotes('{{nid}}');
     }
 </script>

@@ -1,43 +1,32 @@
-<link href="/css/bstreeview.min.css" rel="stylesheet">
 <style>
-    #admin_panel {
-        margin-top: 5em;
-        border-radius: 5px;
-        border: #515151 1px solid;
+    .card-header .fa {
+        transition: .3s transform ease-in-out;
+    }
+
+    .card-header.collapsed .fa {
+        transform: rotate(90deg);
     }
 </style>
-<div class="row" id="admin_panel">
-    <div id="tree" class="col-sm-6 col-md-4 col-lg-3"></div>
-    <div class="col-sm-6 col-md-8 col-lg-9 justify-content-center" id="display">
-        <h4 class="centered">Please select something</h4>
+{{#if user.admin}}
+<div class="row" style="margin-top: 2em">
+    <div class="col-lg-3">
+        <div class="card mt-2">
+            <p class="card-header d-flex" data-toggle="collapse" data-target="#user-list" aria-expanded="true"
+               aria-controls="user-info">Users list<i class="fa fa-chevron-down ml-auto align-middle"></i></p>
+            <ul class="list-group list-group-flush collapse show" id="user-list">
+            </ul>
+        </div>
+    </div>
+    <div class="col-lg-3">
+        <div class="card mt-2">
+            <p class="card-header d-flex" data-toggle="collapse" data-target="#user-list" aria-expanded="true"
+               aria-controls="role-info">Roles list<i class="fa fa-chevron-down ml-auto align-middle"></i></p>
+            <ul class="list-group list-group-flush collapse show" id="role-list">
+            </ul>
+        </div>
     </div>
 </div>
-<script src="/js/bstreeview.min.js"></script>
-<script src="/js/api.js"></script>
+{{/if}}
+<script src="/js/moment.min.js"></script>
 <script>
-    window.currentNav = "admin";
-    window.onload = e => {
-        async function getTree() {
-            let data = await Promise.all([users.getAll(), roles.getAll()]);
-            let tree = [];
-            tree.push({
-                text: 'Users',
-                icon: "fa fa-folder",
-                nodes: data[0].map(user => ({
-                    id: user.uid,
-                    text: `${user.name}${user.nickname ? ` (${user.nickname})` : ''}`
-                }))
-            });
-            tree.push({
-                text: 'Roles',
-                icon: "fa fa-folder",
-                nodes: data[1].map(roll => ({
-                    id: roll.rid,
-                    text: `${roll.name}`
-                }))
-            });
-            return tree;
-        }
-        getTree().then(tree => $('#tree').bstreeview({data: tree}))
-    }
 </script>

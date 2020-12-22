@@ -1,0 +1,27 @@
+version: 2
+
+networks:
+  primary:
+    external:
+      name: primary
+  e_notes:
+    external: false
+
+services:
+  web:
+    image: registry.nush.app/e-notes
+    restart: always
+    command: "npm start"
+    networks:
+    - primary
+    - e_notes
+    expose:
+    - "8080"
+    environment:
+    - VAULT_PASSWORD=<REDACTED>
+    labels:
+    - "traefik.enable=true"
+    - "traefik.http.routers.e-notes.rule=Host(`e-notes.nush.app`)"
+    - "traefik.http.routers.e-notes.entrypoints=https"
+    - "traefik.http.routers.e-notes.tls=true"
+    - "traefik.http.routers.e-notes.tls.certresolver=tlsresolver"

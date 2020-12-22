@@ -28,8 +28,8 @@
 <body class="has-drawer">
 <div id="drawer" class="drawer dw-xs-10 dw-sm-6 dw-md-4 dw-lg-3 fold" aria-labelledby="drawer">
     <script>
-        if (localStorage.getItem("drawer_is_open") === "true") document.getElementById('drawer').classList.add("open")
-        else document.getElementById('drawer').classList.remove("open")
+        if (localStorage.getItem("drawer_is_open") === "false") document.getElementById('drawer').classList.remove("open")
+        else document.getElementById('drawer').classList.add("open")
     </script>
     <div class="drawer-controls">
         <a href="#drawer" data-toggle="drawer" aria-foldedopen="false" aria-controls="drawer"
@@ -63,9 +63,15 @@
                     </div>
                 </div>
                 {{#if user}}
-                    <small class="card-text ml-2" id="drawer-user-desc">
-                        {{user.desc}}
-                    </small>
+                    <div class="card-body p-2">
+                        <p class="card-text mb-1" id="user-roles">
+                            {{#if user.admin}}<span class="badge badge-danger">Admin</span>{{/if}}
+                            {{#each user.roles}}<span class="badge badge-secondary">{{this}}</span>{{/each}}
+                        </p>
+                        <small class="card-text muted" id="drawer-user-desc">
+                            {{user.desc}}
+                        </small>
+                    </div>
                     <div class="card-footer">
                         <a href="/logout" class="card-link">Logout</a>
                         <a href="/profile" class="card-link">Profile</a>
@@ -110,7 +116,7 @@
                           d="M5.172 10.828a.5.5 0 0 0 .707 0l4.096-4.096V9.5a.5.5 0 1 0 1 0V5.525a.5.5 0 0 0-.5-.5H6.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707z"/>
                 </svg>
             </small></a>
-            <script src="/js/s_hl.js"></script>
+            <script src="/js/s_hl.js" async></script>
         </div>
     </div>
 </div>

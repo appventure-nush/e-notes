@@ -4,6 +4,7 @@
     "description": "",
     "main": "dist/index.js",
     "dependencies": {
+        "@google-cloud/logging": "^9.0.0",
         "connect-history-api-fallback": "^1.6.0",
         "cookie-parser": "^1.4.5",
         "csurf": "^1.11.0",
