@@ -18,10 +18,6 @@
         <input onkeypress="fieldsChanged(this)" type="text" class="form-control" id="desc" placeholder="OwO"
                value="{{user.desc}}"/>
     </div>
-    <!--    <div class="form-group">-->
-    <!--        <label for="password">Password</label>-->
-    <!--        <input onkeypress="fieldsChanged(this)" type="password" class="form-control" id="password" placeholder="UwU"/>-->
-    <!--    </div>-->
     <div class="btn-group" role="group" aria-label="Basic example">
         <button class="btn btn-primary" type="button" onclick="updateProfile()" id="update_btn" disabled="disabled">
             Update
@@ -30,6 +26,25 @@
             Reset
         </button>
     </div>
+    <hr>
+    <div id="password-form">
+        <div class="form-group">
+            <label for="old-password">Old Password</label>
+            <input type="password" class="form-control" id="old-password" placeholder="UwU"/>
+            <div class="invalid-feedback" id="old-password-feedback"></div>
+        </div>
+        <div class="form-group">
+            <label for="new-password">New Password</label>
+            <input type="password" class="form-control mb-1" id="new-password" placeholder=">_<"/>
+            <input type="password" class="form-control" id="new-password-confirm" placeholder="Retype it please"/>
+            <div class="invalid-feedback" id="password-feedback"></div>
+            <div class="valid-feedback">Success!</div>
+        </div>
+        <button class="btn btn-primary" type="button" onclick="changePassword(this)">
+            Change password
+        </button>
+    </div>
+    <hr>
     <div class="form-group">
         <label for="profile_pic">
             <img class="img-thumbnail" onerror="this.onerror=null;this.src='/images/guest.png';" src="{{user.pfp}}"
@@ -42,8 +57,24 @@
         <input id="profile_pic" type="file" onchange="changePFP()" hidden/>
     </div>
     <script src="/js/api.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-auth.js"></script>
     <script>
-        const user_info = {nickname: '{{user.nickname}}', desc: '{{user.desc}}'};
+        firebase.initializeApp({
+            apiKey: "AIzaSyARHcPTpQ09ekeN91DtgfrAl8kA3bgrcYM",
+            authDomain: "e-notes-nush.firebaseapp.com",
+            databaseURL: "https://e-notes-nush.firebaseio.com",
+            projectId: "e-notes-nush",
+            storageBucket: "e-notes-nush.appspot.com",
+            messagingSenderId: "1002111194265",
+            appId: "1:1002111194265:web:24a8837e5d910ebcd11408",
+            measurementId: "G-5CEEWG9PZR"
+        });
+        const auth = firebase.auth();
+        // plz dont just randomly change your usernames
+        // actually if you did, you can have it, idk why i added nickname system
+
+        const user_info = {nickname: '{{user.nickname}}', desc: '{{user.desc}}', email: '{{user.email}}'};
 
         const upload_btn = document.getElementById('upload_btn');
         const profile_pic = document.getElementById('profile_pic');
@@ -55,6 +86,13 @@
         // const password = document.getElementById('password');
         const desc = document.getElementById('desc');
 
+        const form = document.getElementById('password-form');
+        const oldPassword = document.getElementById('old-password');
+        const newPassword = document.getElementById('new-password');
+        const newPassword2 = document.getElementById('new-password-confirm');
+        const feedback = document.getElementById('password-feedback');
+        const feedback2 = document.getElementById('old-password-feedback');
+
         window.fieldsChanged = function (elem) {
             update_btn.removeAttribute('disabled');
             reset_btn.removeAttribute('disabled');
@@ -62,10 +100,39 @@
             if (elem.id === 'nickname' && elem.value === user_info.nickname) elem.classList.remove('changed');
             else if (elem.id === 'desc' && elem.value === user_info.desc) elem.classList.remove('changed');
         }
+        window.changePassword = function (elem) {
+            [oldPassword.classList, newPassword.classList, newPassword2.classList].forEach(l => l.remove('is-invalid', 'is-valid'));
+            if (newPassword.value.length < 8) {
+                feedback.innerText = "Min length = 8"; // i mean if you want to bypass, use your account at your own risk
+                newPassword.classList.add('is-invalid'); // i dont think firebase allows it anyways
+                newPassword2.classList.add('is-invalid');
+                return;
+            }
+            if (newPassword.value === oldPassword.value) {
+                feedback.innerText = "Nothing changed";
+                newPassword.classList.add('is-invalid');
+                newPassword2.classList.add('is-invalid');
+                return;
+            }
+            if (newPassword.value !== newPassword2.value) {
+                feedback.innerText = "Mismatch!";
+                newPassword.classList.add('is-invalid');
+                newPassword2.classList.add('is-invalid');
+                return;
+            }
+            elem.disabled = true;
+            auth.signInWithEmailAndPassword(user_info.email, oldPassword.value).then(() => auth.currentUser.updatePassword(newPassword.value)).then(() => {
+                oldPassword.value = newPassword.value = newPassword2.value = "";
+                newPassword.classList.add('is-valid');
+                newPassword2.classList.add('is-valid');
+                alert("You may want to relogin");
+            }).catch((error) => {
+                feedback2.innerText = error.message;
+                oldPassword.classList.add('is-invalid');
+            }).finally(() => elem.disabled = false);
+        }
         window.updateProfile = function () {
-            if (!(nickname.classList.contains('changed') || desc.classList.contains('changed')
-                    // || password.classList.contains('changed')
-            )) {
+            if (!nickname.classList.contains('changed') && !desc.classList.contains('changed')) {
                 alert("Nothing was changed!");
                 return;
             }
@@ -77,8 +144,7 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     nickname: nickname.classList.contains('changed') ? nickname.value : undefined,
-                    desc: desc.classList.contains('changed') ? desc.value : undefined,
-                    // password: password.classList.contains('changed') ? password.value : undefined,
+                    desc: desc.classList.contains('changed') ? desc.value : undefined
                 })
             }).then(result => {
                 if (result.status === "success") {

@@ -1,7 +1,7 @@
 // TODO add more api functions
-let cache = {};
+var cache = {};
 // i dont even care about multiple windows open at same time
-const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
 function generateAPI(key, idKey, path) {
     try {
@@ -12,7 +12,7 @@ function generateAPI(key, idKey, path) {
     }
     return {
         update: function (id, value) {
-            let index = cache[key].findIndex(item => item[idKey] === id);
+            var index = cache[key].findIndex(item => item[idKey] === id);
             if (index === -1) {
                 if (value) cache[key].push(value);
             } else if (value) cache[key][index] = value;
@@ -22,7 +22,7 @@ function generateAPI(key, idKey, path) {
         },
         get: async function (id) {
             if (!id) return null;
-            let item = cache[key].find(item => item[idKey] === id);
+            var item = cache[key].find(item => item[idKey] === id);
             if (item) return item;
             item = await fetcher(`/api/${path}/${id}`)
             if (item.reason) alert(item.reason); else update(id, item);
@@ -41,13 +41,13 @@ function generateAPI(key, idKey, path) {
     };
 }
 
-const collections = generateAPI('collCache', 'cid', 'collections');
-const users = generateAPI('userCache', 'uid', 'users');
-const roles = generateAPI('roleCache', 'rid', 'roles');
-const notes = {
+var collections = generateAPI('collCache', 'cid', 'collections');
+var users = generateAPI('userCache', 'uid', 'users');
+var roles = generateAPI('roleCache', 'rid', 'roles');
+var notes = {
     get: async function (cid, rid) {
         if (!cid) return null;
-        let note = await fetcher(`/api/collections/${cid}/notes/${rid}`)
+        var note = await fetcher(`/api/collections/${cid}/notes/${rid}`)
         if (note.reason) note = null;
         return note;
     },
@@ -57,7 +57,7 @@ const notes = {
 };
 
 function updateOptions(options) {
-    const update = {...options};
+    var update = {...options};
     update.headers = {
         ...update.headers,
         'CSRF-Token': token

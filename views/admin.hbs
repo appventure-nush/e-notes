@@ -26,7 +26,30 @@
         </div>
     </div>
 </div>
-{{/if}}
-<script src="/js/moment.min.js"></script>
+<script src="/js/api.js"></script>
 <script>
+    window.currentNav = "admin";
+    window.onload = e => {
+        async function getTree() {
+            let data = await Promise.all([users.getAll(), collections.getAll()]);
+            let tree = [];
+            tree.push({
+                text: 'Users',
+                icon: "fa fa-folder",
+                nodes: data[0].map(user => ({
+                    id: user.uid,
+                    text: `${user.name}${user.nickname ? ` (${user.nickname})` : ''}`
+                }))
+            });
+            tree.push({
+                text: 'Collections',
+                icon: "fa fa-folder",
+                nodes: data[1].map(coll => ({
+                    id: coll.cid,
+                    text: `${coll.cid} ${coll.name}`
+                }))
+            });
+            return tree;
+        }
+    }
 </script>

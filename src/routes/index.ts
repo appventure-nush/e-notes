@@ -9,7 +9,23 @@ import profileRouter from "./profile";
 const index = Router();
 
 index.get('/', checkUserOptional, (req, res) => {
-    res.render("index", {user: req.body.user, csrf: req.csrfToken(), logout: req.query.logout});
+    if (!req.body.user) res.redirect('/login');
+    else res.render("index", {user: req.body.user, csrf: req.csrfToken(), logout: req.query.logout});
+});
+
+index.get('/login', checkUserOptional, (req, res) => {
+    if (req.body.user) res.redirect('/'); // why just why
+    else res.render("login", {user: req.body.user, csrf: req.csrfToken(), layout: false});
+});
+
+index.get('/logout', (req, res) => {
+    const sessionCookie = req.cookies.session || '';
+    res.clearCookie('session');
+    auth()
+        .verifySessionCookie(sessionCookie)
+        .then((decodedClaims) => auth().revokeRefreshTokens(decodedClaims.sub))
+        .then(_ => res.render('logout', {layout: false}))
+        .catch(_ => res.status(403).send('logout failed'));
 });
 
 index.post('/', (req, res) => {
@@ -24,15 +40,6 @@ index.post('/', (req, res) => {
         }, _ => {
             res.status(403).send('NZ2XG2D3NRHTS2KOL5TDISKMGNSH2===');
         });
-});
-index.get('/logout', (req, res) => {
-    const sessionCookie = req.cookies.session || '';
-    res.clearCookie('session');
-    auth()
-        .verifySessionCookie(sessionCookie)
-        .then((decodedClaims) => auth().revokeRefreshTokens(decodedClaims.sub))
-        .then(_ => res.redirect('/?logout=true'))
-        .catch(_ => res.status(403).send('logout failed'));
 });
 
 index.use("/u", userRouter);
