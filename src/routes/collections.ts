@@ -13,10 +13,10 @@ const URL_CACHE_AGE = 3600000;
 
 async function getURL(name: string) {
     if (LOCAL_IMAGE_CACHE.has(name)) {
-        let cache = LOCAL_IMAGE_CACHE.get(name);
+        const cache = LOCAL_IMAGE_CACHE.get(name);
         if (cache[1] > Date.now()) return cache[0];
     }
-    let url = (await storage().bucket().file(name).getSignedUrl({
+    const url = (await storage().bucket().file(name).getSignedUrl({
         action: 'read',
         expires: Date.now() + URL_CACHE_AGE
     }))[0];
@@ -30,13 +30,13 @@ collection.get('/', checkUserOptional, (req, res) => {
 collection.get('/:cid', checkUserOptional, async (req, res) => {
     if (req.originalUrl.endsWith(req.params.cid)) return res.redirect(`/c/${req.params.cid}/`); // force '/'
     else {
-        let hasPerm = await hasPermissions(req.body.cuid, req.params.cid);
-        let coll = getCollection(req.params.cid);
+        const hasPerm = await hasPermissions(req.body.cuid, req.params.cid);
+        const coll = getCollection(req.params.cid);
         if (hasPerm && coll) {
             res.render("collection", {
                 title: req.params.cid + "/" + coll.name,
                 user: req.body.user,
-                coll: coll,
+                coll,
                 csrf: req.csrfToken()
             });
         } else res.redirect('/');
@@ -63,7 +63,7 @@ collection.delete('/:cid/img/:img', checkAdmin, (req, res) => {
     const file = storage().bucket().file(`collections/${req.params.cid}/images/${req.params.img}`);
     file.delete()
         .then(() => res.json({status: 'success'}))
-        .catch(error => res.json({status: 'failed', reason: 'please contact an admin', error: error.message}));
+        .catch(e => res.json({status: 'failed', reason: 'please contact an admin', error: e.message}));
 });
 collection.post('/:cid/img', checkAdmin, async (req, res) => { // called for every file
     if (!getCollection(req.params.cid)) return res.json({status: 'failed', reason: 'collection_not_found'});

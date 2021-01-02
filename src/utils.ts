@@ -48,7 +48,7 @@ export async function updateRole(rid: string, value: Role) {
 
 export function updateUserCache(uid: string, value: User) {
     if (value) {
-        let index = users.findIndex(user => user.uid === uid);
+        const index = users.findIndex(user => user.uid === uid);
         if (index === -1) users.push(value);
         else users[index] = value;
     } else users.splice(users.findIndex(user => user.uid === uid), 1);
@@ -56,7 +56,7 @@ export function updateUserCache(uid: string, value: User) {
 
 export function updateRoleCache(rid: string, value: Role) {
     if (value) {
-        let index = roles.findIndex(role => role.rid === rid);
+        const index = roles.findIndex(role => role.rid === rid);
         roles[index] = value;
         if (index === -1) roles.push(value);
         else roles[index] = value;
@@ -75,7 +75,7 @@ export async function getNotes(cid: string): Promise<Note[]> {
     let coll = noteCache.get(cid);
     if (!coll) {
         if (!getCollection(cid)) return null;
-        let allNotes = await firestore().collection("collections").doc(cid).collection("notes").get();
+        const allNotes = await firestore().collection("collections").doc(cid).collection("notes").get();
         noteCache.set(cid, coll = {
             cacheDate: Date.now(),
             notes: allNotes.docs.map((doc: DocumentSnapshot) => new Note(doc.data()))
@@ -85,10 +85,10 @@ export async function getNotes(cid: string): Promise<Note[]> {
 }
 
 export function updateNote(cid: string, nid: string, note: Note) {
-    let coll = noteCache.get(cid);
+    const coll = noteCache.get(cid);
     if (!coll) return;
     if (note) {
-        let index = coll.notes.findIndex(n => n.nid === nid);
+        const index = coll.notes.findIndex(n => n.nid === nid);
         if (index === -1) coll.notes.push(note);
         else coll.notes[index] = note;
     } else coll.notes.splice(coll.notes.findIndex(n => n.nid === nid), 1);
@@ -110,8 +110,8 @@ export async function hasPermissions(uid: string, cid: string) { // used in midd
     if (collection.open) return true;
     const userRoles = user.roles.map(rid => getRole(rid)).filter(role => !(!role));
 
-    let reject = !userRoles.some(role => role.rejects(cid));
-    let accept = userRoles.some(role => role.accepts(cid));
+    const reject = !userRoles.some(role => role.rejects(cid));
+    const accept = userRoles.some(role => role.accepts(cid));
     return reject && accept;
 }
 
