@@ -10,12 +10,12 @@ const index = Router();
 
 index.get('/', checkUserOptional, (req, res) => {
     if (!req.body.user) res.redirect('/login');
-    else res.render("index", {user: req.body.user, csrf: req.csrfToken(), logout: req.query.logout});
+    else res.render("index", {title: 'Notes', user: req.body.user, csrf: req.csrfToken(), logout: req.query.logout});
 });
 
 index.get('/login', checkUserOptional, (req, res) => {
     if (req.body.user) res.redirect('/'); // why just why
-    else res.render("login", {user: req.body.user, csrf: req.csrfToken(), layout: false});
+    else res.render("login", {title: 'Login', csrf: req.csrfToken(), layout: false});
 });
 
 index.get('/logout', (req, res) => {

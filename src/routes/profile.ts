@@ -9,7 +9,7 @@ import {error} from "../logger";
 const profile = Router();
 const IMAGE_FORMATS = ['image/gif', 'image/jpeg', 'image/png'];
 profile.get('/', checkUser, (req, res) => {
-    res.render("profile", {user: req.body.user, csrf: req.csrfToken()});
+    res.render("profile", {title: 'Profile', user: req.body.user, csrf: req.csrfToken()});
 });
 profile.post('/', checkUser, async (req, res) => {
     const {nickname, desc} = req.body;
@@ -36,14 +36,11 @@ profile.post('/uploadPFP', checkUser, async (req, res) => {
             if (IMAGE_FORMATS.includes(type.mime.toLowerCase())) {
                 try {
                     const file = storage().bucket().file(`users/pfp/${req.body.cuid}.${type.ext}`);
-                    await file.save(new Uint8Array(await (await Jimp.read(new_profile_pic.data)).cover(256, 256).quality(80).getBufferAsync(type.mime)), {resumable: false});
-                    const url = (await file.getSignedUrl({
-                        action: 'read',
-                        expires: '01-01-2500'
-                    }))[0];
+                    await file.save(new Uint8Array(await (await Jimp.read(new_profile_pic.data)).cover(256, 256).quality(80).getBufferAsync('image/jpeg')), {resumable: false});
+                    await file.makePublic();
                     res.json({
                         status: 'success',
-                        user: transformUser(new User(req.body.user), await auth().updateUser(req.body.cuid, {photoURL: url}))
+                        user: transformUser(new User(req.body.user), await auth().updateUser(req.body.cuid, {photoURL: `https://storage.googleapis.com/e-notes-nush.appspot.com/users/pfp/${req.body.cuid}.jpg`}))
                     });
                 } catch (e) {
                     await error("pfp change error", {

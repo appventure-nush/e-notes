@@ -222,6 +222,14 @@ export async function setup() {
     });
 }
 
+export const autoConvertMapToObject = (map: Map<string, any>) => {
+    const obj = {};
+    for (const [key, value] of map)
+        // @ts-ignore
+        obj[key] = value;
+    return obj;
+}
+
 function mapAsync<T, U>(array: T[], callback: (value: T, index: number, array: T[]) => Promise<U>): Promise<U[]> {
     return Promise.all(array.map(callback));
 }

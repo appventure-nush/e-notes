@@ -3,7 +3,7 @@ import {Logging, Log} from '@google-cloud/logging';
 
 let log: Log;
 let logging: Logging;
-
+// currently not working idk why
 (async () => {
     try {
         return require("../logging.json");

@@ -1,4 +1,4 @@
-import {updateUser} from '../utils';
+import {autoConvertMapToObject, updateUser} from '../utils';
 
 class User {
     uid: string;
@@ -74,11 +74,4 @@ class User {
     }
 }
 
-const autoConvertMapToObject = (map: Map<string, any>) => {
-    const obj = {};
-    for (const [key, value] of map)
-        // @ts-ignore
-        obj[key] = value;
-    return obj;
-}
 export default User;

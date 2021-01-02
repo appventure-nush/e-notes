@@ -6,7 +6,29 @@
     .card-header.collapsed .fa {
         transform: rotate(90deg);
     }
+
+    .btn-group.block-btn-group {
+        display: flex;
+    }
+
+    .btn-group.block-btn-group .btn {
+        flex: 1;
+        border-radius: 0;
+    }
+
+    #file-body.has-drag {
+        -webkit-box-shadow: 0px 5px 20px 10px rgba(231, 166, 26, 0.46);
+        -moz-box-shadow: 0px 5px 20px 10px rgba(231, 166, 26, 0.46);
+        box-shadow: 0px 5px 20px 10px rgba(231, 166, 26, 0.46);
+    }
+
+    .ldBar-label {
+        display: none;
+    }
 </style>
+<script src="https://kit.fontawesome.com/c32b3db897.js" crossorigin="anonymous"></script>
+<script src="/js/loading-bar.min.js"></script>
+<link rel="stylesheet" href="/css/loading-bar.min.css"/>
 <div class="row" style="margin-top: 2em">
     <div class="col-lg-3">
         <div class="card mt-4">
@@ -25,14 +47,16 @@
             </div>
         </div>
         <div class="card mt-2">
-            <p class="card-header d-flex" data-toggle="collapse" data-target="#note-list" aria-expanded="true"
-               aria-controls="note-info">Note List <i class="fa fa-chevron-down ml-auto align-middle"></i></p>
+            <p class="card-header d-flex align-items-center" data-toggle="collapse" data-target="#note-list"
+               aria-expanded="true"
+               aria-controls="note-info">Note List <i class="fa fa-chevron-down ml-auto"></i></p>
             <ul class="list-group list-group-flush collapse show" id="note-list">
             </ul>
         </div>
         <div class="card mt-2" id="note-card" style="display: none;">
-            <p class="card-header d-flex" data-toggle="collapse" data-target="#note-info" aria-expanded="true"
-               aria-controls="note-info">Note Info <i class="fa fa-chevron-down ml-auto align-middle"></i></p>
+            <p class="card-header d-flex align-items-center" data-toggle="collapse" data-target="#note-info"
+               aria-expanded="true"
+               aria-controls="note-info">Note Info <i class="fa fa-chevron-down ml-auto"></i></p>
             <div id="note-info" class="card-body collapse show">
                 <h6 class="card-title" id="note-name"></h6>
                 <pre id="note-id"></pre>
@@ -40,6 +64,23 @@
                 <small class="card-text muted" id="note-time"></small>
             </div>
         </div>
+        {{#if user.admin}}
+            <div class="card mt-2" id="file-card">
+                <p class="card-header d-flex align-items-center" data-toggle="collapse" data-target="#file-body"
+                   aria-expanded="true"
+                   aria-controls="note-info">Images <i class="fa fa-chevron-down ml-auto"></i></p>
+                <div id="file-body" class="collapse show">
+                    <input id="file-upload" type='file' hidden multiple/>
+                    <div class="btn-group block-btn-group">
+                        <button type="button" class="btn btn-light" onclick="fileUpload.click()">
+                            <i class="fas fa-upload"></i></button>
+                        <button type="button" class="btn btn-secondary" disabled>?</button>
+                        <button type="button" class="btn btn-secondary" disabled>?</button>
+                    </div>
+                    <ul class="list-group list-group-flush" id="file-list"></ul>
+                </div>
+            </div>
+        {{/if}}
     </div>
     <div class="col-lg-9">
         {{#if user.admin}}
@@ -67,11 +108,136 @@
                 </div>
             </nav>
         {{/if}}
-        <script src="https://kit.fontawesome.com/c32b3db897.js" crossorigin="anonymous"></script>
         <div id="display"></div>
     </div>
 </div>
 {{#if user.admin}}
+    <div id="file-preview-popup" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <img id="file-preview-image" class="img-fluid" alt="preview" src="/images/guest.png">
+            <div class="modal-dialog">
+                <div class="modal-content" style="background:0;border:0;">
+                    <div class="btn-group-vertical">
+                        <button type="button" class="btn btn-danger" id="file-preview-delete"><i
+                                class="far fa-trash-alt"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            const fileImage = document.getElementById('file-preview-image');
+            const fileDelete = document.getElementById('file-preview-delete');
+            const fileUpload = document.getElementById('file-upload');
+
+            const fileList = document.getElementById('file-list');
+            $('#file-preview-popup').on('show.bs.modal', e => {
+                fileImage.setAttribute('src', $(e.relatedTarget).data('url'));
+                fileDelete.onclick = elem => {
+                    elem.disabled = true;
+                    let name = $(e.relatedTarget).data('name');
+                    fetcher(`/c/${coll.cid}/img/${name}`, {method: "DELETE"}).then(result => {
+                        elem.disabled = false;
+                        console.log(result);
+                        if (result.status === "success") {
+                            let listItem = document.getElementById(`file-list-${name.replace(/\s+/g, '_')}`);
+                            if (listItem) listItem.remove();
+                            $('#file-preview-popup').modal('hide');
+                        } else alert(result.reason);
+                    })
+                }
+            });
+            fileUpload.onchange = () => {
+                let files = fileUpload.files;
+                handleFiles(files);
+                fileUpload.value = "";
+            }
+            let fileBody = document.getElementById('file-body');
+            ['dragenter', 'dragover', 'dragleave', 'drop', 'dragend'].forEach(eventName => fileBody.addEventListener(eventName, preventDefaults, false))
+
+            function preventDefaults(e) {
+                e.preventDefault()
+                e.stopPropagation()
+            }
+
+            fileBody.addEventListener('dragenter', _ => fileBody.classList.add('has-drag'));
+            fileBody.addEventListener('dragleave', _ => fileBody.classList.remove('has-drag'));
+            fileBody.addEventListener('dragover', _ => fileBody.classList.add('has-drag'));
+            fileBody.addEventListener('dragend', _ => fileBody.classList.remove('has-drag'));
+            fileBody.addEventListener('drop', e => {
+                e.preventDefault();
+                e.stopPropagation();
+                fileBody.classList.remove('has-drag');
+                handleFiles(e.dataTransfer.files);
+                return false;
+            }, false)
+
+            async function handleFiles(files) {
+                let tasks = Array.from(files).map(f => startFileUpload(f));
+                for (let task of tasks) {
+                    await task();
+                }
+            }
+
+            var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            function fadeOut(el) {
+                el.style.opacity = 1;
+                (function fade() {
+                    if ((el.style.opacity -= .01) < 0) {
+                        el.remove();
+                    } else {
+                        requestAnimationFrame(fade);
+                    }
+                })();
+            }
+
+            function startFileUpload(file) {
+                fileList.innerHTML = renderFile({name: file.name, url: null}) + fileList.innerHTML;
+                let elem = document.getElementById(`file-list-${file.name.replace(/\s+/g, '_')}`);
+                elem.innerHTML += `<div id="file-list-progress-${file.name.replace(/\s+/g, '_')}"></div>`;
+                elem.removeAttribute('data-target');
+                let progress = document.getElementById(`file-list-progress-${file.name.replace(/\s+/g, '_')}`);
+                var bar = new ldBar(progress, {
+                    stroke: '#120a8f',
+                    max: 100,
+                    "stroke-width": 2,
+                    preset: 'rainbow',
+                    value: 0,
+                });
+                const formdata = new FormData();
+                formdata.append('payload', file);
+                formdata.append('name', file.name);
+                const request = new XMLHttpRequest();
+                request.open('post', `/c/${coll.cid}/img`);
+                request.setRequestHeader('CSRF-Token', token);
+                request.timeout = 45000;
+                return () => {
+                    return new Promise((resolve, reject) => {
+                        request.upload.addEventListener('error', reject);
+                        request.upload.addEventListener('load', () => {
+                            bar.set(100);
+                            elem.setAttribute('data-target', '"#file-preview-popup"');
+                            fadeOut(progress);
+                            resolve();
+                        });
+                        request.upload.addEventListener('progress', e => {
+                            if (e.loaded <= file.size) bar.set(Math.round(e.loaded / file.size * 100));
+                        });
+                        request.send(formdata);
+                    });
+                };
+            }
+
+            function renderFile(file) {
+                return `<li id="file-list-${file.name.replace(/\s+/g, '_')}" data-target="#file-preview-popup" data-toggle="modal" class="list-group-item" data-url="${file.url}" data-name="${file.name}">${file.name}</li>`;
+            }
+
+            async function renderFiles() {
+                fileList.innerHTML = (cfiles = await fetcher(`/c/${coll.cid}/img`)).map(renderFile).join('');
+            }
+        </script>
+    </div>
     <div class="modal fade" id="admin-note-popup" tabindex="-1" aria-labelledby="note-popup-title"
          aria-hidden="true">
         <div class="modal-dialog">
@@ -127,7 +293,7 @@
                     const editBtn = document.getElementById('editBtn');
 
                     // i hate jquery
-                    $('#admin-note-popup').on('show.bs.modal', async e => {
+                    $('#admin-note-popup').on('show.bs.modal', e => {
                         if ($(e.relatedTarget).data('action') === 'add') {
                             $('#note-popup-title').text('Add note');
                             idInput.disabled = false;
@@ -231,6 +397,7 @@
 <script>
     let cnote;
     let cnotes;
+    let cfiles;
     const coll = {cid: '{{coll.cid}}', name: '{{coll.name}}', desc: '{{coll.desc}}'};
     const list = document.getElementById('note-list');
     const display = document.getElementById('display');
@@ -250,6 +417,7 @@
     function showNote(nid) {
         document.querySelectorAll("#note-list .list-group-item.active").forEach(elem => elem.classList.remove('active'));
         if (!nid) {
+            document.title = coll.cid + "/" + coll.name;
             cnote = null;
             {{#if user.admin}}
                 editBtn.classList.add('disabled');
@@ -260,7 +428,8 @@
         } else {
             if (cnote && cnote.nid === nid) return;
             cnote = cnotes.find(n => n.nid === nid);
-            if (!cnote) return;
+            if (!cnote) return showNote(null);
+            document.title = coll.cid + "/" + cnote.name;
             {{#if user.admin}}
                 editBtn.classList.remove('disabled');
             {{/if}}
@@ -288,7 +457,8 @@
         elementToFocus = elementToFocus || shadowRoot.querySelector(`[name='${window.location.hash.slice(1)}']`);
         if (elementToFocus) elementToFocus.scrollIntoView();
     }
+
     window.onload = e => {
-        renderNotes('{{nid}}');
+        renderNotes('{{nid}}');{{#if user.admin}}renderFiles();{{/if}}
     }
 </script>

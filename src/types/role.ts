@@ -1,4 +1,4 @@
-import {updateRole} from '../utils';
+import {autoConvertMapToObject, updateRole} from '../utils';
 
 class Role {
     rid: string;
@@ -49,11 +49,4 @@ class Role {
     }
 }
 
-const autoConvertMapToObject = (map: Map<string, any>) => {
-    const obj = {};
-    for (const [key, value] of map)
-        // @ts-ignore
-        obj[key] = value;
-    return obj;
-}
 export default Role;

@@ -32,6 +32,7 @@
             <label for="old-password">Old Password</label>
             <input type="password" class="form-control" id="old-password" placeholder="UwU"/>
             <div class="invalid-feedback" id="old-password-feedback"></div>
+            <small>First time? Don't have a password yet?</small>
         </div>
         <div class="form-group">
             <label for="new-password">New Password</label>
@@ -40,9 +41,7 @@
             <div class="invalid-feedback" id="password-feedback"></div>
             <div class="valid-feedback">Success!</div>
         </div>
-        <button class="btn btn-primary" type="button" onclick="changePassword(this)">
-            Change password
-        </button>
+        <button class="btn btn-primary" type="button" onclick="changePassword(this)">Change password</button>
     </div>
     <hr>
     <div class="form-group">
@@ -50,11 +49,18 @@
             <img class="img-thumbnail" onerror="this.onerror=null;this.src='/images/guest.png';" src="{{user.pfp}}"
                  style="cursor: pointer;max-height: 256px;" id="pfp_preview" alt="Profile Picture"/>
         </label><br>
+        <small>Only JPG/PNG/GIF are allowed, images will be fit-cropped to 256&times;256</small><br>
         <button class="btn btn-primary" type="button" onclick="uploadPFP()" id="upload_btn" disabled="disabled">Upload
         </button>
-        <br>
-        <small>Only JPG/PNG/GIF are allowed, images will be fit-cropped to 256&times;256</small>
         <input id="profile_pic" type="file" onchange="changePFP()" hidden/>
+    </div>
+    <hr>
+    <div class="pb-3">
+        <p>Account Linking</p>
+        <button type="button" class="btn btn-outline-dark" onclick="link(this)" id="link_microsoft">
+            <i class="fab fa-microsoft"></i>
+            &nbsp;Link with Microsoft
+        </button>
     </div>
     <script src="/js/api.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
@@ -75,7 +81,6 @@
         // actually if you did, you can have it, idk why i added nickname system
 
         const user_info = {nickname: '{{user.nickname}}', desc: '{{user.desc}}', email: '{{user.email}}'};
-
         const upload_btn = document.getElementById('upload_btn');
         const profile_pic = document.getElementById('profile_pic');
         const pfp_preview = document.getElementById('pfp_preview');
@@ -187,5 +192,24 @@
                 else alert(result.reason);
             });
         }
+        var linkMicrosoftBtn = document.getElementById('link_microsoft');
+        auth.onAuthStateChanged(user => {
+            if (user && user.providerData.some(p => p.providerId === "microsoft.com")) {
+                linkMicrosoftBtn.disabled = true;
+                linkMicrosoftBtn.className = "btn btn-outline-success";
+                linkMicrosoftBtn.querySelector('i').className = "fas fa-check";
+            } else window.link = elem => {
+                let provider = new firebase.auth.OAuthProvider('microsoft.com');
+                provider.setCustomParameters({prompt: 'consent'});
+                console.log(auth.currentUser);
+                auth.currentUser.linkWithPopup(provider).then(function (result) {
+                    var credential = result.credential;
+                    var user = result.user;
+                    console.log(auth.currentUser);
+                }).catch(function (error) {
+                });
+            }
+        });
     </script>
+    <script src="https://kit.fontawesome.com/c32b3db897.js" crossorigin="anonymous"></script>
 </form>

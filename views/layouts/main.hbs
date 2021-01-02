@@ -49,39 +49,34 @@
             <div class="card">
                 <div class="row no-gutters">
                     <img style="border-top-left-radius:.25rem;" id="drawer-user-profile-pic"
-                         src="{{#if user}}{{#if user.pfp}}{{user.pfp}}{{else}}/images/guest.png{{/if}}
-                         {{else}}/images/guest.png{{/if}}" alt="" height="80">
+                         src="{{#if user.pfp}}{{user.pfp}}{{else}}/images/guest.png{{/if}}" alt="" height="80">
                     <div class="col-md">
                         <div class="card-body" style="padding: .3rem .6rem;">
-                            <h6 class="card-text" id="drawer-user-display-name">{{#if user}}{{#if
-                                    user.nickname}}{{user.nickname}}{{else}}{{user.name}}{{/if}}{{else}}
-                                Guest{{/if}}</h6>
-                            {{#if user}}<small class="card-text">@{{user.name}}</small><br>{{/if}}
-                            <small class="card-text">{{#if user}}{{user.email}}{{else}}
-                                Please <a href="javascript:window.authSignIn()">login</a>{{/if}}</small>
+                            <h6 class="card-text" id="drawer-user-display-name">
+                                {{#if user.nickname}}{{user.nickname}}{{else}}{{user.name}}{{/if}}</h6>
+                            <small class="card-text">@{{user.name}}</small><br>
+                            <small class="card-text">{{user.email}}</small>
                         </div>
                     </div>
                 </div>
-                {{#if user}}
-                    <div class="card-body p-2">
-                        <p class="card-text mb-1" id="user-roles">
-                            {{#if user.admin}}<span class="badge badge-danger">Admin</span>{{/if}}
-                            {{#each user.roles}}<span class="badge badge-secondary">{{this}}</span>{{/each}}
-                        </p>
-                        <small class="card-text muted" id="drawer-user-desc">
-                            {{user.desc}}
-                        </small>
-                    </div>
-                    <div class="card-footer">
-                        <a href="/logout" class="card-link">Logout</a>
-                        <a href="/profile" class="card-link">Profile</a>
-                    </div>
-                {{/if}}
+                <div class="card-body p-2">
+                    <p class="card-text mb-1" id="user-roles">
+                        {{#if user.admin}}<span class="badge badge-danger">Admin</span>{{/if}}
+                        {{#each user.roles}}<span class="badge badge-secondary">{{this}}</span>{{/each}}
+                    </p>
+                    <small class="card-text muted" id="drawer-user-desc">
+                        {{user.desc}}
+                    </small>
+                </div>
+                <div class="card-footer">
+                    <a href="/logout" class="card-link">Logout</a>
+                    <a href="/profile" class="card-link">Profile</a>
+                </div>
             </div>
         </div>
         <ul class="drawer-nav">
             <li id="nav_home" role="presentation"><a href="/">Home</a></li>
-            <li id="nav_users" role="presentation"><a href="/users">Users</a></li>
+            <li id="nav_users" role="presentation"><a href="/u">Users</a></li>
             {{#if user.admin}}
                 <li id="nav_admin" role="presentation"><a href="/admin">Admin</a></li>
             {{/if}}
@@ -116,16 +111,13 @@
                           d="M5.172 10.828a.5.5 0 0 0 .707 0l4.096-4.096V9.5a.5.5 0 1 0 1 0V5.525a.5.5 0 0 0-.5-.5H6.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707z"/>
                 </svg>
             </small></a>
-            <script src="/js/s_hl.js" async></script>
+            <script src="/js/s_hl.js"></script>
         </div>
     </div>
 </div>
 <script src="/js/api.js"></script>
 <script src="/js/main.js"></script>
 <script src="/js/jquery-3.5.1.slim.min.js"></script>
-{{#unless user}}
-    {{> firebase/firebase}}
-{{/unless}}
 <div class="container">
     {{{body}}}
 </div>
