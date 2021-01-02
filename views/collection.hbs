@@ -132,7 +132,9 @@
 
             const fileList = document.getElementById('file-list');
             $('#file-preview-popup').on('show.bs.modal', e => {
-                fileImage.setAttribute('src', $(e.relatedTarget).data('url'));
+                let url = $(e.relatedTarget).data('url');
+                if (!url) return e.preventDefault();
+                fileImage.setAttribute('src', url);
                 fileDelete.onclick = elem => {
                     elem.disabled = true;
                     let name = $(e.relatedTarget).data('name');
@@ -179,16 +181,10 @@
                 }
             }
 
-            var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
             function fadeOut(el) {
                 el.style.opacity = 1;
                 (function fade() {
-                    if ((el.style.opacity -= .01) < 0) {
-                        el.remove();
-                    } else {
-                        requestAnimationFrame(fade);
-                    }
+                    if ((el.style.opacity -= .01) < 0) el.remove(); else requestAnimationFrame(fade);
                 })();
             }
 
@@ -196,7 +192,6 @@
                 fileList.innerHTML = renderFile({name: file.name, url: null}) + fileList.innerHTML;
                 let elem = document.getElementById(`file-list-${file.name.replace(/\s+/g, '_')}`);
                 elem.innerHTML += `<div id="file-list-progress-${file.name.replace(/\s+/g, '_')}"></div>`;
-                elem.removeAttribute('data-target');
                 let progress = document.getElementById(`file-list-progress-${file.name.replace(/\s+/g, '_')}`);
                 var bar = new ldBar(progress, {
                     stroke: '#120a8f',
@@ -214,12 +209,19 @@
                 request.timeout = 45000;
                 return () => {
                     return new Promise((resolve, reject) => {
+                        request.onreadystatechange = function () {
+                            if (request.readyState === 4) {
+                                let url = JSON.parse(request.response);
+                                if (url.status === "success") {
+                                    elem.setAttribute('data-url', url.url);
+                                    resolve();
+                                } else reject();
+                            }
+                        }
                         request.upload.addEventListener('error', reject);
                         request.upload.addEventListener('load', () => {
                             bar.set(100);
-                            elem.setAttribute('data-target', '"#file-preview-popup"');
                             fadeOut(progress);
-                            resolve();
                         });
                         request.upload.addEventListener('progress', e => {
                             if (e.loaded <= file.size) bar.set(Math.round(e.loaded / file.size * 100));
@@ -445,7 +447,7 @@
             noteTime.innerText = `Last edited • ${dateStr}`;
             document.getElementById(`list-${cnote.nid}`).classList.add('active');
             fetch(cnote.url).then(res => res.text()).then(text => {
-                shadowRoot.innerHTML = text + "\n<style>.container{width: auto !important;}</style>"; // small hax
+                shadowRoot.innerHTML = `${text}<style>.container{width:auto!important;}#notebook-container{padding:0;-webkit-box-shadow:none;box-shadow:none;}.prompt{min-width:0;}</style>`; // small hax
                 updateTheme(); // shadow dom is retarded
             });
         }
@@ -453,8 +455,7 @@
     }
 
     window.onhashchange = e => { // support anchor clicking
-        let elementToFocus = shadowRoot.getElementById(window.location.hash.slice(1));
-        elementToFocus = elementToFocus || shadowRoot.querySelector(`[name='${window.location.hash.slice(1)}']`);
+        let elementToFocus = shadowRoot.getElementById(window.location.hash.slice(1)) || shadowRoot.querySelector(`[name='${window.location.hash.slice(1)}']`);
         if (elementToFocus) elementToFocus.scrollIntoView();
     }
 

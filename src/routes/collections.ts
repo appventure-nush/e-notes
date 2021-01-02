@@ -74,10 +74,11 @@ collection.post('/:cid/img', checkAdmin, async (req, res) => { // called for eve
         if (type && type.mime.toUpperCase() === payload.mimetype.toUpperCase()) {
             if (IMAGE_FORMATS.includes(type.mime.toLowerCase())) {
                 try {
-                    const file = storage().bucket().file(`collections/${req.params.cid}/images/${req.body.name}s`);
+                    const file = storage().bucket().file(`collections/${req.params.cid}/images/${req.body.name}`);
                     await file.save(new Uint8Array(await (await Jimp.read(payload.data)).getBufferAsync(type.mime)), {resumable: false});
                     res.json({
-                        status: 'success'
+                        status: 'success',
+                        url: await getURL(`collections/${req.params.cid}/images/${req.body.name}`)
                     });
                 } catch (e) {
                     await error("image upload error", {
