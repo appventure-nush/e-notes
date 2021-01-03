@@ -1,5 +1,5 @@
 import {Router} from 'express';
-import {checkAdmin, checkUserOptional, getCollection, hasPermissions, transformUser} from "../utils";
+import {checkAdmin, checkUserOptional, getCollection, getNote, hasPermissions, transformUser} from "../utils";
 import imageType from "image-type";
 import {storage} from "firebase-admin";
 import Jimp from "jimp";
@@ -98,6 +98,17 @@ collection.get('/:cid/:nid', checkUserOptional, (req, res) => {
         user: req.body.user,
         coll: getCollection(req.params.cid),
         nid: req.params.nid,
+        csrf: req.csrfToken(),
+    });
+});
+collection.get('/edit/:cid/:nid', checkUserOptional, async (req, res) => {
+    let note = await getNote(req.params.cid, req.params.nid);
+    if (!note) res.redirect('/c/' + req.params.cid);
+    else res.render("editor", {
+        title: "Editing " + req.params.nid,
+        user: req.body.user,
+        coll: getCollection(req.params.cid),
+        note: note,
         csrf: req.csrfToken(),
     });
 });

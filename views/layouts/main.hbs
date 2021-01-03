@@ -12,8 +12,8 @@
     <link rel="icon" href="/images/favicon.256.png" type="image/png"/>
     <script src="https://cdn.jsdelivr.net/npm/darkreader@4.9.26/darkreader.min.js"></script>
     <script>
+        let dark;
         function updateTheme() {
-            let dark;
             let theme = localStorage.getItem('theme') || 'auto';
             if (theme === 'auto') dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
             else if (theme === 'dark') dark = true;

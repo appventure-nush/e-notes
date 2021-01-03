@@ -50,6 +50,16 @@
             <p class="card-header d-flex align-items-center" data-toggle="collapse" data-target="#note-list"
                aria-expanded="true"
                aria-controls="note-info">Note List <i class="fa fa-chevron-down ml-auto"></i></p>
+            {{#if user.admin}}
+                <div class="btn-group block-btn-group">
+                    <button id="editBtn" type="button" class="btn btn-light" data-action="edit" data-toggle="modal"
+                            data-target="#admin-note-popup"><i class="fas fa-edit"></i></button>
+                    <button id="editorBtn" type="button" class="btn btn-light" onclick="openEditor()"><i
+                            class="fas fa-external-link-alt"></i></button>
+                    <button type="button" class="btn btn-light" data-action="add" data-toggle="modal"
+                            data-target="#admin-note-popup"><i class="fas fa-plus"></i></button>
+                </div>
+            {{/if}}
             <ul class="list-group list-group-flush collapse show" id="note-list">
             </ul>
         </div>
@@ -66,10 +76,10 @@
         </div>
         {{#if user.admin}}
             <div class="card mt-2" id="file-card">
-                <p class="card-header d-flex align-items-center" data-toggle="collapse" data-target="#file-body"
-                   aria-expanded="true"
-                   aria-controls="note-info">Images <i class="fa fa-chevron-down ml-auto"></i></p>
-                <div id="file-body" class="collapse show">
+                <p class="card-header d-flex align-items-center collapsed" data-toggle="collapse" aria-expanded="false"
+                   data-target="#file-body" aria-controls="note-info">Images <i class="fa fa-chevron-down ml-auto"></i>
+                </p>
+                <div id="file-body" class="collapse hide">
                     <input id="file-upload" type='file' hidden multiple/>
                     <div class="btn-group block-btn-group">
                         <button type="button" class="btn btn-light" onclick="fileUpload.click()">
@@ -83,31 +93,6 @@
         {{/if}}
     </div>
     <div class="col-lg-9">
-        {{#if user.admin}}
-            <nav class="navbar navbar-expand-lg navbar-light">
-                <a class="navbar-brand" href="#">Notes</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a id="editBtn" class="nav-link disabled" href="#" data-action="edit"
-                               data-toggle="modal" data-target="#admin-note-popup">
-                                <i class="fas fa-edit"></i> Edit
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" data-action="add"
-                               data-toggle="modal" data-target="#admin-note-popup">
-                                <i class="fas fa-plus"></i> New
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-        {{/if}}
         <div id="display"></div>
     </div>
 </div>
@@ -140,7 +125,6 @@
                     let name = $(e.relatedTarget).data('name');
                     fetcher(`/c/${coll.cid}/img/${name}`, {method: "DELETE"}).then(result => {
                         elem.disabled = false;
-                        console.log(result);
                         if (result.status === "success") {
                             let listItem = document.getElementById(`file-list-${name.replace(/\s+/g, '_')}`);
                             if (listItem) listItem.remove();
@@ -293,6 +277,12 @@
                     const deleteBtn = document.getElementById('deleteBtn');
 
                     const editBtn = document.getElementById('editBtn');
+                    const editorBtn = document.getElementById('editorBtn');
+
+                    function openEditor() {
+                        if (!cnote) return;
+                        window.open('/c/edit/' + coll.cid + '/' + cnote.nid, '_blank').focus();
+                    }
 
                     // i hate jquery
                     $('#admin-note-popup').on('show.bs.modal', e => {
@@ -423,6 +413,7 @@
             cnote = null;
             {{#if user.admin}}
                 editBtn.classList.add('disabled');
+                editorBtn.classList.add('disabled');
             {{/if}}
             noteId.innerText = noteName.innerText = noteDesc.innerText = noteTime.innerText = "";
             noteCard.style.display = "none";
@@ -434,6 +425,7 @@
             document.title = coll.cid + "/" + cnote.name;
             {{#if user.admin}}
                 editBtn.classList.remove('disabled');
+                editorBtn.classList.remove('disabled');
             {{/if}}
             noteId.innerText = cnote.nid;
             noteCard.style.display = "block";

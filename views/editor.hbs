@@ -1,0 +1,123 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/codemirror.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/codemirror.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/theme/darcula.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/theme/idea.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/addon/fold/xml-fold.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/addon/edit/closetag.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/addon/edit/matchtags.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/addon/search/search.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/addon/search/searchcursor.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/addon/search/jump-to-line.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/addon/dialog/dialog.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/addon/fold/foldcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/addon/fold/foldgutter.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/addon/fold/brace-fold.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/addon/fold/xml-fold.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/addon/fold/indent-fold.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/addon/fold/comment-fold.min.js"></script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/addon/fold/foldgutter.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.59.1/addon/dialog/dialog.min.css"/>
+<!-- CDN Hell -->
+<script src="/js/loading-bar.min.js"></script>
+<link rel="stylesheet" href="/css/loading-bar.min.css"/>
+
+<nav class="navbar navbar-expand navbar-light bg-light">
+    <a class="navbar-brand ml-4" href="#">Editor <span class="badge badge-success">Beta</span></a>
+    <ul class="navbar-nav">
+        <li class="nav-item">
+            <a class="nav-link" href="#">Save</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#">Format</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#"><div class="ldBar label-right" id="save-bar"></div></a>
+        </li>
+    </ul>
+</nav>
+<textarea id="editor"></textarea>
+<style>
+    .container-fluid {
+        position: static;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .CodeMirror {
+        height: 100%;
+    }
+
+    .ldBar.label-right .ldBar-label, .ldBar.label-right svg {
+        display: inline;
+        width: auto;
+    }
+
+    .ldBar.label-right {
+        width: auto !important;
+    }
+</style>
+<script>
+    document.querySelector('.container').className = "container-fluid";
+    const coll = {cid: '{{coll.cid}}', name: '{{coll.name}}', desc: '{{coll.desc}}'};
+    const note = {
+        nid: '{{note.nid}}',
+        name: '{{note.name}}',
+        desc: '{{note.desc}}',
+        url: '{{{note.url}}}',
+        lastEdit: {{note.lastEdit}}
+    };
+    const editorArea = document.getElementById('editor');
+    const saveBar = document.getElementById('save-bar');
+    const bar = new ldBar(saveBar, {
+        "stroke-width": 2,
+        "preset": "rainbow",
+        "value": 20
+    });
+    const editor = CodeMirror.fromTextArea(editorArea, {
+        lineNumbers: true,
+        lineWrapping: true,
+        mode: "htmlmixed",
+        theme: dark ? "darcula" : "idea",
+        indentUnit: 4,
+
+        foldGutter: true,
+        gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+
+        autoCloseBrackets: true,
+        autoCloseTags: true,
+        matchTags: true,
+
+        extraKeys: {Tab: cm => cm.replaceSelection(Array(cm.getOption("indentUnit") + 1).join(" "))}
+    });
+    let saving = false;
+    CodeMirror.commands.save = async function () {
+        if (saving) return;
+        saving = true;
+        const formData = new FormData();
+        formData.append('note_source', new Blob([editor.getDoc().getValue()], {type: 'application/html'}), 'note_source.html');
+        let result = await fetcher(`/api/collections/${coll.cid}/notes/${note.nid}/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        console.log(result);
+        saving = false;
+    };
+    editor.setSize("100%", "100%");
+    window.onload = () => {
+
+        fetch(note.url).then(res => res.text()).then(text => {
+            editor.getDoc().setValue(text);
+            editor.refresh();
+        });
+    }
+</script>
