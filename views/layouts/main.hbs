@@ -32,9 +32,9 @@
         if (localStorage.getItem("drawer_is_open") === "false") document.getElementById('drawer').classList.remove("open")
         else document.getElementById('drawer').classList.add("open")
     </script>
-    <div class="drawer-controls">
+    <div id="drawer-controls" class="drawer-controls">
         <a href="#drawer" data-toggle="drawer" aria-foldedopen="false" aria-controls="drawer"
-           class="btn btn-outline-dark btn-sm openc">
+           class="btn btn-outline-dark btn-sm open">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots"
                  viewBox="0 0 16 16">
                 <path fill-rule="evenodd"

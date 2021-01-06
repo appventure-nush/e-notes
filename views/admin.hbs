@@ -1,55 +1,97 @@
 <style>
-    .card-header .fa {
+    .collapse-header .fa {
         transition: .3s transform ease-in-out;
     }
 
-    .card-header.collapsed .fa {
+    .collapse-header.collapsed .fa {
         transform: rotate(90deg);
     }
 </style>
-{{#if user.admin}}
+<script src="https://kit.fontawesome.com/c32b3db897.js" crossorigin="anonymous"></script>
 <div class="row" style="margin-top: 2em">
-    <div class="col-lg-3">
-        <div class="card mt-2">
-            <p class="card-header d-flex" data-toggle="collapse" data-target="#user-list" aria-expanded="true"
-               aria-controls="user-info">Users list<i class="fa fa-chevron-down ml-auto align-middle"></i></p>
-            <ul class="list-group list-group-flush collapse show" id="user-list">
-            </ul>
+    <div id="drawer-col" class="col-lg-3 col-md-12 collapse show collapsed">
+        <p class="d-flex collapse-header" data-toggle="collapse" data-target="#user-list" aria-expanded="true"
+           aria-controls="user-info">Users list<i class="fa fa-chevron-down ml-auto align-middle"></i></p>
+        <div class="list-group list-group-flush collapse show" id="user-list" role="tablist">
+        </div>
+        <p class="d-flex collapse-header" data-toggle="collapse" data-target="#role-list" aria-expanded="true"
+           aria-controls="role-info">Roles list<i class="fa fa-chevron-down ml-auto align-middle"></i></p>
+        <div class="list-group list-group-flush collapse show" id="role-list" role="tablist">
         </div>
     </div>
-    <div class="col-lg-3">
-        <div class="card mt-2">
-            <p class="card-header d-flex" data-toggle="collapse" data-target="#user-list" aria-expanded="true"
-               aria-controls="role-info">Roles list<i class="fa fa-chevron-down ml-auto align-middle"></i></p>
-            <ul class="list-group list-group-flush collapse show" id="role-list">
-            </ul>
+    <div id="content-col" class="col-lg-9 col-md-12 tab-content collapse show">
+        <div class="tab-pane fade show active" id="tab-idle" role="tabpanel">
+            <h4 class="text-center mt-4">Please select something</h4>
+        </div>
+        <div class="tab-pane" id="tab-users" role="tabpanel">
+            <img id="user-pfp" src="/images/guest.png" class="rounded mx-auto d-block" height="200">
+            <h4 id="user-name" class="text-center mt-4"></h4>
+            <p id="user-email" class="text-center"></p>
+        </div>
+        <div class="tab-pane" id="tab-roles" role="tabpanel">
+
         </div>
     </div>
 </div>
 <script src="/js/api.js"></script>
 <script>
     window.currentNav = "admin";
-    window.onload = e => {
-        async function getTree() {
-            let data = await Promise.all([users.getAll(), collections.getAll()]);
-            let tree = [];
-            tree.push({
-                text: 'Users',
-                icon: "fa fa-folder",
-                nodes: data[0].map(user => ({
-                    id: user.uid,
-                    text: `${user.name}${user.nickname ? ` (${user.nickname})` : ''}`
-                }))
-            });
-            tree.push({
-                text: 'Collections',
-                icon: "fa fa-folder",
-                nodes: data[1].map(coll => ({
-                    id: coll.cid,
-                    text: `${coll.cid} ${coll.name}`
-                }))
-            });
-            return tree;
+
+    function refreshUsers(useCache = true) {
+        return users.getAll(useCache).then(us => document.getElementById('user-list').innerHTML = us.map(user =>
+                `<a onclick="showUser('${user.uid}',this)" class="list-group-item list-group-item-action" href="#tab-users" role="tab">${user.name}</a>`).join(''))
+    }
+
+    function refreshRoles(useCache = true) {
+        return roles.getAll(useCache).then(rs => document.getElementById('role-list').innerHTML = rs.map(role =>
+                `<a onclick="showRole('${role.rid}',this)" class="list-group-item list-group-item-action" href="#tab-roles" role="tab">${role.name}</a>`).join(''))
+    }
+
+    const userPFP = document.getElementById('user-pfp'), userEmail = document.getElementById('user-email'),
+            userName = document.getElementById('user-name');
+
+    async function showUser(uid, elem) {
+        event.preventDefault();
+        console.log("lol");
+        let user = await users.get(uid);
+        userPFP.setAttribute('src', user.pfp || '/images/guest.png');
+        userName.innerText = user.name;
+        userEmail.innerText = user.email;
+        $(elem).tab('show');
+    }
+
+    async function showRole(rid, elem) {
+        event.preventDefault();
+        console.log("lol");
+        $(elem).tab('show');
+    }
+
+    const drawerCol = document.getElementById('drawer-col');
+    const contentCol = document.getElementById('content-col');
+
+    function toggleTabs() {
+        if (drawerCol.classList.contains('show')) {
+            $(drawerCol).collapse('hide');
+            $(contentCol).collapse('show');
+        } else {
+            $(drawerCol).collapse('show');
+            $(contentCol).collapse('hide');
         }
+    }
+
+    window.addEventListener('resize', resized)
+
+    function resized(event) {
+        // force show
+        if (window.innerWidth > 991) drawerCol.classList.add('show');
+        else drawerCol.classList.remove('show');
+    }
+
+    resized();
+
+    document.getElementById('drawer-controls').innerHTML += '<br><a class="btn btn-outline-secondary btn-sm open mt-2 d-lg-none" onclick="toggleTabs()"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg></a>'; // wow injection, on my own website
+    window.onload = e => {
+        refreshUsers().then(() => refreshUsers(false)); // will call server twice on first launch, plz fix
+        refreshRoles().then(() => refreshRoles(false));
     }
 </script>

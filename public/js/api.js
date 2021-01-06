@@ -31,7 +31,8 @@ function generateAPI(key, idKey, path) {
         getAll: async function (useCache = true) {
             if (!useCache || !cache[key] || cache[key].length === 0) try {
                 console.log("getting latest " + path + "...");
-                localStorage.setItem(key, JSON.stringify(cache[key] = Array.from(await fetcher(`/api/${path}`))));
+                if (key === 'userCache') localStorage.setItem(key, JSON.stringify(cache[key] = Array.from((await fetcher(`/api/${path}`)).users)));
+                else localStorage.setItem(key, JSON.stringify(cache[key] = Array.from(await fetcher(`/api/${path}`))));
             } catch (e) {
                 console.log(e)
                 localStorage.setItem(key, JSON.stringify(cache[key] = []));
