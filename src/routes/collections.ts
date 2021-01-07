@@ -100,7 +100,7 @@ collection.get('/:cid/:nid', checkUserOptional, (req, res) => {
         csrf: req.csrfToken(),
     });
 });
-collection.get('/edit/:cid/:nid', checkUserOptional, async (req, res) => {
+collection.get('/:cid/:nid/edit', checkUserOptional, async (req, res) => {
     let note = await getNote(req.params.cid, req.params.nid);
     if (!note) res.redirect('/c/' + req.params.cid);
     else res.render("editor", {

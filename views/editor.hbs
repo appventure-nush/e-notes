@@ -25,22 +25,21 @@
 <link rel="stylesheet" href="/codemirror/codemirror.min.css"/>
 <link rel="stylesheet" href="/codemirror/theme/darcula.min.css"/>
 <link rel="stylesheet" href="/codemirror/theme/idea.min.css"/>
-<script src="/js/loading-bar.min.js"></script>
-<link rel="stylesheet" href="/css/loading-bar.min.css"/>
+
+<script src="/js/progressbar.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.13.0/beautify.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.13.0/beautify-css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.13.0/beautify-html.min.js"></script>
 
 <nav class="navbar navbar-expand navbar-light bg-light">
     <a class="navbar-brand ml-4" href="#">Editor <span class="badge badge-success">Beta</span></a>
     <ul class="navbar-nav">
         <li class="nav-item">
-            <a class="nav-link" href="#">Save</a>
+            <a class="nav-link" href="#" id="save-btn">Save</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="#">Format</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="#">
-                <div class="ldBar label-right" id="save-bar"></div>
-            </a>
+            <a class="nav-link" href="#" id="format-btn">Format</a>
         </li>
     </ul>
 </nav>
@@ -58,13 +57,9 @@
         height: 100%;
     }
 
-    .ldBar.label-right .ldBar-label, .ldBar.label-right svg {
-        display: inline;
-        width: auto;
-    }
-
-    .ldBar.label-right {
-        width: auto !important;
+    .CodeMirror.disabled {
+        filter: grayscale(0.2);
+        background: #dfdfdf;
     }
 </style>
 <script>
@@ -78,15 +73,10 @@
         lastEdit: {{note.lastEdit}}
     };
     const editorArea = document.getElementById('editor');
-    const saveBar = document.getElementById('save-bar');
-    const bar = new ldBar(saveBar, {
-        "stroke-width": 2,
-        "preset": "rainbow",
-        "value": 20
-    });
+    const saveBtn = document.getElementById('save-btn');
+    const formatBtn = document.getElementById('format-btn');
     const editor = CodeMirror.fromTextArea(editorArea, {
         lineNumbers: true,
-        lineWrapping: true,
         mode: "htmlmixed",
         theme: "idea",
         indentUnit: 4,
@@ -101,9 +91,12 @@
         extraKeys: {Tab: cm => cm.replaceSelection(Array(cm.getOption("indentUnit") + 1).join(" "))}
     });
     let saving = false;
-    CodeMirror.commands.save = async function () {
+    saveBtn.onclick = CodeMirror.commands.save = async function () {
         if (saving) return;
         saving = true;
+        saveBtn.className = formatBtn.className = 'nav-link disabled';
+        editor.setOption("readOnly", true);
+        editor.getWrapperElement().classList.add('disabled');
         const formData = new FormData();
         formData.append('note_source', new Blob([editor.getDoc().getValue()], {type: 'application/html'}), 'note_source.html');
         let result = await fetcher(`/api/collections/${coll.cid}/notes/${note.nid}/upload`, {
@@ -111,18 +104,38 @@
             body: formData
         });
         console.log(result);
+        saveBtn.className = formatBtn.className = 'nav-link';
+        editor.setOption("readOnly", false);
+        editor.getWrapperElement().classList.remove('disabled');
         saving = false;
     };
+    formatBtn.onclick = function () {
+        editor.getDoc().setValue(html_beautify(editor.getDoc().getValue(), {
+            "indent_size": "4",
+            "indent_char": " ",
+            "max_preserve_newlines": "2",
+            "preserve_newlines": true,
+            "keep_array_indentation": false,
+            "break_chained_methods": false,
+            "indent_scripts": "keep",
+            "brace_style": "collapse,preserve-inline",
+            "space_before_conditional": true,
+            "unescape_strings": false,
+            "jslint_happy": false,
+            "end_with_newline": false,
+            "wrap_line_length": "0",
+            "indent_inner_html": false,
+            "comma_first": false,
+            "e4x": false,
+            "indent_empty_lines": false
+        }));
+        editor.refresh();
+    }
     editor.setSize("100%", "100%");
     window.onload = () => {
         fetch(note.url).then(res => res.text()).then(text => {
             editor.getDoc().setValue(text);
             editor.refresh();
         });
-    }
-    let oldUpdateTheme = updateTheme;
-    updateTheme = function () {
-        editor.setOption("theme", oldUpdateTheme() ? "darcula" : "idea");
-        editor.refresh();
     }
 </script>

@@ -48,21 +48,22 @@
             </div>
         </div>
         <div class="card mt-2">
-            <p class="card-header d-flex align-items-center" data-toggle="collapse" data-target="#note-list"
-               aria-expanded="true"
-               aria-controls="note-info">Note List <i class="fa fa-chevron-down ml-auto"></i></p>
-            {{#if user.admin}}
-                <div class="btn-group block-btn-group">
-                    <button id="editBtn" type="button" class="btn btn-light" data-action="edit" data-toggle="modal"
-                            data-target="#admin-note-popup"><i class="fas fa-edit"></i></button>
-                    <button id="editorBtn" type="button" class="btn btn-light" onclick="openEditor()"><i
-                            class="fas fa-external-link-alt"></i></button>
-                    <button type="button" class="btn btn-light" data-action="add" data-toggle="modal"
-                            data-target="#admin-note-popup"><i class="fas fa-plus"></i></button>
-                </div>
-            {{/if}}
-            <ul class="list-group list-group-flush collapse show" id="note-list">
-            </ul>
+            <p class="card-header d-flex align-items-center" data-toggle="collapse" data-target="#notes-body"
+               aria-expanded="true" aria-controls="note-info">Note List <i class="fa fa-chevron-down ml-auto"></i></p>
+            <div id="notes-body" class="collapse show">
+                {{#if user.admin}}
+                    <div class="btn-group block-btn-group">
+                        <button id="editBtn" type="button" class="btn btn-light" data-action="edit" data-toggle="modal"
+                                data-target="#admin-note-popup"><i class="fas fa-edit"></i></button>
+                        <button id="editorBtn" type="button" class="btn btn-light" onclick="openEditor()"><i
+                                class="fas fa-external-link-alt"></i></button>
+                        <button type="button" class="btn btn-light" data-action="add" data-toggle="modal"
+                                data-target="#admin-note-popup"><i class="fas fa-plus"></i></button>
+                    </div>
+                {{/if}}
+                <ul class="list-group list-group-flush" id="note-list">
+                </ul>
+            </div>
         </div>
         <div class="card mt-2" id="note-card" style="display: none;">
             <p class="card-header d-flex align-items-center" data-toggle="collapse" data-target="#note-info"
@@ -279,7 +280,7 @@
 
                     function openEditor() {
                         if (!cnote) return;
-                        window.open('/c/edit/' + coll.cid + '/' + cnote.nid, '_blank').focus();
+                        window.open(`/c/${coll.cid}/${cnote.nid}/edit`, '_blank').focus();
                     }
 
                     // i hate jquery
