@@ -19,7 +19,6 @@ users.get("/:uid", checkUser, async (req, res) => {
             res.json(transformUser(data[0], data[1]));
         }
     } catch (e) {
-        console.log(e);
         res.status(500).send("failed_to_get_user")
     }
 });

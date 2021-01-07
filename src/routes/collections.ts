@@ -101,13 +101,13 @@ collection.get('/:cid/:nid', checkUserOptional, (req, res) => {
     });
 });
 collection.get('/:cid/:nid/edit', checkUserOptional, async (req, res) => {
-    let note = await getNote(req.params.cid, req.params.nid);
+    const note = await getNote(req.params.cid, req.params.nid);
     if (!note) res.redirect('/c/' + req.params.cid);
     else res.render("editor", {
         title: "Editing " + req.params.nid,
         user: req.body.user,
         coll: getCollection(req.params.cid),
-        note: note,
+        note,
         csrf: req.csrfToken(),
     });
 });
