@@ -15,7 +15,7 @@ function generateAPI(key, idKey, path) {
             var index = cache[key].findIndex(item => item[idKey] === id);
             if (index === -1) {
                 if (value) cache[key].push(value);
-            } else if (value) cache[key][index] = value;
+            } else if (value) cache[key][index] = {...cache[key][index], ...value};
             else cache[key].splice(index, 1);
             localStorage.setItem(key, JSON.stringify(cache[key]));
             return value;
@@ -23,16 +23,19 @@ function generateAPI(key, idKey, path) {
         get: async function (id) {
             if (!id) return null;
             var item = cache[key].find(item => item[idKey] === id);
-            if (item) return item;
+            if (item && Array.isArray(item.roles)) return item;
             item = await fetcher(`/api/${path}/${id}`)
-            if (item.reason) alert(item.reason); else update(id, item);
+            if (item.reason) console.log(item.reason);
+            else this.update(id, item);
             return item;
         },
         getAll: async function (useCache = true) {
             if (!useCache || !cache[key] || cache[key].length === 0) try {
                 console.log("getting latest " + path + "...");
-                if (key === 'userCache') localStorage.setItem(key, JSON.stringify(cache[key] = Array.from((await fetcher(`/api/${path}`)).users)));
-                else localStorage.setItem(key, JSON.stringify(cache[key] = Array.from(await fetcher(`/api/${path}`))));
+                if (key === 'userCache') {
+                    Array.from((await fetcher(`/api/${path}`)).users).forEach(user => this.update(user.uid, user));
+                    localStorage.setItem(key, JSON.stringify(cache[key]));
+                } else localStorage.setItem(key, JSON.stringify(cache[key] = Array.from(await fetcher(`/api/${path}`))));
             } catch (e) {
                 console.log(e)
                 localStorage.setItem(key, JSON.stringify(cache[key] = []));

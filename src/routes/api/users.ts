@@ -15,10 +15,11 @@ users.get("/:uid", checkUser, async (req, res) => {
     try {
         if (req.params.uid === 'me') res.json(req.body.user);
         else {
-            const data = await Promise.all([req.body.user, auth().getUser(req.params.uid)]);
+            const data = await Promise.all([getUser(req.params.uid), auth().getUser(req.params.uid)]);
             res.json(transformUser(data[0], data[1]));
         }
     } catch (e) {
+        console.log(e);
         res.status(500).send("failed_to_get_user")
     }
 });
