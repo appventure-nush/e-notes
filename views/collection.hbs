@@ -22,13 +22,14 @@
         box-shadow: 0px 5px 20px 10px rgba(231, 166, 26, 0.46);
     }
 
-    .ldBar-label {
-        display: none;
+    .progress-bar {
+        width: auto;
+        height: 3px;
+        margin: 0 -1.25rem -.75rem;
     }
 </style>
 <script src="https://kit.fontawesome.com/c32b3db897.js" crossorigin="anonymous"></script>
-<script src="/js/loading-bar.min.js"></script>
-<link rel="stylesheet" href="/css/loading-bar.min.css"/>
+<script src="/js/progressbar.min.js"></script>
 <div class="row" style="margin-top: 2em">
     <div class="col-lg-3">
         <div class="card mt-4">
@@ -79,7 +80,7 @@
                 <p class="card-header d-flex align-items-center collapsed" data-toggle="collapse" aria-expanded="false"
                    data-target="#file-body" aria-controls="note-info">Images <i class="fa fa-chevron-down ml-auto"></i>
                 </p>
-                <div id="file-body" class="collapse hide">
+                <div id="file-body" class="collapse">
                     <input id="file-upload" type='file' hidden multiple/>
                     <div class="btn-group block-btn-group">
                         <button type="button" class="btn btn-light" onclick="fileUpload.click()">
@@ -175,42 +176,39 @@
             function startFileUpload(file) {
                 fileList.innerHTML = renderFile({name: file.name, url: null}) + fileList.innerHTML;
                 let elem = document.getElementById(`file-list-${file.name.replace(/\s+/g, '_')}`);
-                elem.innerHTML += `<div id="file-list-progress-${file.name.replace(/\s+/g, '_')}"></div>`;
+                elem.innerHTML += `<div class="progress-bar" id="file-list-progress-${file.name.replace(/\s+/g, '_')}"></div>`;
                 let progress = document.getElementById(`file-list-progress-${file.name.replace(/\s+/g, '_')}`);
-                var bar = new ldBar(progress, {
-                    stroke: '#120a8f',
-                    max: 100,
-                    "stroke-width": 2,
-                    preset: 'rainbow',
-                    value: 0,
+                const line = new ProgressBar.Line(progress, {
+                    strokeWidth: 2,
+                    color: '#0275d8',
+                    trailColor: '#fff',
+                    easing: 'easeOut'
                 });
-                const formdata = new FormData();
-                formdata.append('payload', file);
-                formdata.append('name', file.name);
+                const form = new FormData();
+                form.append('payload', file);
+                form.append('name', file.name);
                 const request = new XMLHttpRequest();
                 request.open('post', `/c/${coll.cid}/img`);
                 request.setRequestHeader('CSRF-Token', token);
                 request.timeout = 45000;
                 return () => {
                     return new Promise((resolve, reject) => {
-                        request.onreadystatechange = function () {
+                        request.addEventListener('readystatechange', () => {
                             if (request.readyState === 4) {
                                 let url = JSON.parse(request.response);
                                 if (url.status === "success") {
                                     elem.setAttribute('data-url', url.url);
                                     resolve();
-                                } else reject();
+                                } else reject(url);
                             }
-                        }
-                        request.upload.addEventListener('error', reject);
+                        })
+                        request.upload.addEventListener('error', e => reject(e));
                         request.upload.addEventListener('load', () => {
-                            bar.set(100);
+                            line.animate(1, {duration: 1000});
                             fadeOut(progress);
                         });
-                        request.upload.addEventListener('progress', e => {
-                            if (e.loaded <= file.size) bar.set(Math.round(e.loaded / file.size * 100));
-                        });
-                        request.send(formdata);
+                        request.upload.addEventListener('progress', e => line.animate(e.loaded / file.size, {duration: 500}));
+                        request.send(form);
                     });
                 };
             }

@@ -2,7 +2,6 @@ import {Router} from 'express';
 import {checkAdmin, checkUserOptional, getCollection, getNote, hasPermissions, transformUser} from "../utils";
 import imageType from "image-type";
 import {storage} from "firebase-admin";
-import Jimp from "jimp";
 import {error} from "../logger";
 import path from "path";
 
@@ -75,7 +74,7 @@ collection.post('/:cid/img', checkAdmin, async (req, res) => { // called for eve
             if (IMAGE_FORMATS.includes(type.mime.toLowerCase())) {
                 try {
                     const file = storage().bucket().file(`collections/${req.params.cid}/images/${req.body.name}`);
-                    await file.save(new Uint8Array(await (await Jimp.read(payload.data)).getBufferAsync(type.mime)), {resumable: false});
+                    await file.save(new Uint8Array(payload.data), {resumable: false});
                     res.json({
                         status: 'success',
                         url: await getURL(`collections/${req.params.cid}/images/${req.body.name}`)
