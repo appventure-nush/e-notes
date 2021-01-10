@@ -107,6 +107,10 @@
                 })
             });
             let json = await result.json();
+            if (!user.emailVerified) {
+                await user.sendEmailVerification();
+                alert("Please check your inbox for a verification email!");
+            }
             if (json.status === 'success') window.location.href = '/';
             else negative(message).innerText = "Failed for some unknown reason";
         }

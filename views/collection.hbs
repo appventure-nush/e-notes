@@ -53,8 +53,9 @@
             <div id="notes-body" class="collapse show">
                 {{#if user.admin}}
                     <div class="btn-group block-btn-group">
-                        <button id="editBtn" type="button" class="btn btn-light" data-action="edit" data-toggle="modal"
-                                data-target="#admin-note-popup"><i class="fas fa-edit"></i></button>
+                        <button id="editBtn" type="button" class="btn btn-light" data-action="edit"
+                                onclick="if(cnote)$('#admin-note-popup').modal('show')"><i class="fas fa-edit"></i>
+                        </button>
                         <button id="editorBtn" type="button" class="btn btn-light" onclick="openEditor()"><i
                                 class="fas fa-external-link-alt"></i></button>
                         <button type="button" class="btn btn-light" data-action="add" data-toggle="modal"
@@ -125,7 +126,7 @@
                 fileDelete.onclick = elem => {
                     elem.disabled = true;
                     let name = $(e.relatedTarget).data('name');
-                    fetcher(`/c/${coll.cid}/img/${name}`, {method: "DELETE"}).then(result => {
+                    fetcher(`/api/collections/${coll.cid}/img/${name}`, {method: "DELETE"}).then(result => {
                         elem.disabled = false;
                         if (result.status === "success") {
                             let listItem = document.getElementById(`file-list-${name.replace(/\s+/g, '_')}`);
@@ -189,7 +190,7 @@
                 form.append('payload', file);
                 form.append('name', file.name);
                 const request = new XMLHttpRequest();
-                request.open('post', `/c/${coll.cid}/img`);
+                request.open('post', `/api/collections/${coll.cid}/img`);
                 request.setRequestHeader('CSRF-Token', token);
                 request.timeout = 45000;
                 return () => {
@@ -219,7 +220,7 @@
             }
 
             async function renderFiles() {
-                fileList.innerHTML = (cfiles = await fetcher(`/c/${coll.cid}/img`)).map(renderFile).join('');
+                fileList.innerHTML = (cfiles = await fetcher(`/api/collections/${coll.cid}/img`)).map(renderFile).join('');
             }
         </script>
     </div>
@@ -285,6 +286,7 @@
 
                     // i hate jquery
                     $('#admin-note-popup').on('show.bs.modal', e => {
+                        console.log($(e.relatedTarget).data('action'));
                         if ($(e.relatedTarget).data('action') === 'add') {
                             $('#note-popup-title').text('Add note');
                             idInput.disabled = false;

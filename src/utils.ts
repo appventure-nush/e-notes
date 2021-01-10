@@ -19,12 +19,12 @@ export async function getUser(uid: string): Promise<User> { // heavy call functi
     if (!uid) return null;
     const fbUser = await auth().getUser(uid);
     if (!fbUser) return null;
-    let userObj = users.find(user => user.uid === uid);
-    if (!userObj) {
-        userObj = new User(fbUser.uid);
-        await firestore().collection("users").doc(fbUser.uid).set(userObj.toData());
+    let user = users.find(user => user.uid === uid);
+    if (!user) {
+        user = new User(fbUser.uid);
+        await firestore().collection("users").doc(fbUser.uid).set(user.toData());
     }
-    return userObj;
+    return user.fill(fbUser);
 }
 
 export function getRole(rid: string): Role { // heavy call function
@@ -132,7 +132,7 @@ export async function checkUser(req: express.Request, res: express.Response, nex
         const uid = await getUID(req);
         if (uid) {
             req.body.cuid = uid;
-            req.body.user = transformUser(await getUser(uid), await auth().getUser(uid));
+            req.body.user = await getUser(uid);
             return next();
         } else return res.status(403).send("not logged in");
     } catch (e) {
@@ -146,7 +146,7 @@ export async function checkUserOptional(req: express.Request, res: express.Respo
         const uid = await getUID(req);
         if (uid) {
             req.body.cuid = uid;
-            req.body.user = transformUser(await getUser(uid), await auth().getUser(uid));
+            req.body.user = await getUser(uid);
         }
         return next();
     } catch (e) {
@@ -179,14 +179,6 @@ export async function checkAdmin(req: express.Request, res: express.Response, ne
         await error({func: 'checkAdmin', body: req.body, path: req.path});
         return res.redirect('/login');
     }
-}
-
-export function transformUser(user: User, fbUser: auth.UserRecord) {
-    const data = user.toData() as any;
-    data.email = fbUser.email;
-    data.name = fbUser.displayName;
-    data.pfp = fbUser.photoURL;
-    return data;
 }
 
 export function getCollection(cid: string): Collection { // heavy call function

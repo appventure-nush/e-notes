@@ -1,4 +1,6 @@
 import {autoConvertMapToObject, updateUser} from '../utils';
+import admin from "firebase-admin";
+import UserRecord = admin.auth.UserRecord;
 
 class User {
     uid: string;
@@ -8,6 +10,11 @@ class User {
     roles: string[];
     admin = false;
     permissions: Map<string, boolean>;
+
+    name?: string;
+    email?: string;
+    pfp?: string;
+    verified?: boolean;
 
     constructor(user: string | any) {
         if (typeof user === 'string') {
@@ -22,6 +29,14 @@ class User {
             this.admin = user.admin;
             this.permissions = new Map(Object.entries(user.permissions));
         }
+    }
+
+    fill(user: UserRecord) {
+        this.name = user.displayName;
+        this.email = user.email;
+        this.pfp = user.photoURL;
+        this.verified = user.emailVerified;
+        return this;
     }
 
     async setPermissions(permissions: any) {
@@ -70,7 +85,7 @@ class User {
             roles: this.roles,
             admin: this.admin,
             permissions: autoConvertMapToObject(this.permissions)
-        }
+        };
     }
 }
 

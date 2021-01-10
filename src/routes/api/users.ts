@@ -3,7 +3,7 @@ import {auth} from "firebase-admin";
 
 const users = Router();
 
-import {getUser, checkUser, checkAdmin, transformUser} from '../../utils';
+import {getUser, checkUser, checkAdmin} from '../../utils';
 
 users.get("/", checkUser, async (req, res) => auth().listUsers(1000).then((list: auth.ListUsersResult) => res.json({
     users: list.users.map(user => ({
@@ -14,18 +14,7 @@ users.get("/", checkUser, async (req, res) => auth().listUsers(1000).then((list:
 users.get("/:uid", checkUser, async (req, res) => {
     try {
         if (req.params.uid === 'me') res.json(req.body.user);
-        else {
-            const data = await Promise.all([getUser(req.params.uid), auth().getUser(req.params.uid)]);
-            res.json(transformUser(data[0], data[1]));
-        }
-    } catch (e) {
-        res.status(500).send("failed_to_get_user")
-    }
-});
-
-users.get("/:uid/admin", checkAdmin, async (req, res) => {
-    try {
-        res.json(await Promise.all([getUser(req.params.uid), auth().getUser(req.params.uid)]));
+        else res.json(await getUser(req.params.uid));
     } catch (e) {
         res.status(500).send("failed_to_get_user")
     }

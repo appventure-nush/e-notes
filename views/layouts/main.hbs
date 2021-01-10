@@ -63,6 +63,7 @@
                 <div class="card-body p-2">
                     <p class="card-text mb-1" id="user-roles">
                         {{#if user.admin}}<span class="badge badge-danger">Admin</span>{{/if}}
+                        {{#unless user.verified}}<span class="badge badge-danger">Unverified</span>{{/unless}}
                         {{#each user.roles}}<span class="badge badge-secondary">{{this}}</span>{{/each}}
                     </p>
                     <small class="card-text muted" id="drawer-user-desc">

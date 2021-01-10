@@ -1,6 +1,6 @@
 import Jimp from 'jimp';
 import {Router} from 'express';
-import {checkUser, getUser, transformUser, updateUser} from "../utils";
+import {checkUser, updateUser} from "../utils";
 import imageType from "image-type";
 import {auth, storage} from "firebase-admin";
 import User from "../types/user";
@@ -40,7 +40,7 @@ profile.post('/uploadPFP', checkUser, async (req, res) => {
                     await file.makePublic();
                     res.json({
                         status: 'success',
-                        user: transformUser(new User(req.body.user), await auth().updateUser(req.body.cuid, {photoURL: `https://storage.googleapis.com/e-notes-nush.appspot.com/users/pfp/${req.body.cuid}.jpg`}))
+                        user: req.body.user.fill(await auth().updateUser(req.body.cuid, {photoURL: `https://storage.googleapis.com/e-notes-nush.appspot.com/users/pfp/${req.body.cuid}.jpg`}))
                     });
                 } catch (e) {
                     await error("pfp change error", {

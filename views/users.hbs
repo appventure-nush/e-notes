@@ -1,5 +1,29 @@
-users users uwu<br>
-<a href="/">go back</a>
+<style>
+    .user-card {
+        margin: 0.3em 0;
+        padding-left: 2px;
+        padding-right: 2px;
+    }
+</style>
+<h1 class="mt-4">Users</h1>
+<hr>
+<div id="display" class="row">
+
+</div>
 <script>
     window.currentNav = "users";
+    const display = document.getElementById('display')
+
+    function renderCollections(forceReset = false) {
+        users.getAll(!forceReset).then(users => {
+            display.innerHTML = users.map(user => `<div class="col-lg-3 col-md-5 col-sm-12 user-card d-flex align-items-center" id="uid-${user.uid}">
+<img src="${user.pfp || "/images/guest.png"}" class="rounded-circle mr-1" width="30" height="30" style="object-fit: cover;"/>
+<a href="/u/${user.uid}" class="card-link">${user.name}</a>
+</div>`).join('\n');
+        });
+    }
+
+    window.onload = _ => {
+        renderCollections();
+    }
 </script>
