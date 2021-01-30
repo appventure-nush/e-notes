@@ -136,13 +136,13 @@
                             console.log('form submit');
                             let payload = {};
                             let permissions = {};
-                            iAdmin.disabled = true;
-                            iRolesWrapper.classList.add('disabled');
                             if (iRolesWrapper.classList.contains('changed')) payload.roles = iRoles.value.split(',');
                             if (iAdmin.parentElement.classList.contains('changed')) payload.admin = iAdmin.checked;
-                            for (let row of document.getElementsByClassName('input-perm-row-select')) permissions[row.getAttribute('data-id')] = row.value;
+                            for (let row of document.querySelectorAll('.changed .input-perm-row-select')) permissions[row.getAttribute('data-id')] = row.value;
                             if (Object.keys(permissions).length !== 0) payload.permissions = permissions;
                             if (Object.keys(payload).length === 0) return;
+                            iAdmin.disabled = true;
+                            iRolesWrapper.classList.add('disabled');
                             saveBtn.disabled = cancelBtn.disabled = true;
                             fetcher('/api/users/' + user.uid + '/admin', {
                                 method: 'POST',
