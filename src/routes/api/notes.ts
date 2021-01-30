@@ -5,7 +5,7 @@ import {checkAdmin, getNote, getNotes, updateNote} from "../../utils";
 
 const notes = Router();
 
-notes.get("/", async (req, res) => res.json(await getNotes(req.body.cid)));
+notes.get("/", async (req, res) => res.json((await getNotes(req.body.cid)).map(note => note.toData())));
 
 notes.get("/:nid", async (req, res) => {
     const note = await getNote(req.body.cid, req.params.nid);
@@ -14,7 +14,7 @@ notes.get("/:nid", async (req, res) => {
         cid: req.body.cid,
         nid: req.params.nid
     });
-    else res.json(note);
+    else res.json(note.toData());
 });
 
 notes.post("/:nid", checkAdmin, async (req, res) => {
@@ -32,8 +32,9 @@ notes.post("/:nid", checkAdmin, async (req, res) => {
         note = new Note(req.params.nid, req.body.cid, req.body.name, req.body.desc);
     }
     updateNote(req.body.cid, req.params.nid, note);
-    await ref.set(note.toData());
-    res.json(note);
+    let data = note.toData();
+    res.json(data);
+    await ref.set(data);
 });
 notes.delete("/:nid", checkAdmin, async (req, res) => {
     const ref = firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid);
@@ -62,11 +63,12 @@ notes.post("/:nid/upload", checkAdmin, async (req, res) => {
             expires: '01-01-2500'
         }))[0];
         updateNote(req.body.cid, req.params.nid, note);
-        await ref.set(note.toData());
+        let data = note.toData();
         res.json({
             status: 'success',
-            note
+            note: data
         });
+        await ref.set(data);
     } else return res.json({status: 'failed', reason: 'where is the file'});
 });
 

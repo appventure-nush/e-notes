@@ -62,7 +62,7 @@ collections.post("/:cid", checkAdmin, async (req, res) => {
         if (req.body.open) collection.open = (req.body.open === "open");
     } else collection = new Collection(req.params.cid, req.body.name, req.body.desc, req.body.open);
     await firestore().collection("collections").doc(req.params.cid).set(collection.toData());
-    res.json(collection);
+    res.json(collection.toData());
 });
 collections.delete("/:cid", checkAdmin, async (req, res) => {
     const collection = getCollection(req.params.cid);

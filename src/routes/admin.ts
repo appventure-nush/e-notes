@@ -1,9 +1,9 @@
 import {Router} from 'express';
-import {checkUserOptional} from "../utils";
+import {checkAdmin} from "../utils";
 
 const admin = Router();
 
-admin.get('/', checkUserOptional, (req, res) => {
+admin.get('/', checkAdmin, (req, res) => {
     res.render("admin", {title: 'Admin', user: req.body.user, csrf: req.csrfToken()});
 })
 

@@ -76,7 +76,7 @@
         userEmail.innerText = user.email;
         userDesc.innerText = user.desc ? user.desc : "";
         userRoles.innerHTML =
-                (user.admin ? '<span class="badge badge-danger mr-1">Admin</span>' : "") +
+                (user.admin ? '<span class="badge badge-danger mr-1">admin</span>' : "") +
                 (user.verified ? '' : '<span class="badge badge-danger mr-1">Unverified</span>') +
                 (user.roles.map(role => `<span class="badge badge-secondary mr-1">${role}</span>`));
         for (let child of document.querySelectorAll('#role-list .list-group-item.active')) child.classList.remove('active');

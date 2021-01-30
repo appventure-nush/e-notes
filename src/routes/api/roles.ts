@@ -6,7 +6,7 @@ import {error} from "../../logger";
 
 const roles = Router();
 
-roles.get("/", checkUser, (req, res) => res.json(getAllRoles()));
+roles.get("/", checkUser, (req, res) => res.json(getAllRoles().map(role=>role.toData())));
 
 roles.get("/:rid", checkUser, async (req, res) => {
     const role = await getRole(req.params.rid);
@@ -14,7 +14,7 @@ roles.get("/:rid", checkUser, async (req, res) => {
         reason: "role_not_found",
         rid: req.params.rid
     })
-    else res.json(role);
+    else res.json(role.toData());
 });
 
 roles.get("/:rid", checkUser, async (req, res) => {
@@ -23,7 +23,7 @@ roles.get("/:rid", checkUser, async (req, res) => {
         reason: "role_not_found",
         rid: req.params.rid
     })
-    else res.json(role);
+    else res.json(role.toData());
 });
 
 roles.delete("/:rid", checkAdmin, async (req, res) => {
@@ -50,7 +50,7 @@ roles.post("/:rid", checkAdmin, async (req, res) => {
         const ref = firestore().collection("roles").doc(req.params.rid);
         const role = new Role(req.params.rid, req.body.name, req.body.desc);
         await ref.set(role.toData());
-        res.json(role);
+        res.json(role.toData());
     }
 });
 

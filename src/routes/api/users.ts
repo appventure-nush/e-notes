@@ -1,6 +1,6 @@
 import {Router} from 'express';
 import {auth} from "firebase-admin";
-import {checkAdmin, checkUser, getUser} from '../../utils';
+import {checkAdmin, checkUser, getUser, updateUser} from '../../utils';
 
 const users = Router();
 
@@ -12,39 +12,21 @@ users.get("/", checkUser, async (req, res) => auth().listUsers(1000).then((list:
 
 users.get("/:uid", checkUser, async (req, res) => {
     try {
-        if (req.params.uid === 'me') res.json(req.body.user);
-        else res.json(await getUser(req.params.uid));
+        if (req.params.uid === 'me') res.json(req.body.user.toData());
+        else res.json((await getUser(req.params.uid)).toData());
     } catch (e) {
         res.status(500).send("failed_to_get_user")
     }
 });
 
-// { target:'CS3132', to:true}
-users.post("/:uid/admin/setperm", checkAdmin, async (req, res) => {
+users.post("/:uid/admin", checkAdmin, async (req, res) => {
     try {
         const user = await getUser(req.params.uid);
-        await user.setPermission(req.body.perm, req.body.to);
-        res.json(user);
-    } catch (e) {
-        res.status(500).send("failed")
-    }
-});
-
-users.post("/:uid/admin/setperms", checkAdmin, async (req, res) => {
-    try {
-        const user = await getUser(req.params.uid);
-        await user.setPermissions(req.body);
-        res.json(user);
-    } catch (e) {
-        res.status(500).send("failed")
-    }
-});
-
-users.post("/:uid/admin/role", checkAdmin, async (req, res) => {
-    try {
-        const user = await getUser(req.params.uid);
-        await user.addRole(req.body.rid);
-        res.json(user);
+        if (Array.isArray(req.body.roles)) user.roles.splice(0, req.body.roles.length, ...req.body.roles);
+        if (typeof req.body.admin === 'boolean') user.admin = req.body.admin;
+        if (typeof req.body.permissions === 'object') user.permissions = new Map(Object.entries(req.body.permissions));
+        await updateUser(user.uid, user);
+        res.json(user.toData());
     } catch (e) {
         res.status(500).send("failed")
     }

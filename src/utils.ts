@@ -116,7 +116,7 @@ export async function hasPermissions(uid: string, cid: string) { // used in midd
 }
 
 export async function getAvailableCollections(uid: string) { // used in middleware
-    return filterAsync(collections, c => hasPermissions(uid, c.cid));
+    return (await filterAsync(collections, c => hasPermissions(uid, c.cid))).map(coll => coll.toData());
 }
 
 async function getUID(req: express.Request) {
@@ -134,7 +134,7 @@ export async function checkUser(req: express.Request, res: express.Response, nex
             req.body.cuid = uid;
             req.body.user = await getUser(uid);
             return next();
-        } else return res.status(403).send("not logged in");
+        } else return res.redirect('/login');
     } catch (e) {
         await error({func: 'checkUserOptional', body: req.body, path: req.path});
         return res.redirect('/login');

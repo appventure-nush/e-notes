@@ -62,7 +62,7 @@
                 </div>
                 <div class="card-body p-2">
                     <p class="card-text mb-1" id="user-roles">
-                        {{#if user.admin}}<span class="badge badge-danger">Admin</span>{{/if}}
+                        {{#if user.admin}}<span class="badge badge-danger">admin</span>{{/if}}
                         {{#unless user.verified}}<span class="badge badge-danger">Unverified</span>{{/unless}}
                         {{#each user.roles}}<span class="badge badge-secondary mr-1">{{this}}</span>{{/each}}
                     </p>

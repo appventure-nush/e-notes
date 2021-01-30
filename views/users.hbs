@@ -4,6 +4,24 @@
         padding-left: 2px;
         padding-right: 2px;
     }
+
+    #input-user-form > .custom-control {
+        padding-left: 2.7rem;
+    }
+
+    .changed {
+        box-shadow: -0.25rem 0 0 0 gold;
+        background: lightyellow;
+    }
+
+    div.disabled {
+        pointer-events: none;
+        opacity: 0.7;
+    }
+
+    #perm-table td, #perm-table th {
+        padding: 0.25rem 0.75rem;
+    }
 </style>
 <h1 class="mt-4">Users</h1>
 <hr>
@@ -20,6 +38,131 @@
             </div>
             <div class="modal-body d-flex flex-wrap">
                 {{>users/profile}}
+                {{#if user.admin}}
+                    <link href="/css/tagin.min.css" rel="stylesheet"/>
+                    <form role="form" class="w-100" id="input-user-form">
+                        <hr>
+                        <div class="custom-control custom-switch">
+                            <input class="custom-control-input" type="checkbox" id="input-user-admin">
+                            <label class="custom-control-label" for="input-user-admin">Administrator</label>
+                        </div>
+                        <label class="mt-1">Roles</label>
+                        <input type="text" name="tags" class="form-control tagin" value=""
+                               data-placeholder="Add a role (and comma)" id="input-user-roles">
+                        <hr>
+                        <table id="perm-table" class="table table-borderless">
+                            <thead class="thead-light">
+                            <tr>
+                                <th scope="col">Collection</th>
+                                <th scope="col">Permission</th>
+                                <th scope="col"></th>
+                            </tr>
+                            <tr>
+                                <th><input class="custom-select custom-select-sm" id="input-perm-cid" type="text"
+                                           list="pre-collection-list"></th>
+                                <datalist id="pre-collection-list"></datalist>
+                                <th><select id="input-perm-perm" class="custom-select custom-select-sm">
+                                    <option value="true">Allow</option>
+                                    <option value="false">Deny</option>
+                                    <option value="undefined">Unset</option>
+                                </select></th>
+                                <th>
+                                    <button type="button" class="btn btn-sm btn-light" id="input-perm-btn">Add</button>
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody id="input-user-permissions">
+
+                            </tbody>
+                        </table>
+                        <button id="save-btn" type="submit" class="btn btn-primary">Save</button>
+                        <button id="cancel-btn" type="button" class="btn btn-link">Cancel</button>
+                    </form>
+                    <script src="/js/tagin.min.js"></script>
+                    <script>
+                        let saveBtn = document.getElementById('save-btn');
+                        let cancelBtn = document.getElementById('cancel-btn');
+                        cancelBtn.onclick = () => showUser(user.uid, false)
+                        let iForm = document.getElementById('input-user-form');
+                        let iAdmin = document.getElementById('input-user-admin');
+                        iAdmin.addEventListener('change', () => {
+                            if (iAdmin.checked && !confirm("Are you sure that you want to give them ADMIN powers?")) iAdmin.checked = false;
+                        });
+                        let iRoles = document.getElementById('input-user-roles');
+                        tagin(iRoles);
+                        let iRolesWrapper = document.querySelector('.tagin-wrapper');
+                        let iPerms = document.getElementById('input-user-permissions');
+                        let addPermInput = document.getElementById('input-perm-cid');
+                        let addPermPerm = document.getElementById('input-perm-perm');
+                        let addPermBtn = document.getElementById('input-perm-btn');
+
+                        const listenerCache = {};
+
+                        function addChangeListener(el, oriVal, getter, target) {
+                            if (typeof getter !== 'function') {
+                                target = getter;
+                                getter = null;
+                            }
+                            if (!getter) getter = el => el.value;
+                            if (!target) target = el;
+                            if (listenerCache[el.id]) el.removeEventListener('change', listenerCache[el.id]);
+                            if (target.classList.contains('changed')) target.classList.remove('changed');
+                            el.addEventListener('change', listenerCache[el.id] = () => {
+                                if (!target.classList.contains('changed') && oriVal !== getter(el)) target.classList.add('changed');
+                                else if (target.classList.contains('changed') && oriVal === getter(el)) target.classList.remove('changed');
+                            });
+                        }
+
+                        addPermBtn.onclick = e => {
+                            let cid = addPermInput.value;
+                            if (!cid) return;
+                            let oldSelect = document.querySelector(`select[data-id="${cid}"]`);
+                            if (oldSelect) oldSelect.value = addPermPerm.value;
+                            else iPerms.innerHTML += `<tr><td>${cid}</td><td><select data-id="${cid}" id="input-perm-${cid.replace(/\s+/g, '_')}" class="custom-select custom-select-sm input-perm-row-select changed"><option value="true" ${addPermPerm.value === "true" ? 'selected' : ''}>Allow</option><option value="false" ${addPermPerm.value === "false" ? 'selected' : ''}>Deny</option><option value="undefined" ${addPermPerm.value === "undefined" ? 'selected' : ''}>Unset</option></select></td></tr>`;
+                        }
+
+                        function updateAdminInputs(user) {
+                            iRoles.value = user.roles.join(',');
+                            iRoles.dispatchEvent(new Event('change'));
+                            iAdmin.checked = user.admin;
+                            iPerms.innerHTML = Object.keys(user.permissions).map(cid => `<tr><td>${cid}</td><td><select data-id="${cid}" id="input-perm-${cid.replace(/\s+/g, '_')}" class="custom-select custom-select-sm input-perm-row-select"><option value="true" ${user.permissions[cid] ? 'selected' : ''}>Allow</option><option value="false" ${user.permissions[cid] ? '' : 'selected'}>Deny</option><option value="undefined">Unset</option></select></td></tr>`).join('');
+                            for (let select of document.getElementsByClassName('input-perm-row-select')) addChangeListener(select, select.value, select.parentElement);
+                            addChangeListener(iRoles, user.roles.join(','), iRolesWrapper);
+                            addChangeListener(iAdmin, user.admin, el => el.checked, iAdmin.parentElement);
+                        }
+
+                        iForm.onsubmit = e => {
+                            e.preventDefault();
+                            console.log('form submit');
+                            let payload = {};
+                            let permissions = {};
+                            iAdmin.disabled = true;
+                            iRolesWrapper.classList.add('disabled');
+                            if (iRolesWrapper.classList.contains('changed')) payload.roles = iRoles.value.split(',');
+                            if (iAdmin.parentElement.classList.contains('changed')) payload.admin = iAdmin.checked;
+                            for (let row of document.getElementsByClassName('input-perm-row-select')) permissions[row.getAttribute('data-id')] = row.value;
+                            if (Object.keys(permissions).length !== 0) payload.permissions = permissions;
+                            if (Object.keys(payload).length === 0) return;
+                            saveBtn.disabled = cancelBtn.disabled = true;
+                            fetcher('/api/users/' + user.uid + '/admin', {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify(payload)
+                            }).then(user => {
+                                console.log(user);
+                                users.update(user.uid, user);
+                                showUser(user.uid, false);
+                            }).finally(() => {
+                                iRolesWrapper.classList.remove('disabled');
+                                iAdmin.disabled = saveBtn.disabled = cancelBtn.disabled = false;
+                            });
+                        };
+                        collections.getAll(true).then(colls => {
+                            console.log(colls);
+                            return document.getElementById('pre-collection-list').innerHTML = colls.map(coll => `<option value="${coll.cid}">${coll.cid}</option>`).join('');
+                        })
+                    </script>
+                {{/if}}
             </div>
         </div>
     </div>
@@ -35,6 +178,8 @@
     const dRoles = document.getElementById('display-user-roles');
     const dPfp = document.getElementById('display-user-pfp');
 
+    const $userModal = $('#user-modal');
+
     function renderCollections(forceReset = false) {
         users.getAll(!forceReset).then(users => {
             console.log(users);
@@ -45,24 +190,25 @@
         });
     }
 
-    let $userModal = $('#user-modal');
-
-    async function showUser(uid) {
+    async function showUser(uid, doubleRefresh = true) {
         if (uid) {
-            let user = await users.get(uid);
+            window.user = await users.get(uid);
             dUID.innerText = user.uid;
             dName.innerText = user.name;
             dNick.innerText = user.nickname || user.name;
             dEmail.innerText = user.email;
             dDesc.innerText = user.desc ? user.desc : "";
             dPfp.setAttribute('src', user.pfp || '/images/guest.png');
-            dRoles.innerHTML =
-                    (user.admin ? '<span class="badge badge-danger mr-1">Admin</span>' : "") +
-                    (user.verified ? '' : '<span class="badge badge-danger mr-1">Unverified</span>') +
-                    (user.roles.map(role => `<span class="badge badge-secondary mr-1">${role}</span>`));
+            dRoles.innerHTML = (user.admin ? '<span class="badge badge-danger mr-1">admin</span>' : "") +
+                    (user.verified ? '' : '<span class="badge badge-danger mr-1">unverified</span>') +
+                    (user.roles.map(role => `<span class="badge badge-secondary mr-1">${role}</span>`).join(''));
             console.log(user);
+            {{#if user.admin}}
+                updateAdminInputs(user);
+            {{/if}}
             $userModal.modal('show');
             history.pushState("", "", '/u/' + uid);
+            if (doubleRefresh) await users.get(uid, false);
         } else history.pushState("", "", '/u');
     }
 

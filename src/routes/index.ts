@@ -1,5 +1,5 @@
 import {Router} from 'express';
-import {checkUserOptional} from '../utils';
+import {checkUser, checkUserOptional} from '../utils';
 import {auth} from 'firebase-admin';
 import userRouter from "./users";
 import collRouter from "./collections";
@@ -8,9 +8,8 @@ import profileRouter from "./profile";
 
 const index = Router();
 
-index.get('/', checkUserOptional, (req, res) => {
-    if (!req.body.user) res.redirect('/login');
-    else res.render("index", {title: 'Notes', user: req.body.user, csrf: req.csrfToken(), logout: req.query.logout});
+index.get('/', checkUser, (req, res) => {
+    res.render("index", {title: 'Notes', user: req.body.user, csrf: req.csrfToken(), logout: req.query.logout});
 });
 
 index.get('/login', checkUserOptional, (req, res) => {
