@@ -32,7 +32,7 @@ notes.post("/:nid", checkAdmin, async (req, res) => {
         note = new Note(req.params.nid, req.body.cid, req.body.name, req.body.desc);
     }
     updateNote(req.body.cid, req.params.nid, note);
-    let data = note.toData();
+    const data = note.toData();
     res.json(data);
     await ref.set(data);
 });
@@ -63,7 +63,7 @@ notes.post("/:nid/upload", checkAdmin, async (req, res) => {
             expires: '01-01-2500'
         }))[0];
         updateNote(req.body.cid, req.params.nid, note);
-        let data = note.toData();
+        const data = note.toData();
         res.json({
             status: 'success',
             note: data

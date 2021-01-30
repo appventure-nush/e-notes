@@ -171,7 +171,7 @@ export async function checkAdmin(req: express.Request, res: express.Response, ne
     try {
         const uid = await getUID(req);
         if (uid) {
-            let user = await getUser(uid);
+            const user = await getUser(uid);
             if (user.admin === true) {
                 req.body.cuid = uid;
                 req.body.user = await getUser(uid);

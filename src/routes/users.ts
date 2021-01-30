@@ -1,5 +1,5 @@
 import {Router} from 'express';
-import {checkUser, checkUserOptional} from "../utils";
+import {checkUser} from "../utils";
 
 const user = Router();
 user.get('/', checkUser, (req, res) => res.render("users", {

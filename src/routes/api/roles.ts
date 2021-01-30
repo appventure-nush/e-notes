@@ -5,7 +5,7 @@ import {firestore} from "firebase-admin";
 
 const roles = Router();
 
-roles.get("/", checkUser, (req, res) => res.json(getAllRoles().map(role=>role.toData())));
+roles.get("/", checkUser, (req, res) => res.json(getAllRoles().map(role => role.toData())));
 
 roles.get("/:rid", checkUser, async (req, res) => {
     const role = await getRole(req.params.rid);

@@ -20,7 +20,6 @@ const csrfProtection = csrf({cookie: true});
 app.engine('hbs', exphbs({defaultLayout: 'main', extname: '.hbs'}));
 app.set('view engine', 'hbs');
 if (process.env.ENVIRONMENT !== 'local') app.enable('view cache');
-else console.log('Local Environment');
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
