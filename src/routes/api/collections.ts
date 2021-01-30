@@ -1,23 +1,22 @@
 import {Router} from 'express';
 
 import notesRouter from './notes';
-
-const collections = Router();
-
 import {
-    getAvailableCollections,
-    checkUser,
-    checkPermissions,
     checkAdmin,
+    checkPermissions,
+    checkUser,
+    checkUserOptional,
+    getAvailableCollections,
     getCollection,
-    checkUserOptional, hasPermissions
+    hasPermissions
 } from '../../utils';
 import Collection from "../../types/coll";
 import {firestore, storage} from "firebase-admin";
 import path from "path";
 import imageType from "image-type";
 import {error} from "../../logger";
-import collection from "../collections";
+
+const collections = Router();
 
 const IMAGE_FORMATS = ['image/gif', 'image/jpeg', 'image/png'];
 const LOCAL_IMAGE_CACHE = new Map<string, [any, number]>();

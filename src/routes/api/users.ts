@@ -1,9 +1,8 @@
 import {Router} from 'express';
 import {auth} from "firebase-admin";
+import {checkAdmin, checkUser, getUser} from '../../utils';
 
 const users = Router();
-
-import {getUser, checkUser, checkAdmin} from '../../utils';
 
 users.get("/", checkUser, async (req, res) => auth().listUsers(1000).then((list: auth.ListUsersResult) => res.json({
     users: list.users.map(user => ({

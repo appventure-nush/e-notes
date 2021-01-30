@@ -5,12 +5,11 @@
  * Module dependencies.
  */
 import app from "../app";
-
-
 import debug_ = require("debug");
+import http = require("http");
 
 const debug = debug_("backend:server");
-import http = require("http");
+
 
 /**
  * Get PORT from environment and store in Express.

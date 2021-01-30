@@ -20,10 +20,10 @@ function generateAPI(key, idKey, path) {
             localStorage.setItem(key, JSON.stringify(cache[key]));
             return value;
         },
-        get: async function (id) {
+        get: async function (id, useCache = true) {
             if (!id) return null;
             var item = cache[key].find(item => item[idKey] === id);
-            if (item && Array.isArray(item.roles)) return item;
+            if (useCache && item && (idKey !== 'uid' || Array.isArray(item.roles))) return item;
             item = await fetcher(`/api/${path}/${id}`)
             if (item.reason) console.log(item.reason);
             else this.update(id, item);

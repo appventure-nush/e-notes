@@ -8,22 +8,67 @@
 <h1 class="mt-4">Users</h1>
 <hr>
 <div id="display" class="row">
-
+</div>
+<div class="modal" tabindex="-1" role="dialog" id="user-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="display-user-nick"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body d-flex flex-wrap">
+                {{>users/profile}}
+            </div>
+        </div>
+    </div>
 </div>
 <script>
     window.currentNav = "users";
     const display = document.getElementById('display')
+    const dUID = document.getElementById('display-user-uid');
+    const dName = document.getElementById('display-user-name');
+    const dNick = document.getElementById('display-user-nick');
+    const dEmail = document.getElementById('display-user-email');
+    const dDesc = document.getElementById('display-user-status');
+    const dRoles = document.getElementById('display-user-roles');
+    const dPfp = document.getElementById('display-user-pfp');
 
     function renderCollections(forceReset = false) {
         users.getAll(!forceReset).then(users => {
+            console.log(users);
             display.innerHTML = users.map(user => `<div class="col-lg-3 col-md-5 col-sm-12 user-card d-flex align-items-center" id="uid-${user.uid}">
 <img src="${user.pfp || "/images/guest.png"}" class="rounded-circle mr-1" width="30" height="30" style="object-fit: cover;"/>
-<a href="/u/${user.uid}" class="card-link">${user.name}</a>
+<a onclick="showUser('${user.uid}')" class="card-link">${user.name}</a>
 </div>`).join('\n');
         });
     }
 
+    let $userModal = $('#user-modal');
+
+    async function showUser(uid) {
+        if (uid) {
+            let user = await users.get(uid);
+            dUID.innerText = user.uid;
+            dName.innerText = user.name;
+            dNick.innerText = user.nickname || user.name;
+            dEmail.innerText = user.email;
+            dDesc.innerText = user.desc ? user.desc : "";
+            dPfp.setAttribute('src', user.pfp || '/images/guest.png');
+            dRoles.innerHTML =
+                    (user.admin ? '<span class="badge badge-danger mr-1">Admin</span>' : "") +
+                    (user.verified ? '' : '<span class="badge badge-danger mr-1">Unverified</span>') +
+                    (user.roles.map(role => `<span class="badge badge-secondary mr-1">${role}</span>`));
+            console.log(user);
+            $userModal.modal('show');
+            history.pushState("", "", '/u/' + uid);
+        } else history.pushState("", "", '/u');
+    }
+
+    $userModal.on('hidden.bs.modal', () => showUser(null));
+
     window.onload = _ => {
-        renderCollections();
+        renderCollections();{{#if show}}showUser("{{show}}");{{/if}}
     }
 </script>

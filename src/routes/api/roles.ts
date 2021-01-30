@@ -1,6 +1,6 @@
 import {Router} from 'express';
 import Role from '../../types/role';
-import {getRole, getAllRoles, checkAdmin, updateRole, checkUser} from '../../utils';
+import {checkAdmin, checkUser, getAllRoles, getRole, updateRole} from '../../utils';
 import {firestore} from "firebase-admin";
 import {error} from "../../logger";
 

@@ -1,5 +1,5 @@
 import NodeVault from "node-vault";
-import {Logging, Log} from '@google-cloud/logging';
+import {Log, Logging} from '@google-cloud/logging';
 
 let log: Log;
 let logging: Logging;

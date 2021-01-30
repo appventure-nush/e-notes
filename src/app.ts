@@ -13,10 +13,15 @@ import indexRouter from "./routes/index"
 
 import path from "path";
 
+import compression from "compression";
+
 const app = express();
 const csrfProtection = csrf({cookie: true});
 app.engine('hbs', exphbs({defaultLayout: 'main', extname: '.hbs'}));
 app.set('view engine', 'hbs');
+if (process.env.ENVIRONMENT !== 'local') app.enable('view cache');
+else console.log('Local Environment');
+app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(fileUpload({limits: {fileSize: 8 * 1024 * 1024}}));
@@ -29,7 +34,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     res.status(403);
     res.send("bWF5YmUgaSBzaG91bGQgZ2l2ZSB5b3UgYSBmbGFn");
 });
-app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(path.join(__dirname, '..', 'public'), {maxAge: 31557600}));
 
 (async () => {
     try {

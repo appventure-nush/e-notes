@@ -33,13 +33,8 @@
         <div class="tab-pane fade show active" id="tab-idle" role="tabpanel">
             <h4 class="text-center mt-4">Please select something</h4>
         </div>
-        <div class="tab-pane" id="tab-users" role="tabpanel">
-            <img id="user-pfp" src="/images/guest.png" class="rounded mx-auto d-block" height="200">
-            <h4 id="user-name" class="text-center mt-4"></h4>
-            <p id="user-email" class="text-center"></p>
-            <div id="user-roles"></div>
-        </div>
-        <div class="tab-pane" id="tab-roles" role="tabpanel">
+        <div class="tab-pane fade d-flex flex-wrap" id="tab-users" role="tabpanel">{{>users/profile}}</div>
+        <div class="tab-pane fade" id="tab-roles" role="tabpanel">
 
         </div>
     </div>
@@ -47,6 +42,9 @@
 <script src="/js/api.js"></script>
 <script>
     window.currentNav = "admin";
+
+    let usersTab = document.getElementById('tab-users');
+    let rolesTab = document.getElementById('tab-roles');
 
     function refreshUsers(useCache = true) {
         return users.getAll(useCache).then(us => document.getElementById('user-list').innerHTML = us.map(user =>
@@ -58,35 +56,52 @@
                 `<a onclick="showRole('${role.rid}',this)" class="list-group-item list-group-item-action d-flex align-items-center" href="#tab-roles" role="tab">${role.name}</a>`).join(''))
     }
 
-    const userPFP = document.getElementById('user-pfp'), userEmail = document.getElementById('user-email'),
-            userName = document.getElementById('user-name'), userRoles = document.getElementById('user-roles');
+    const userUID = document.getElementById('display-user-uid'),
+            userPFP = document.getElementById('display-user-pfp'),
+            userEmail = document.getElementById('display-user-email'),
+            userName = document.getElementById('display-user-name'),
+            userDesc = document.getElementById('display-user-status'),
+            userRoles = document.getElementById('display-user-roles');
+
+    let user;
 
     async function showUser(uid, elem) {
         event.preventDefault();
         elem.innerHTML += `<div id="loading_${uid}" class="spinner-border spinner-border-sm ml-auto" role="status"></div>`;
-        let user = await users.get(uid);
+        user = await users.get(uid);
+        console.log(user);
+        userUID.innerText = user.uid;
         userPFP.setAttribute('src', user.pfp || '/images/guest.png');
-        userName.innerText = user.name;
+        userName.innerText = user.name + (user.nickname ? ` (${user.nickname})` : '');
         userEmail.innerText = user.email;
-        userRoles.innerHTML = user.roles.map(role => `${role.rid}`).join(', ');
+        userDesc.innerText = user.desc ? user.desc : "";
+        userRoles.innerHTML =
+                (user.admin ? '<span class="badge badge-danger mr-1">Admin</span>' : "") +
+                (user.verified ? '' : '<span class="badge badge-danger mr-1">Unverified</span>') +
+                (user.roles.map(role => `<span class="badge badge-secondary mr-1">${role}</span>`));
         for (let child of document.querySelectorAll('#role-list .list-group-item.active')) child.classList.remove('active');
-        $(elem).tab('show');
         if (window.innerWidth <= 991) {
             $(drawerCol).collapse('hide');
             $(contentCol).collapse('show');
         }
         let loading = document.getElementById(`loading_${uid}`);
         if (loading) loading.remove();
+        rolesTab.classList.add('fade');
+        usersTab.classList.remove('fade');
+        $(elem).tab('show');
+        await users.get(uid, false)
     }
 
     async function showRole(rid, elem) {
         event.preventDefault();
         for (let child of document.querySelectorAll('#user-list .list-group-item.active')) child.classList.remove('active');
-        $(elem).tab('show');
         if (window.innerWidth <= 991) {
             $(drawerCol).collapse('hide');
             $(contentCol).collapse('show');
         }
+        usersTab.classList.add('fade');
+        rolesTab.classList.remove('fade');
+        $(elem).tab('show');
     }
 
     const drawerCol = document.getElementById('drawer-col');
