@@ -4,7 +4,6 @@ import Note from "./types/note";
 import Collection from "./types/coll";
 import express from "express";
 import admin, {auth, firestore} from "firebase-admin";
-import {error} from './logger';
 import DocumentSnapshot = admin.firestore.DocumentSnapshot;
 
 const users: User[] = [];
@@ -136,7 +135,7 @@ export async function checkUser(req: express.Request, res: express.Response, nex
             return next();
         } else return res.redirect('/login');
     } catch (e) {
-        await error({func: 'checkUserOptional', body: req.body, path: req.path});
+        // await error({func: 'checkUserOptional', body: req.body, path: req.path});
         return res.redirect('/login');
     }
 }
@@ -150,7 +149,7 @@ export async function checkUserOptional(req: express.Request, res: express.Respo
         }
         return next();
     } catch (e) {
-        await error({func: 'checkUserOptional', body: req.body, path: req.path});
+        // await error({func: 'checkUserOptional', body: req.body, path: req.path});
         return res.redirect("/logout");
     }
 }
@@ -163,7 +162,7 @@ export async function checkPermissions(req: express.Request, res: express.Respon
             else return res.status(403).send("not authorized");
         } else return res.status(403).send("not logged in");
     } catch (e) {
-        await error({func: 'checkPermissions', body: req.body, path: req.path});
+        // await error({func: 'checkPermissions', body: req.body, path: req.path});
         return res.redirect('/login');
     }
 }
@@ -172,11 +171,15 @@ export async function checkAdmin(req: express.Request, res: express.Response, ne
     try {
         const uid = await getUID(req);
         if (uid) {
-            if ((await getUser(uid)).admin === true) return next();
-            else return res.status(403).send("not admin");
+            let user = await getUser(uid);
+            if (user.admin === true) {
+                req.body.cuid = uid;
+                req.body.user = await getUser(uid);
+                return next();
+            } else return res.status(403).send("not admin");
         } else return res.status(403).send("not logged in");
     } catch (e) {
-        await error({func: 'checkAdmin', body: req.body, path: req.path});
+        // await error({func: 'checkAdmin', body: req.body, path: req.path});
         return res.redirect('/login');
     }
 }

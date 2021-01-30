@@ -2,8 +2,8 @@ import {Router} from 'express';
 import {checkUser, checkUserOptional} from '../utils';
 import {auth} from 'firebase-admin';
 import userRouter from "./users";
+import roleRouter from "./roles";
 import collRouter from "./collections";
-import adminRouter from "./admin";
 import profileRouter from "./profile";
 
 const index = Router();
@@ -43,7 +43,7 @@ index.post('/', (req, res) => {
 
 index.use("/u", userRouter);
 index.use("/c", collRouter);
-index.use("/admin", adminRouter);
+index.use("/r", roleRouter);
 index.use("/profile", profileRouter);
 
 export default index;

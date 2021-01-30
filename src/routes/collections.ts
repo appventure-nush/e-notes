@@ -1,5 +1,5 @@
 import {Router} from 'express';
-import {checkUser, checkUserOptional, getCollection, getNote, hasPermissions} from "../utils";
+import {checkUser, getCollection, getNote, hasPermissions} from "../utils";
 import collections, {getURL} from "./api/collections";
 
 const collection = Router();

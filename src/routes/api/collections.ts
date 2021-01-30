@@ -14,7 +14,6 @@ import Collection from "../../types/coll";
 import {firestore, storage} from "firebase-admin";
 import path from "path";
 import imageType from "image-type";
-import {error} from "../../logger";
 
 const collections = Router();
 
@@ -102,11 +101,11 @@ collections.post('/:cid/img', checkAdmin, async (req, res) => { // called for ev
                         url: await getURL(`collections/${req.params.cid}/images/${req.body.name}`)
                     });
                 } catch (e) {
-                    await error("image upload error", {
-                        message: e.message,
-                        body: req.body,
-                        type
-                    });
+                    // await error("image upload error", {
+                    //     message: e.message,
+                    //     body: req.body,
+                    //     type
+                    // });
                     res.json({status: 'failed', reason: 'please contact an admin'});
                 }
             } else return res.json({status: 'failed', reason: 'only gif/jpg/png allowed!'});

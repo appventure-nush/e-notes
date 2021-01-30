@@ -4,7 +4,6 @@ import {checkUser, updateUser} from "../utils";
 import imageType from "image-type";
 import {auth, storage} from "firebase-admin";
 import User from "../types/user";
-import {error} from "../logger";
 
 const profile = Router();
 const IMAGE_FORMATS = ['image/gif', 'image/jpeg', 'image/png'];
@@ -23,7 +22,7 @@ profile.post('/', checkUser, async (req, res) => {
         });
         else return res.json({status: 'failed', reason: 'please give a nickname or a description'});
     } catch (e) {
-        await error("profile change error", {message: e.message, body: req.body, uid: user.uid});
+        // await error("profile change error", {message: e.message, body: req.body, uid: user.uid});
     }
     res.json({status: 'failed', reason: 'not sure why, not sure where'});
 });
@@ -43,12 +42,12 @@ profile.post('/uploadPFP', checkUser, async (req, res) => {
                         user: req.body.user.fill(await auth().updateUser(req.body.cuid, {photoURL: `https://storage.googleapis.com/e-notes-nush.appspot.com/users/pfp/${req.body.cuid}.jpg`})).toData()
                     });
                 } catch (e) {
-                    await error("pfp change error", {
-                        message: e.message,
-                        body: req.body,
-                        type,
-                        uid: req.body.cuid
-                    });
+                    // await error("pfp change error", {
+                    //     message: e.message,
+                    //     body: req.body,
+                    //     type,
+                    //     uid: req.body.cuid
+                    // });
                     res.json({status: 'failed', reason: 'please contact an admin'});
                 }
             } else return res.json({status: 'failed', reason: 'only gif/jpg/png allowed!'});

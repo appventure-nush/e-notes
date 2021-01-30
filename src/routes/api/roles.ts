@@ -2,7 +2,6 @@ import {Router} from 'express';
 import Role from '../../types/role';
 import {checkAdmin, checkUser, getAllRoles, getRole, updateRole} from '../../utils';
 import {firestore} from "firebase-admin";
-import {error} from "../../logger";
 
 const roles = Router();
 
@@ -71,12 +70,12 @@ roles.get("/:rid/:operation/:cid", checkAdmin, async (req, res) => {
             });
         res.json(role.toData());
     } catch (e) {
-        await error('role edit error', {
-            message: e.message,
-            rid: req.params.rid,
-            cid: req.params.cid,
-            operation: req.params.operation
-        });
+        // await error('role edit error', {
+        //     message: e.message,
+        //     rid: req.params.rid,
+        //     cid: req.params.cid,
+        //     operation: req.params.operation
+        // });
         res.status(500).json({
             reason: "error",
             rid: req.params.rid,

@@ -79,9 +79,7 @@
         <ul class="drawer-nav">
             <li id="nav_home" role="presentation"><a href="/">Home</a></li>
             <li id="nav_users" role="presentation"><a href="/u">Users</a></li>
-            {{#if user.admin}}
-                <li id="nav_admin" role="presentation"><a href="/admin">Admin</a></li>
-            {{/if}}
+            <li id="nav_roles" role="presentation"><a href="/r">Roles</a></li>
             <hr>
             <li role="presentation">
                 <div class="input-group">
@@ -133,7 +131,7 @@
     const nav = {
         "index": "nav_home",
         "users": "nav_users",
-        "admin": "nav_admin"
+        "roles": "nav_roles"
     };
     if (nav[window.currentNav]) {
         let nav_item = document.getElementById(nav[window.currentNav]);

@@ -2,7 +2,6 @@ import {Router} from 'express';
 import {checkUser, checkUserOptional} from "../utils";
 
 const user = Router();
-// TODO render specified user
 user.get('/', checkUser, (req, res) => res.render("users", {
     title: 'Users',
     user: req.body.user,
