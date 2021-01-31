@@ -24,16 +24,6 @@
         margin-right: 0;
     }
 
-    .changed {
-        box-shadow: -0.25rem 0 0 0 gold;
-        background: lightyellow;
-    }
-
-    div.disabled, tr.disabled {
-        pointer-events: none;
-        opacity: 0.7;
-    }
-
     #perm-table td, #perm-table th {
         padding: 0.25rem 0.75rem;
     }
@@ -131,23 +121,6 @@
                         let iID = GEBI('input-role-id');
                         let iName = GEBI('input-role-name');
                         let iDesc = GEBI('input-role-desc');
-
-                        const listenerCache = {};
-
-                        function addChangeListener(el, oriVal, getter, target) {
-                            if (typeof getter !== 'function') {
-                                target = getter;
-                                getter = null;
-                            }
-                            if (!getter) getter = el => el.value;
-                            if (!target) target = el;
-                            if (listenerCache[el.id]) el.removeEventListener('change', listenerCache[el.id]);
-                            if (target.classList.contains('changed')) target.classList.remove('changed');
-                            el.addEventListener('change', listenerCache[el.id] = () => {
-                                if (!target.classList.contains('changed') && oriVal !== getter(el)) target.classList.add('changed');
-                                else if (target.classList.contains('changed') && oriVal === getter(el)) target.classList.remove('changed');
-                            });
-                        }
 
                         addPermBtn.onclick = e => {
                             let cid = addPermInput.value;

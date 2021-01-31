@@ -1,30 +1,18 @@
 <form class="mt-4">
-    <style>
-        .changed {
-            border: 2px solid yellow;
-        }
-    </style>
     <div class="form-group">
         <h4>Profile</h4>
     </div>
     <div class="form-group">
         <label for="nickname">Nickname</label>
-        <input onkeypress="fieldsChanged(this)" type="text" class="form-control" id="nickname"
-               placeholder="cin >> nickname"
-               value="{{user.nickname}}"/>
+        <input type="text" class="form-control" id="nickname" placeholder="cin >> nickname" value="{{user.nickname}}"/>
     </div>
     <div class="form-group">
         <label for="desc">Status</label>
-        <input onkeypress="fieldsChanged(this)" type="text" class="form-control" id="desc" placeholder="OwO"
-               value="{{user.desc}}"/>
+        <input type="text" class="form-control" id="desc" placeholder="OwO" value="{{user.desc}}"/>
     </div>
-    <div class="btn-group" role="group" aria-label="Basic example">
-        <button class="btn btn-primary" type="button" onclick="updateProfile()" id="update_btn" disabled="disabled">
-            Update
-        </button>
-        <button class="btn btn-danger" type="button" onclick="resetProfile()" id="reset_btn" disabled="disabled">
-            Reset
-        </button>
+    <div class="btn-group" role="group">
+        <button class="btn btn-primary" type="button" onclick="updateProfile()" id="update_btn">Update</button>
+        <button class="btn btn-danger" type="button" onclick="resetProfile()" id="reset_btn">Reset</button>
     </div>
     <hr>
     <div id="password-form">
@@ -32,7 +20,10 @@
             <label for="old-password">Old Password</label>
             <input type="password" class="form-control" id="old-password" placeholder="UwU"/>
             <div class="invalid-feedback" id="old-password-feedback"></div>
-            <small>First time? Don't have a password yet?</small>
+            <small><span id="message">First time? Don't have a password yet?</span>
+                <a class="btn btn-sm" href="#"
+                   onclick='message=document.getElementById("message");this.classList.add("disabled");auth.sendPasswordResetEmail("{{user.email}}").then(() => message.innerText = "An email as been sent to your email!").catch(error => message.innerText = "Failed. " + error.message).finally(() => this.classList.remove("disabled"))'>Forgot
+                    Password!</a></small>
         </div>
         <div class="form-group">
             <label for="new-password">New Password</label>
@@ -50,8 +41,7 @@
                  style="cursor: pointer;max-height: 256px;" id="pfp_preview" alt="Profile Picture"/>
         </label><br>
         <small>Only JPG/PNG/GIF are allowed, images will be fit-cropped to 256&times;256</small><br>
-        <button class="btn btn-primary" type="button" onclick="uploadPFP()" id="upload_btn" disabled="disabled">Upload
-        </button>
+        <button class="btn btn-primary" type="button" onclick="uploadPFP()" id="upload_btn" disabled>Upload</button>
         <input id="profile_pic" type="file" onchange="changePFP()" hidden/>
     </div>
     <hr>
@@ -98,51 +88,41 @@
         const feedback = GEBI('password-feedback');
         const feedback2 = GEBI('old-password-feedback');
 
-        window.fieldsChanged = function (elem) {
-            update_btn.removeAttribute('disabled');
-            reset_btn.removeAttribute('disabled');
-            elem.classList.add('changed');
-            if (elem.id === 'nickname' && elem.value === user_info.nickname) elem.classList.remove('changed');
-            else if (elem.id === 'desc' && elem.value === user_info.desc) elem.classList.remove('changed');
-        }
+        addChangeListener(nickname, '{{#if user.nickname}}{{user.nickname}}{{/if}}');
+        addChangeListener(desc, '{{#if user.desc}}{{user.desc}}{{/if}}');
         window.changePassword = function (elem) {
             [oldPassword.classList, newPassword.classList, newPassword2.classList].forEach(l => l.remove('is-invalid', 'is-valid'));
             if (newPassword.value.length < 8) {
-                feedback.innerText = "Min length = 8"; // i mean if you want to bypass, use your account at your own risk
-                newPassword.classList.add('is-invalid'); // i dont think firebase allows it anyways
+                feedback.innerText = "Min length = 8";
+                newPassword.classList.add('is-invalid');
                 newPassword2.classList.add('is-invalid');
-                return;
-            }
-            if (newPassword.value === oldPassword.value) {
+            } else if (newPassword.value === oldPassword.value) {
                 feedback.innerText = "Nothing changed";
                 newPassword.classList.add('is-invalid');
                 newPassword2.classList.add('is-invalid');
-                return;
-            }
-            if (newPassword.value !== newPassword2.value) {
+            } else if (newPassword.value !== newPassword2.value) {
                 feedback.innerText = "Mismatch!";
                 newPassword.classList.add('is-invalid');
                 newPassword2.classList.add('is-invalid');
-                return;
+            } else {
+                elem.disabled = true;
+                auth.signInWithEmailAndPassword(user_info.email, oldPassword.value).then(() => auth.currentUser.updatePassword(newPassword.value)).then(() => {
+                    oldPassword.value = newPassword.value = newPassword2.value = "";
+                    newPassword.classList.add('is-valid');
+                    newPassword2.classList.add('is-valid');
+                    alert("You may want to relogin");
+                }).catch((error) => {
+                    feedback2.innerText = error.message;
+                    oldPassword.classList.add('is-invalid');
+                }).finally(() => elem.disabled = false);
             }
-            elem.disabled = true;
-            auth.signInWithEmailAndPassword(user_info.email, oldPassword.value).then(() => auth.currentUser.updatePassword(newPassword.value)).then(() => {
-                oldPassword.value = newPassword.value = newPassword2.value = "";
-                newPassword.classList.add('is-valid');
-                newPassword2.classList.add('is-valid');
-                alert("You may want to relogin");
-            }).catch((error) => {
-                feedback2.innerText = error.message;
-                oldPassword.classList.add('is-invalid');
-            }).finally(() => elem.disabled = false);
         }
         window.updateProfile = function () {
             if (!nickname.classList.contains('changed') && !desc.classList.contains('changed')) {
                 alert("Nothing was changed!");
                 return;
             }
-            update_btn.setAttribute('disabled', 'disabled');
-            reset_btn.setAttribute('disabled', 'disabled');
+            update_btn.disabled = reset_btn.disabled = true;
             console.log(desc.classList.contains('changed'), desc.value);
             fetcher('/profile', {
                 method: 'POST',
@@ -152,21 +132,18 @@
                     desc: desc.classList.contains('changed') ? desc.value : undefined
                 })
             }).then(result => {
+                update_btn.disabled = reset_btn.disabled = false;
                 if (result.status === "success") {
                     user_info.nickname = result.user.nickname;
                     GEBI('drawer-user-desc').innerText = user_info.desc = result.user.desc;
                     GEBI('drawer-user-display-name').innerText = result.user.nickname || result.user.name;
-                    [nickname, desc].forEach(e => e.classList.remove('changed'));
-                } else {
-                    alert(result.reason);
-                    update_btn.removeAttribute('disabled');
-                    reset_btn.removeAttribute('disabled');
-                }
+                    addChangeListener(nickname, result.user.nickname);
+                    addChangeListener(desc, result.user.desc);
+                } else alert(result.reason);
             });
         }
         window.resetProfile = function () {
-            update_btn.setAttribute('disabled', 'disabled');
-            reset_btn.setAttribute('disabled', 'disabled');
+            update_btn.disabled = reset_btn.disabled = false;
             nickname.value = user_info.nickname;
             desc.value = user_info.desc;
             [nickname, desc].forEach(e => e.classList.remove('changed'));
@@ -176,18 +153,18 @@
             const reader = new FileReader();
             reader.onload = e => pfp_preview.setAttribute('src', e.target.result)
             reader.readAsDataURL(profile_pic.files[0]);
-            upload_btn.removeAttribute('disabled');
+            upload_btn.disabled = false;
         }
         window.uploadPFP = function () {
             const formData = new FormData();
             formData.append('new_profile_pic', profile_pic.files[0]);
-            upload_btn.setAttribute('disabled', 'disabled');
+            upload_btn.disabled = true;
             const options = {
                 method: 'POST',
                 body: formData
             };
             fetcher('/profile/uploadPFP', options).then(result => {
-                upload_btn.removeAttribute('disabled');
+                upload_btn.disabled = false;
                 if (result.status === "success") GEBI('drawer-user-profile-pic').setAttribute('src', result.user.pfp);
                 else alert(result.reason);
             });
@@ -201,13 +178,7 @@
             } else window.link = elem => {
                 let provider = new firebase.auth.OAuthProvider('microsoft.com');
                 provider.setCustomParameters({prompt: 'consent'});
-                console.log(auth.currentUser);
-                auth.currentUser.linkWithPopup(provider).then(function (result) {
-                    var credential = result.credential;
-                    var user = result.user;
-                    console.log(auth.currentUser);
-                }).catch(function (error) {
-                });
+                auth.currentUser.linkWithPopup(provider).then(result => console.log(auth.currentUser, result)).catch(error => console.error(error));
             }
         });
     </script>
