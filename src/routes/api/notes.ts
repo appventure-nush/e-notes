@@ -3,6 +3,8 @@ import Note from '../../types/note';
 import {firestore, storage} from "firebase-admin";
 import {checkAdmin, getNote, getNotes, updateNote} from "../../utils";
 
+import iconv from "iconv-lite";
+
 const notes = Router();
 
 notes.get("/", async (req, res) => res.json((await getNotes(req.body.cid)).map(note => note.toData())));
@@ -57,7 +59,10 @@ notes.post("/:nid/upload", checkAdmin, async (req, res) => {
         });
         const note = new Note(doc.data());
         const file = storage().bucket().file(`collections/${req.body.cid}/notes/${req.params.nid}.html`);
-        await file.save(new Uint8Array(newNoteSource.data), {resumable: false});
+        let str = newNoteSource.data.toString();
+        const match = /charset=([^"']+)/.exec(str);
+        if (match && match[1] && iconv.encodingExists(match[1])) str = iconv.decode(newNoteSource.data, match[1]);
+        await file.save(str, {resumable: false});
         note.url = (await file.getSignedUrl({
             action: 'read',
             expires: '01-01-2500'

@@ -81,22 +81,22 @@
         // actually if you did, you can have it, idk why i added nickname system
 
         const user_info = {nickname: '{{user.nickname}}', desc: '{{user.desc}}', email: '{{user.email}}'};
-        const upload_btn = document.getElementById('upload_btn');
-        const profile_pic = document.getElementById('profile_pic');
-        const pfp_preview = document.getElementById('pfp_preview');
+        const upload_btn = GEBI('upload_btn');
+        const profile_pic = GEBI('profile_pic');
+        const pfp_preview = GEBI('pfp_preview');
 
-        const update_btn = document.getElementById('update_btn');
-        const reset_btn = document.getElementById('reset_btn');
-        const nickname = document.getElementById('nickname');
-        // const password = document.getElementById('password');
-        const desc = document.getElementById('desc');
+        const update_btn = GEBI('update_btn');
+        const reset_btn = GEBI('reset_btn');
+        const nickname = GEBI('nickname');
+        // const password = GEBI('password');
+        const desc = GEBI('desc');
 
-        const form = document.getElementById('password-form');
-        const oldPassword = document.getElementById('old-password');
-        const newPassword = document.getElementById('new-password');
-        const newPassword2 = document.getElementById('new-password-confirm');
-        const feedback = document.getElementById('password-feedback');
-        const feedback2 = document.getElementById('old-password-feedback');
+        const form = GEBI('password-form');
+        const oldPassword = GEBI('old-password');
+        const newPassword = GEBI('new-password');
+        const newPassword2 = GEBI('new-password-confirm');
+        const feedback = GEBI('password-feedback');
+        const feedback2 = GEBI('old-password-feedback');
 
         window.fieldsChanged = function (elem) {
             update_btn.removeAttribute('disabled');
@@ -154,8 +154,8 @@
             }).then(result => {
                 if (result.status === "success") {
                     user_info.nickname = result.user.nickname;
-                    document.getElementById('drawer-user-desc').innerText = user_info.desc = result.user.desc;
-                    document.getElementById('drawer-user-display-name').innerText = result.user.nickname || result.user.name;
+                    GEBI('drawer-user-desc').innerText = user_info.desc = result.user.desc;
+                    GEBI('drawer-user-display-name').innerText = result.user.nickname || result.user.name;
                     [nickname, desc].forEach(e => e.classList.remove('changed'));
                 } else {
                     alert(result.reason);
@@ -188,11 +188,11 @@
             };
             fetcher('/profile/uploadPFP', options).then(result => {
                 upload_btn.removeAttribute('disabled');
-                if (result.status === "success") document.getElementById('drawer-user-profile-pic').setAttribute('src', result.user.pfp);
+                if (result.status === "success") GEBI('drawer-user-profile-pic').setAttribute('src', result.user.pfp);
                 else alert(result.reason);
             });
         }
-        var linkMicrosoftBtn = document.getElementById('link_microsoft');
+        var linkMicrosoftBtn = GEBI('link_microsoft');
         auth.onAuthStateChanged(user => {
             if (user && user.providerData.some(p => p.providerId === "microsoft.com")) {
                 linkMicrosoftBtn.disabled = true;

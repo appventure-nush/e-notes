@@ -10,7 +10,18 @@
     }
 
     #input-role-form > .custom-control {
-        padding-left: 2.7rem;
+        padding-left: 3.7rem;
+        padding-right: 1rem;
+        margin-bottom: 0.25rem;
+    }
+
+    #input-role-form > .form-group {
+        margin-bottom: 0.25rem;
+    }
+
+    #input-role-form > .row {
+        margin-left: 0;
+        margin-right: 0;
     }
 
     .changed {
@@ -18,7 +29,7 @@
         background: lightyellow;
     }
 
-    div.disabled {
+    div.disabled, tr.disabled {
         pointer-events: none;
         opacity: 0.7;
     }
@@ -27,33 +38,56 @@
         padding: 0.25rem 0.75rem;
     }
 </style>
-<h1 class="mt-4">Roles</h1>
+<h1 class="mt-4">Roles{{#if user.admin}}
+    <button type="button" class="btn btn-secondary" onclick="addRole()">+</button>
+{{/if}}</h1>
 <hr>
+
 <div id="display" class="row">
 </div>
 <div class="modal" tabindex="-1" role="dialog" id="role-modal">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="display-role-rid"></h5>
+                <h5 class="modal-title" id="display-role-title">Role</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body d-flex flex-wrap">
-                <p id="display-role-name"></p>
-                <p class="pl-3 pr-3" id="display-role-desc" style="flex-basis: 100%"></p>
+            <div class="modal-body p-0">
+                <div id="display-role-info" class="p-3">
+                    <h4 id="display-role-name"></h4>
+                    <pre id="display-role-rid"></pre>
+                    <p id="display-role-desc"></p>
+                </div>
                 {{#if user.admin}}
                     <link href="/css/tagin.min.css" rel="stylesheet"/>
                     <form role="form" class="w-100" id="input-role-form">
-                        <hr>
-                        <div class="custom-control custom-switch">
+                        <div class="form-group row">
+                            <label for="input-role-id" class="col-sm-2 col-form-label">ID</label>
+                            <div class="col-sm-10">
+                                <input type="text" readonly class="form-control" id="input-role-id" disabled>
+                                <small class="form-text text-muted">changing id will break all users with
+                                    this role</small>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="input-role-name" class="col-sm-2 col-form-label">Name</label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" id="input-role-name">
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="input-role-desc" class="col-sm-2 col-form-label">Desc</label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" id="input-role-desc">
+                            </div>
+                        </div>
+                        <div class="custom-control custom-switch mb-3">
                             <input class="custom-control-input" type="checkbox" id="input-role-default">
                             <label class="custom-control-label" for="input-role-default">Defaults to allow
                                 access</label>
                         </div>
-                        <hr>
-                        <label class="mt-1">Permissions</label>
                         <table id="perm-table" class="table table-borderless">
                             <thead class="thead-light">
                             <tr>
@@ -79,19 +113,24 @@
 
                             </tbody>
                         </table>
-                        <button id="save-btn" type="submit" class="btn btn-primary">Save</button>
-                        <button id="cancel-btn" type="button" class="btn btn-link">Cancel</button>
+                        <button id="save-btn" type="submit" class="btn btn-primary ml-3 mb-3">Save</button>
+                        <button id="cancel-btn" type="button" class="btn btn-link mb-3">Cancel</button>
                     </form>
                     <script>
-                        let saveBtn = document.getElementById('save-btn');
-                        let cancelBtn = document.getElementById('cancel-btn');
+                        let saveBtn = GEBI('save-btn');
+                        let cancelBtn = GEBI('cancel-btn');
                         cancelBtn.onclick = () => showRole(role.rid, false)
-                        let iForm = document.getElementById('input-role-form');
-                        let iDefault = document.getElementById('input-role-default');
-                        let iPerms = document.getElementById('input-role-permissions');
-                        let addPermInput = document.getElementById('input-perm-cid');
-                        let addPermPerm = document.getElementById('input-perm-perm');
-                        let addPermBtn = document.getElementById('input-perm-btn');
+                        let iForm = GEBI('input-role-form');
+                        let iDefault = GEBI('input-role-default');
+                        let iPerms = GEBI('input-role-permissions');
+                        let addPermInput = GEBI('input-perm-cid');
+                        let addPermPerm = GEBI('input-perm-perm');
+                        let addPermBtn = GEBI('input-perm-btn');
+                        let iTitle = GEBI('display-role-title');
+                        let iBox = GEBI('display-role-info');
+                        let iID = GEBI('input-role-id');
+                        let iName = GEBI('input-role-name');
+                        let iDesc = GEBI('input-role-desc');
 
                         const listenerCache = {};
 
@@ -113,31 +152,36 @@
                         addPermBtn.onclick = e => {
                             let cid = addPermInput.value;
                             if (!cid) return;
-                            let oldSelect = document.querySelector(`select[data-id="${cid}"]`);
+                            addPermInput.value = "";
+                            let oldSelect = qs(`select[data-id="${cid}"]`);
                             if (oldSelect) oldSelect.value = addPermPerm.value;
-                            else iPerms.innerHTML += `<tr><td>${cid}</td><td><select data-id="${cid}" id="input-perm-${cid.replace(/\s+/g, '_')}" class="custom-select custom-select-sm input-perm-row-select changed"><option value="true" ${addPermPerm.value === "true" ? 'selected' : ''}>Allow</option><option value="false" ${addPermPerm.value === "false" ? 'selected' : ''}>Deny</option><option value="undefined" ${addPermPerm.value === "undefined" ? 'selected' : ''}>Unset</option></select></td></tr>`;
+                            else iPerms.innerHTML += `<tr><td>${cid}</td><td class="changed"><select data-id="${cid}" id="input-perm-${cid.replace(/\s+/g, '_')}" class="custom-select custom-select-sm input-perm-row-select"><option value="true" ${addPermPerm.value === "true" ? 'selected' : ''}>Allow</option><option value="false" ${addPermPerm.value === "false" ? 'selected' : ''}>Deny</option><option value="undefined" ${addPermPerm.value === "undefined" ? 'selected' : ''}>Unset</option></select></td></tr>`;
+                            addPermPerm.value = "true";
                         }
 
                         function updateAdminInputs(role) {
+                            iTitle.innerText = "Edit Role";
                             iDefault.checked = role.defaultPerm;
-                            iPerms.innerHTML = Object.keys(role.permissions).map(cid => `<tr><td>${cid}</td><td><select data-id="${cid}" id="input-perm-${cid.replace(/\s+/g, '_')}" class="custom-select custom-select-sm input-perm-row-select"><option value="true" ${role.permissions[cid] ? 'selected' : ''}>Allow</option><option value="false" ${role.permissions[cid] ? '' : 'selected'}>Deny</option><option value="undefined">Unset</option></select></td></tr>`).join('');
+                            iPerms.innerHTML = Object.keys(role.permissions).sort().map(cid => `<tr><td>${cid}</td><td><select data-id="${cid}" id="input-perm-${cid.replace(/\s+/g, '_')}" class="custom-select custom-select-sm input-perm-row-select"><option value="true" ${role.permissions[cid] ? 'selected' : ''}>Allow</option><option value="false" ${role.permissions[cid] ? '' : 'selected'}>Deny</option><option value="undefined">Unset</option></select></td></tr>`).join('');
                             for (let select of document.getElementsByClassName('input-perm-row-select')) addChangeListener(select, select.value, select.parentElement);
                             addChangeListener(iDefault, role.defaultPerm, el => el.checked, iDefault.parentElement);
+                            addChangeListener(iID, iID.value = role.rid, iID.parentElement.parentElement);
+                            addChangeListener(iName, iName.value = role.name, iName.parentElement.parentElement);
+                            addChangeListener(iDesc, iDesc.value = role.desc, iDesc.parentElement.parentElement);
                         }
 
                         iForm.onsubmit = e => {
                             e.preventDefault();
-                            console.log('form submit');
                             let payload = {};
                             let permissions = {};
-                            if (iRolesWrapper.classList.contains('changed')) payload.roles = iRoles.value.split(',');
-                            if (iAdmin.parentElement.classList.contains('changed')) payload.admin = iAdmin.checked;
-                            for (let row of document.querySelectorAll('.changed .input-perm-row-select')) permissions[row.getAttribute('data-id')] = row.value;
+                            if (iDefault.parentElement.classList.contains('changed')) payload.defaultPerm = iDefault.checked;
+                            for (let row of qsa('.changed .input-perm-row-select')) {
+                                permissions[row.getAttribute('data-id')] = row.value;
+                                row.parentElement.parentElement.classList.add('disabled');
+                            }
                             if (Object.keys(permissions).length !== 0) payload.permissions = permissions;
                             if (Object.keys(payload).length === 0) return;
-                            iAdmin.disabled = true;
-                            iRolesWrapper.classList.add('disabled');
-                            saveBtn.disabled = cancelBtn.disabled = true;
+                            iDefault.disabled = saveBtn.disabled = cancelBtn.disabled = true;
                             fetcher('/api/roles/' + role.rid + '/admin', {
                                 method: 'POST',
                                 headers: {'Content-Type': 'application/json'},
@@ -147,14 +191,23 @@
                                 roles.update(role.rid, role);
                                 showRole(role.rid, false);
                             }).finally(() => {
-                                iRolesWrapper.classList.remove('disabled');
-                                iAdmin.disabled = saveBtn.disabled = cancelBtn.disabled = false;
+                                iDefault.disabled = saveBtn.disabled = cancelBtn.disabled = false;
                             });
                         };
                         collections.getAll(true).then(colls => {
                             console.log(colls);
-                            return document.getElementById('pre-collection-list').innerHTML = colls.map(coll => `<option value="${coll.cid}">${coll.cid}</option>`).join('');
+                            return GEBI('pre-collection-list').innerHTML = colls.map(coll => `<option value="${coll.cid}">${coll.cid}</option>`).join('');
                         })
+
+                        function addRole() {
+                            window.role = null;
+                            iTitle.innerText = "New Role";
+                            dRID.innerText = "";
+                            dName.innerText = "";
+                            dDesc.innerText = "";
+                            $roleModal.modal('show');
+                            history.pushState("", "", '/r?new');
+                        }
                     </script>
                 {{/if}}
             </div>
@@ -163,10 +216,10 @@
 </div>
 <script>
     window.currentNav = "roles";
-    const display = document.getElementById('display')
-    const dRID = document.getElementById('display-role-rid');
-    const dName = document.getElementById('display-role-name');
-    const dDesc = document.getElementById('display-role-desc');
+    const display = GEBI('display')
+    const dRID = GEBI('display-role-rid');
+    const dName = GEBI('display-role-name');
+    const dDesc = GEBI('display-role-desc');
 
     const $roleModal = $('#role-modal');
 

@@ -75,11 +75,11 @@
 <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-auth.js"></script>
 <script>
-    let form = document.getElementById('login-form');
-    let message = document.getElementById('message');
-    let email = document.getElementById('email');
-    let password = document.getElementById('password');
-    let loginBtn = document.getElementById('login-btn');
+    let form = GEBI('login-form');
+    let message = GEBI('message');
+    let email = GEBI('email');
+    let password = GEBI('password');
+    let loginBtn = GEBI('login-btn');
     firebase.initializeApp({
         apiKey: "AIzaSyARHcPTpQ09ekeN91DtgfrAl8kA3bgrcYM",
         authDomain: "e-notes-nush.firebaseapp.com",
@@ -101,7 +101,7 @@
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
-                    'CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'CSRF-Token': qs('meta[name="csrf-token"]').getAttribute('content')
                 }, body: JSON.stringify({
                     'idToken': idToken
                 })

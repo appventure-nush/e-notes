@@ -63,7 +63,7 @@
     }
 </style>
 <script>
-    document.querySelector('.container').className = "container-fluid";
+    qs('.container').className = "container-fluid";
     const coll = {cid: '{{coll.cid}}', name: '{{coll.name}}', desc: '{{coll.desc}}'};
     const note = {
         nid: '{{note.nid}}',
@@ -72,9 +72,9 @@
         url: '{{{note.url}}}',
         lastEdit: {{note.lastEdit}}
     };
-    const editorArea = document.getElementById('editor');
-    const saveBtn = document.getElementById('save-btn');
-    const formatBtn = document.getElementById('format-btn');
+    const editorArea = GEBI('editor');
+    const saveBtn = GEBI('save-btn');
+    const formatBtn = GEBI('format-btn');
     const editor = CodeMirror.fromTextArea(editorArea, {
         lineNumbers: true,
         mode: "htmlmixed",

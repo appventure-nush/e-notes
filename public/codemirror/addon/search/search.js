@@ -133,7 +133,7 @@
         if (hiding) hiding.style.opacity = 1
         findNext(cm, event.shiftKey, function(_, to) {
           var dialog
-          if (to.line < 3 && document.querySelector &&
+          if (to.line < 3 && qs &&
               (dialog = cm.display.wrapper.querySelector(".CodeMirror-dialog")) &&
               dialog.getBoundingClientRect().bottom - 4 > cm.cursorCoords(to, "window").top)
             (hiding = dialog).style.opacity = .4

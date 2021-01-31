@@ -1,7 +1,7 @@
 // TODO add more api functions
 var cache = {};
 // i dont even care about multiple windows open at same time
-var token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+var token = qs('meta[name="csrf-token"]').getAttribute('content');
 
 function generateAPI(key, idKey, path) {
     try {

@@ -12,7 +12,7 @@
 const Drawer = function (element, options) {
     this.element = element;
     this.options = {...Drawer.DEFAULTS, ...options};
-    this.trigger = Array.from(document.querySelectorAll(this.options.trigger))
+    this.trigger = Array.from(qsa(this.options.trigger))
         .find(elem => elem.getAttribute('href') === '#' + element.id || elem.getAttribute('data-target') === '#' + element.id);
     this.transitioning = null
 

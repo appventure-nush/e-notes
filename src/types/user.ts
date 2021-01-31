@@ -1,4 +1,4 @@
-import {autoConvertMapToObject, updateUser} from '../utils';
+import {autoConvertMapToObject} from '../utils';
 import admin from "firebase-admin";
 import UserRecord = admin.auth.UserRecord;
 
@@ -39,20 +39,17 @@ class User {
         return this;
     }
 
-    async setPermissions(permissions: any) {
-        for (const permission of Object.keys(permissions)) this.permissions.set(permission, permissions[permissions]);
-        await updateUser(this.uid, this);
+    setPermissions(permissions: any) {
+        for (const permission of Object.keys(permissions)) this.setPermission(permission, permissions[permission]);
     }
 
-    async setPermission(cid: string, accepts: boolean | string) {
+    setPermission(cid: string, accepts: boolean | string) {
         if (typeof accepts === 'undefined') this.permissions.delete(cid);
-        if (typeof accepts === 'string') {
-            if (accepts === "undefined" || accepts === "delete") {
-                this.permissions.delete(cid);
-            } else accepts = accepts === "true";
-        }
-        this.permissions.set(cid, accepts as boolean);
-        await updateUser(this.uid, this);
+        if (typeof accepts === 'string') if (accepts === "undefined" || accepts === "delete") {
+            this.permissions.delete(cid);
+            return;
+        } else accepts = accepts === "true";
+        this.permissions.set(cid, accepts);
     }
 
     accepts(cid: string) {

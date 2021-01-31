@@ -1,4 +1,4 @@
-import {autoConvertMapToObject, updateRole} from '../utils';
+import {autoConvertMapToObject} from '../utils';
 
 class Role {
     rid: string;
@@ -24,10 +24,18 @@ class Role {
         }
     }
 
-    async setPermission(cid: string, accepts: boolean) {
+
+    setPermissions(permissions: any) {
+        for (const permission of Object.keys(permissions)) this.setPermission(permission, permissions[permission]);
+    }
+
+    setPermission(cid: string, accepts: boolean | string) {
         if (typeof accepts === 'undefined') this.permissions.delete(cid);
+        if (typeof accepts === 'string') if (accepts === "undefined" || accepts === "delete") {
+            this.permissions.delete(cid);
+            return;
+        } else accepts = accepts === "true";
         this.permissions.set(cid, accepts);
-        await updateRole(this.rid, this);
     }
 
     accepts(cid: string) {

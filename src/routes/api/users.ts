@@ -22,9 +22,13 @@ users.get("/:uid", checkUser, async (req, res) => {
 users.post("/:uid/admin", checkAdmin, async (req, res) => {
     try {
         const user = await getUser(req.params.uid);
+        if (!user) return res.status(404).json({
+            reason: "user_not_found",
+            rid: req.params.uid
+        });
         if (Array.isArray(req.body.roles)) user.roles.splice(0, req.body.roles.length, ...req.body.roles);
         if (typeof req.body.admin === 'boolean') user.admin = req.body.admin;
-        if (typeof req.body.permissions === 'object') user.permissions = new Map(Object.entries(req.body.permissions));
+        if (typeof req.body.permissions === 'object') user.setPermissions(req.body.permissions);
         await updateUser(user.uid, user);
         res.json(user.toData());
     } catch (e) {

@@ -1,6 +1,6 @@
 import {Router} from 'express';
 import {checkUser, getCollection, getNote, hasPermissions} from "../utils";
-import collections, {getURL} from "./api/collections";
+import {getURL} from "./api/collections";
 
 const collection = Router();
 
@@ -22,7 +22,7 @@ collection.get('/:cid', checkUser, async (req, res) => {
         } else res.redirect('/');
     }
 });
-collections.get('/:cid/img/:img', checkUser, async (req, res) => {
+collection.get('/:cid/img/:img', checkUser, async (req, res) => {
     if (!getCollection(req.params.cid)) return res.json({status: 'failed', reason: 'collection_not_found'});
     if (!await hasPermissions(req.body.cuid, req.params.cid)) return res.json({status: 'failed', reason: 'no_perm'});
     res.redirect(await getURL(`collections/${req.params.cid}/images/${req.params.img}`));

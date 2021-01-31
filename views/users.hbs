@@ -14,7 +14,7 @@
         background: lightyellow;
     }
 
-    div.disabled {
+    div.disabled, tr.disabled {
         pointer-events: none;
         opacity: 0.7;
     }
@@ -81,21 +81,21 @@
                     </form>
                     <script src="/js/tagin.min.js"></script>
                     <script>
-                        let saveBtn = document.getElementById('save-btn');
-                        let cancelBtn = document.getElementById('cancel-btn');
+                        let saveBtn = GEBI('save-btn');
+                        let cancelBtn = GEBI('cancel-btn');
                         cancelBtn.onclick = () => showUser(user.uid, false)
-                        let iForm = document.getElementById('input-user-form');
-                        let iAdmin = document.getElementById('input-user-admin');
+                        let iForm = GEBI('input-user-form');
+                        let iAdmin = GEBI('input-user-admin');
                         iAdmin.addEventListener('change', () => {
                             if (iAdmin.checked && !confirm("Are you sure that you want to give them ADMIN powers?")) iAdmin.checked = false;
                         });
-                        let iRoles = document.getElementById('input-user-roles');
+                        let iRoles = GEBI('input-user-roles');
                         tagin(iRoles);
-                        let iRolesWrapper = document.querySelector('.tagin-wrapper');
-                        let iPerms = document.getElementById('input-user-permissions');
-                        let addPermInput = document.getElementById('input-perm-cid');
-                        let addPermPerm = document.getElementById('input-perm-perm');
-                        let addPermBtn = document.getElementById('input-perm-btn');
+                        let iRolesWrapper = qs('.tagin-wrapper');
+                        let iPerms = GEBI('input-user-permissions');
+                        let addPermInput = GEBI('input-perm-cid');
+                        let addPermPerm = GEBI('input-perm-perm');
+                        let addPermBtn = GEBI('input-perm-btn');
 
                         const listenerCache = {};
 
@@ -117,16 +117,18 @@
                         addPermBtn.onclick = e => {
                             let cid = addPermInput.value;
                             if (!cid) return;
-                            let oldSelect = document.querySelector(`select[data-id="${cid}"]`);
+                            addPermInput.value = "";
+                            let oldSelect = qs(`select[data-id="${cid}"]`);
                             if (oldSelect) oldSelect.value = addPermPerm.value;
-                            else iPerms.innerHTML += `<tr><td>${cid}</td><td><select data-id="${cid}" id="input-perm-${cid.replace(/\s+/g, '_')}" class="custom-select custom-select-sm input-perm-row-select changed"><option value="true" ${addPermPerm.value === "true" ? 'selected' : ''}>Allow</option><option value="false" ${addPermPerm.value === "false" ? 'selected' : ''}>Deny</option><option value="undefined" ${addPermPerm.value === "undefined" ? 'selected' : ''}>Unset</option></select></td></tr>`;
+                            else iPerms.innerHTML += `<tr><td>${cid}</td><td class="changed"><select data-id="${cid}" id="input-perm-${cid.replace(/\s+/g, '_')}" class="custom-select custom-select-sm input-perm-row-select"><option value="true" ${addPermPerm.value === "true" ? 'selected' : ''}>Allow</option><option value="false" ${addPermPerm.value === "false" ? 'selected' : ''}>Deny</option><option value="undefined" ${addPermPerm.value === "undefined" ? 'selected' : ''}>Unset</option></select></td></tr>`;
+                            addPermPerm.value = "true";
                         }
 
                         function updateAdminInputs(user) {
                             iRoles.value = user.roles.join(',');
                             iRoles.dispatchEvent(new Event('change'));
                             iAdmin.checked = user.admin;
-                            iPerms.innerHTML = Object.keys(user.permissions).map(cid => `<tr><td>${cid}</td><td><select data-id="${cid}" id="input-perm-${cid.replace(/\s+/g, '_')}" class="custom-select custom-select-sm input-perm-row-select"><option value="true" ${user.permissions[cid] ? 'selected' : ''}>Allow</option><option value="false" ${user.permissions[cid] ? '' : 'selected'}>Deny</option><option value="undefined">Unset</option></select></td></tr>`).join('');
+                            iPerms.innerHTML = Object.keys(user.permissions).sort().map(cid => `<tr><td>${cid}</td><td><select data-id="${cid}" id="input-perm-${cid.replace(/\s+/g, '_')}" class="custom-select custom-select-sm input-perm-row-select"><option value="true" ${user.permissions[cid] ? 'selected' : ''}>Allow</option><option value="false" ${user.permissions[cid] ? '' : 'selected'}>Deny</option><option value="undefined">Unset</option></select></td></tr>`).join('');
                             for (let select of document.getElementsByClassName('input-perm-row-select')) addChangeListener(select, select.value, select.parentElement);
                             addChangeListener(iRoles, user.roles.join(','), iRolesWrapper);
                             addChangeListener(iAdmin, user.admin, el => el.checked, iAdmin.parentElement);
@@ -139,12 +141,14 @@
                             let permissions = {};
                             if (iRolesWrapper.classList.contains('changed')) payload.roles = iRoles.value.split(',');
                             if (iAdmin.parentElement.classList.contains('changed')) payload.admin = iAdmin.checked;
-                            for (let row of document.querySelectorAll('.changed .input-perm-row-select')) permissions[row.getAttribute('data-id')] = row.value;
+                            for (let row of qsa('.changed .input-perm-row-select')) {
+                                permissions[row.getAttribute('data-id')] = row.value;
+                                row.parentElement.parentElement.classList.add('disabled');
+                            }
                             if (Object.keys(permissions).length !== 0) payload.permissions = permissions;
                             if (Object.keys(payload).length === 0) return;
-                            iAdmin.disabled = true;
                             iRolesWrapper.classList.add('disabled');
-                            saveBtn.disabled = cancelBtn.disabled = true;
+                            iAdmin.disabled = saveBtn.disabled = cancelBtn.disabled = true;
                             fetcher('/api/users/' + user.uid + '/admin', {
                                 method: 'POST',
                                 headers: {'Content-Type': 'application/json'},
@@ -160,7 +164,7 @@
                         };
                         collections.getAll(true).then(colls => {
                             console.log(colls);
-                            return document.getElementById('pre-collection-list').innerHTML = colls.map(coll => `<option value="${coll.cid}">${coll.cid}</option>`).join('');
+                            return GEBI('pre-collection-list').innerHTML = colls.map(coll => `<option value="${coll.cid}">${coll.cid}</option>`).join('');
                         })
                     </script>
                 {{/if}}
@@ -170,14 +174,14 @@
 </div>
 <script>
     window.currentNav = "users";
-    const display = document.getElementById('display')
-    const dUID = document.getElementById('display-user-uid');
-    const dName = document.getElementById('display-user-name');
-    const dNick = document.getElementById('display-user-nick');
-    const dEmail = document.getElementById('display-user-email');
-    const dDesc = document.getElementById('display-user-status');
-    const dRoles = document.getElementById('display-user-roles');
-    const dPfp = document.getElementById('display-user-pfp');
+    const display = GEBI('display')
+    const dUID = GEBI('display-user-uid');
+    const dName = GEBI('display-user-name');
+    const dNick = GEBI('display-user-nick');
+    const dEmail = GEBI('display-user-email');
+    const dDesc = GEBI('display-user-status');
+    const dRoles = GEBI('display-user-roles');
+    const dPfp = GEBI('display-user-pfp');
 
     const $userModal = $('#user-modal');
 

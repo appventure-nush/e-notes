@@ -53,35 +53,19 @@ roles.post("/:rid", checkAdmin, async (req, res) => {
     }
 });
 
-roles.get("/:rid/:operation/:cid", checkAdmin, async (req, res) => {
-    const role = await getRole(req.params.rid);
-    if (!role) return res.status(404).json({
-        reason: "role_not_found",
-        rid: req.params.rid
-    });
+roles.post("/:rid/admin", checkAdmin, async (req, res) => {
     try {
-        if (req.params.operation === "grant") await role.setPermission(req.params.cid, true);
-        else if (req.params.operation === "deny") await role.setPermission(req.params.cid, false);
-        else if (req.params.operation === "remove") await role.setPermission(req.params.cid, undefined);
-        else return res.status(400).json({
-                reason: "invalid_operation",
-                operation: req.params.operation,
-                allowed: ['grant', 'deny', 'remove']
-            });
+        const role = await getRole(req.params.rid);
+        if (!role) return res.status(404).json({
+            reason: "role_not_found",
+            rid: req.params.rid
+        });
+        if (typeof req.body.defaultPerm === 'boolean') role.defaultPerm = req.body.defaultPerm;
+        if (typeof req.body.permissions === 'object') role.setPermissions(req.body.permissions);
+        await updateRole(role.rid, role);
         res.json(role.toData());
     } catch (e) {
-        // await error('role edit error', {
-        //     message: e.message,
-        //     rid: req.params.rid,
-        //     cid: req.params.cid,
-        //     operation: req.params.operation
-        // });
-        res.status(500).json({
-            reason: "error",
-            rid: req.params.rid,
-            cid: req.params.cid,
-            operation: req.params.operation,
-        });
+        res.status(500).send("failed")
     }
 });
 

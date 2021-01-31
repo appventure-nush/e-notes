@@ -114,11 +114,11 @@
             </div>
         </div>
         <script>
-            const fileImage = document.getElementById('file-preview-image');
-            const fileDelete = document.getElementById('file-preview-delete');
-            const fileUpload = document.getElementById('file-upload');
+            const fileImage = GEBI('file-preview-image');
+            const fileDelete = GEBI('file-preview-delete');
+            const fileUpload = GEBI('file-upload');
 
-            const fileList = document.getElementById('file-list');
+            const fileList = GEBI('file-list');
             $('#file-preview-popup').on('show.bs.modal', e => {
                 let url = $(e.relatedTarget).data('url');
                 if (!url) return e.preventDefault();
@@ -129,7 +129,7 @@
                     fetcher(`/api/collections/${coll.cid}/img/${name}`, {method: "DELETE"}).then(result => {
                         elem.disabled = false;
                         if (result.status === "success") {
-                            let listItem = document.getElementById(`file-list-${name.replace(/\s+/g, '_')}`);
+                            let listItem = GEBI(`file-list-${name.replace(/\s+/g, '_')}`);
                             if (listItem) listItem.remove();
                             $('#file-preview-popup').modal('hide');
                         } else alert(result.reason);
@@ -141,7 +141,7 @@
                 handleFiles(files);
                 fileUpload.value = "";
             }
-            let fileBody = document.getElementById('file-body');
+            let fileBody = GEBI('file-body');
             ['dragenter', 'dragover', 'dragleave', 'drop', 'dragend'].forEach(eventName => fileBody.addEventListener(eventName, preventDefaults, false))
 
             function preventDefaults(e) {
@@ -177,9 +177,9 @@
 
             function startFileUpload(file) {
                 fileList.innerHTML = renderFile({name: file.name, url: null}) + fileList.innerHTML;
-                let elem = document.getElementById(`file-list-${file.name.replace(/\s+/g, '_')}`);
+                let elem = GEBI(`file-list-${file.name.replace(/\s+/g, '_')}`);
                 elem.innerHTML += `<div class="progress-bar" id="file-list-progress-${file.name.replace(/\s+/g, '_')}"></div>`;
-                let progress = document.getElementById(`file-list-progress-${file.name.replace(/\s+/g, '_')}`);
+                let progress = GEBI(`file-list-progress-${file.name.replace(/\s+/g, '_')}`);
                 const line = new ProgressBar.Line(progress, {
                     strokeWidth: 2,
                     color: '#0275d8',
@@ -268,16 +268,16 @@
                             onclick="actionBtnClicked(this.innerText.toLowerCase())"></button>
                 </div>
                 <script>
-                    const idInput = document.getElementById('note-form-id');
-                    const nameInput = document.getElementById('note-form-name');
-                    const descInput = document.getElementById('note-form-desc');
-                    const fileInput = document.getElementById('note-form-file');
+                    const idInput = GEBI('note-form-id');
+                    const nameInput = GEBI('note-form-name');
+                    const descInput = GEBI('note-form-desc');
+                    const fileInput = GEBI('note-form-file');
 
-                    const actionBtn = document.getElementById('actionBtn');
-                    const deleteBtn = document.getElementById('deleteBtn');
+                    const actionBtn = GEBI('actionBtn');
+                    const deleteBtn = GEBI('deleteBtn');
 
-                    const editBtn = document.getElementById('editBtn');
-                    const editorBtn = document.getElementById('editorBtn');
+                    const editBtn = GEBI('editBtn');
+                    const editorBtn = GEBI('editorBtn');
 
                     function openEditor() {
                         if (!cnote) return;
@@ -392,14 +392,14 @@
     let cnotes;
     let cfiles;
     const coll = {cid: '{{coll.cid}}', name: '{{coll.name}}', desc: '{{coll.desc}}'};
-    const list = document.getElementById('note-list');
-    const display = document.getElementById('display');
+    const list = GEBI('note-list');
+    const display = GEBI('display');
     window.shadowRoot = display.attachShadow({mode: 'open'});
-    const noteId = document.getElementById('note-id');
-    const noteCard = document.getElementById('note-card');
-    const noteName = document.getElementById('note-name');
-    const noteDesc = document.getElementById('note-desc');
-    const noteTime = document.getElementById('note-time');
+    const noteId = GEBI('note-id');
+    const noteCard = GEBI('note-card');
+    const noteName = GEBI('note-name');
+    const noteDesc = GEBI('note-desc');
+    const noteTime = GEBI('note-time');
 
     async function renderNotes(nid) {
         list.innerHTML = (cnotes = await window.notes
@@ -408,7 +408,7 @@
     }
 
     function showNote(nid) {
-        document.querySelectorAll("#note-list .list-group-item.active").forEach(elem => elem.classList.remove('active'));
+        qsa("#note-list .list-group-item.active").forEach(elem => elem.classList.remove('active'));
         if (!nid) {
             document.title = coll.cid + "/" + coll.name;
             cnote = null;
@@ -438,7 +438,7 @@
                     lastEdit.month() !== now.month() ? lastEdit.format("MMM D h:mm a") :
                             lastEdit.date() !== now.date() ? lastEdit.format("Do h:mm:ss a") : 'Today ' + lastEdit.format("h:mm:ss a");
             noteTime.innerText = `Last edited • ${dateStr}`;
-            document.getElementById(`list-${cnote.nid}`).classList.add('active');
+            GEBI(`list-${cnote.nid}`).classList.add('active');
             fetch(cnote.url).then(res => res.text()).then(text => {
                 shadowRoot.innerHTML = `${text}<style>.container{width:auto!important;}#notebook-container{padding:0;-webkit-box-shadow:none;box-shadow:none;}.prompt{min-width:0;}</style>`; // small hax
                 updateTheme(); // shadow dom is retarded

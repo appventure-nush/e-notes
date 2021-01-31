@@ -14,7 +14,7 @@
     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);
     firebase.auth().onAuthStateChanged(function (user) {
         if (user) firebase.auth().currentUser.getIdToken(true).then(idToken => {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const csrfToken = qs('meta[name="csrf-token"]').getAttribute('content');
             return fetch("/", {
                 method: "POST",
                 credentials: 'same-origin',
