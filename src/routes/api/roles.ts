@@ -16,15 +16,6 @@ roles.get("/:rid", checkUser, async (req, res) => {
     else res.json(role.toData());
 });
 
-roles.get("/:rid", checkUser, async (req, res) => {
-    const role = await getRole(req.params.rid);
-    if (!role) return res.status(404).json({
-        reason: "role_not_found",
-        rid: req.params.rid
-    })
-    else res.json(role.toData());
-});
-
 roles.delete("/:rid", checkAdmin, async (req, res) => {
     if (!await getRole(req.params.rid)) return res.status(404).json({
         reason: "role_not_found",
@@ -45,9 +36,14 @@ roles.post("/:rid", checkAdmin, async (req, res) => {
         reason: "role_already_exists",
         rid: req.params.rid
     });
+    if (req.body.rid !== req.params.rid) return res.status(400).json({
+        reason: "huh",
+        rid: req.params.rid
+    });
     else {
         const ref = firestore().collection("roles").doc(req.params.rid);
-        const role = new Role(req.params.rid, req.body.name, req.body.desc);
+        const role = new Role(req.body.rid, req.body.name, req.body.desc, req.body.defaultPerm);
+        role.setPermissions(req.body.permissions);
         await ref.set(role.toData());
         res.json(role.toData());
     }
@@ -62,6 +58,8 @@ roles.post("/:rid/admin", checkAdmin, async (req, res) => {
         });
         if (typeof req.body.defaultPerm === 'boolean') role.defaultPerm = req.body.defaultPerm;
         if (typeof req.body.permissions === 'object') role.setPermissions(req.body.permissions);
+        if (typeof req.body.name === 'string') role.name = req.body.name;
+        if (typeof req.body.desc === 'string') role.desc = req.body.desc;
         await updateRole(role.rid, role);
         res.json(role.toData());
     } catch (e) {

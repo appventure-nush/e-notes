@@ -52,19 +52,17 @@
                 </div>
                 {{#if user.admin}}
                     <link href="/css/tagin.min.css" rel="stylesheet"/>
-                    <form role="form" class="w-100" id="input-role-form">
+                    <form role="form" class="w-100 mt-1" id="input-role-form">
                         <div class="form-group row">
                             <label for="input-role-id" class="col-sm-2 col-form-label">ID</label>
                             <div class="col-sm-10">
-                                <input type="text" readonly class="form-control" id="input-role-id" disabled>
-                                <small class="form-text text-muted">changing id will break all users with
-                                    this role</small>
+                                <input type="text" readonly class="form-control" id="input-role-id" required>
                             </div>
                         </div>
                         <div class="form-group row">
                             <label for="input-role-name" class="col-sm-2 col-form-label">Name</label>
                             <div class="col-sm-10">
-                                <input type="text" class="form-control" id="input-role-name">
+                                <input type="text" class="form-control" id="input-role-name" required>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -109,7 +107,10 @@
                     <script>
                         let saveBtn = GEBI('save-btn');
                         let cancelBtn = GEBI('cancel-btn');
-                        cancelBtn.onclick = () => showRole(role.rid, false)
+                        cancelBtn.onclick = () => {
+                            if (document.querySelector('#input-role-form .changed')) showRole(role.rid, false);
+                            else $roleModal.modal('hide');
+                        }
                         let iForm = GEBI('input-role-form');
                         let iDefault = GEBI('input-role-default');
                         let iPerms = GEBI('input-role-permissions');
@@ -121,6 +122,7 @@
                         let iID = GEBI('input-role-id');
                         let iName = GEBI('input-role-name');
                         let iDesc = GEBI('input-role-desc');
+                        let isAddingRole = false;
 
                         addPermBtn.onclick = e => {
                             let cid = addPermInput.value;
@@ -128,11 +130,12 @@
                             addPermInput.value = "";
                             let oldSelect = qs(`select[data-id="${cid}"]`);
                             if (oldSelect) oldSelect.value = addPermPerm.value;
-                            else iPerms.innerHTML += `<tr><td>${cid}</td><td class="changed"><select data-id="${cid}" id="input-perm-${cid.replace(/\s+/g, '_')}" class="custom-select custom-select-sm input-perm-row-select"><option value="true" ${addPermPerm.value === "true" ? 'selected' : ''}>Allow</option><option value="false" ${addPermPerm.value === "false" ? 'selected' : ''}>Deny</option><option value="undefined" ${addPermPerm.value === "undefined" ? 'selected' : ''}>Unset</option></select></td></tr>`;
+                            else iPerms.innerHTML += `<tr><td>${cid}</td><td class="${isAddingRole ? '' : 'changed'}"><select data-id="${cid}" id="input-perm-${cid.replace(/\s+/g, '_')}" class="custom-select custom-select-sm input-perm-row-select"><option value="true" ${addPermPerm.value === "true" ? 'selected' : ''}>Allow</option><option value="false" ${addPermPerm.value === "false" ? 'selected' : ''}>Deny</option><option value="undefined" ${addPermPerm.value === "undefined" ? 'selected' : ''}>Unset</option></select></td></tr>`;
                             addPermPerm.value = "true";
                         }
 
                         function updateAdminInputs(role) {
+                            $(iBox).show();
                             iTitle.innerText = "Edit Role";
                             iDefault.checked = role.defaultPerm;
                             iPerms.innerHTML = Object.keys(role.permissions).sort().map(cid => `<tr><td>${cid}</td><td><select data-id="${cid}" id="input-perm-${cid.replace(/\s+/g, '_')}" class="custom-select custom-select-sm input-perm-row-select"><option value="true" ${role.permissions[cid] ? 'selected' : ''}>Allow</option><option value="false" ${role.permissions[cid] ? '' : 'selected'}>Deny</option><option value="undefined">Unset</option></select></td></tr>`).join('');
@@ -141,31 +144,64 @@
                             addChangeListener(iID, iID.value = role.rid, iID.parentElement.parentElement);
                             addChangeListener(iName, iName.value = role.name, iName.parentElement.parentElement);
                             addChangeListener(iDesc, iDesc.value = role.desc, iDesc.parentElement.parentElement);
+                            isAddingRole = false;
                         }
 
                         iForm.onsubmit = e => {
                             e.preventDefault();
-                            let payload = {};
-                            let permissions = {};
-                            if (iDefault.parentElement.classList.contains('changed')) payload.defaultPerm = iDefault.checked;
-                            for (let row of qsa('.changed .input-perm-row-select')) {
-                                permissions[row.getAttribute('data-id')] = row.value;
-                                row.parentElement.parentElement.classList.add('disabled');
+                            if (isAddingRole) {
+                                iForm.classList.add('disabled');
+                                let permissions = {};
+                                for (let row of qsa('.input-perm-row-select')) {
+                                    permissions[row.getAttribute('data-id')] = row.value;
+                                    row.parentElement.parentElement.classList.add('disabled');
+                                }
+                                fetcher('/api/roles/' + iID.value, {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({
+                                        rid: iID.value,
+                                        name: iName.value,
+                                        desc: iDesc.value,
+                                        defaultPerm: iDefault.checked,
+                                        permissions: permissions
+                                    })
+                                }).then(role => {
+                                    if (role.reason) return alert(role.reason);
+                                    console.log(role);
+                                    roles.update(role.rid, role);
+                                    showRole(role.rid, false);
+                                    renderRoles();
+                                }).finally(() => {
+                                    iForm.classList.remove('disabled');
+                                });
+                            } else {
+                                let payload = {};
+                                let permissions = {};
+                                if (iDefault.parentElement.classList.contains('changed')) payload.defaultPerm = iDefault.checked;
+                                if (iName.parentElement.parentElement.classList.contains('changed')) payload.name = iName.value;
+                                if (iDesc.parentElement.parentElement.classList.contains('changed')) payload.desc = iDesc.value;
+
+                                for (let row of qsa('.changed .input-perm-row-select')) {
+                                    permissions[row.getAttribute('data-id')] = row.value;
+                                    row.parentElement.parentElement.classList.add('disabled');
+                                }
+                                if (Object.keys(permissions).length !== 0) payload.permissions = permissions;
+                                if (Object.keys(payload).length === 0) return;
+                                iDefault.disabled = saveBtn.disabled = cancelBtn.disabled = true;
+                                fetcher('/api/roles/' + role.rid + '/admin', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify(payload)
+                                }).then(role => {
+                                    console.log(role);
+                                    roles.update(role.rid, role);
+                                    showRole(role.rid, false);
+                                    renderRoles();
+                                }).finally(() => {
+                                    iDefault.disabled = saveBtn.disabled = cancelBtn.disabled = false;
+                                });
                             }
-                            if (Object.keys(permissions).length !== 0) payload.permissions = permissions;
-                            if (Object.keys(payload).length === 0) return;
-                            iDefault.disabled = saveBtn.disabled = cancelBtn.disabled = true;
-                            fetcher('/api/roles/' + role.rid + '/admin', {
-                                method: 'POST',
-                                headers: {'Content-Type': 'application/json'},
-                                body: JSON.stringify(payload)
-                            }).then(role => {
-                                console.log(role);
-                                roles.update(role.rid, role);
-                                showRole(role.rid, false);
-                            }).finally(() => {
-                                iDefault.disabled = saveBtn.disabled = cancelBtn.disabled = false;
-                            });
                         };
                         collections.getAll(true).then(colls => {
                             console.log(colls);
@@ -175,11 +211,22 @@
                         function addRole() {
                             window.role = null;
                             iTitle.innerText = "New Role";
-                            dRID.innerText = "";
-                            dName.innerText = "";
-                            dDesc.innerText = "";
+                            isAddingRole = true;
+                            $(iBox).hide();
+
+                            iID.removeAttribute('readonly');
+                            iID.value = "";
+                            iName.value = "";
+                            iDesc.value = "";
+                            iDefault.checked = false;
+                            iPerms.innerHTML = "";
+
                             $roleModal.modal('show');
-                            history.pushState("", "", '/r?new');
+                            history.pushState("", "", '/r?new=true');
+                            clearChangeListener(iDefault);
+                            clearChangeListener(iID);
+                            clearChangeListener(iName);
+                            clearChangeListener(iDesc);
                         }
                     </script>
                 {{/if}}
@@ -187,6 +234,7 @@
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
     window.currentNav = "roles";
     const display = GEBI('display')
@@ -196,11 +244,11 @@
 
     const $roleModal = $('#role-modal');
 
-    function renderCollections(forceReset = false) {
+    function renderRoles(forceReset = false) {
         roles.getAll(!forceReset).then(roles => {
             console.log(roles);
-            display.innerHTML = roles.map(role => `<div class="col-lg-3 col-md-5 col-sm-12 role-card d-flex align-items-center" id="rid-${role.rid}">
-<a onclick="showRole('${role.rid}')" class="card-link"><pre>${role.rid}</pre> ${role.name}</a>
+            display.innerHTML = roles.map(role => `<div class="col-lg-3 col-md-5 col-sm-12 role-card d-flex align-items-center" id="rid-${escapeHTML(role.rid)}">
+<a onclick="showRole('${escapeHTML(role.rid)}')" class="card-link"><pre>${escapeHTML(role.rid)}</pre> ${escapeHTML(role.name)}</a>
 </div>`).join('\n');
         });
     }
@@ -210,8 +258,7 @@
             window.role = await roles.get(rid);
             dRID.innerText = role.rid;
             dName.innerText = role.name;
-            dDesc.innerText = role.desc ? role.desc : "";
-            console.log(role);
+            dDesc.innerHTML = marked(role.desc ? role.desc : "");
             {{#if user.admin}}
                 updateAdminInputs(role);
             {{/if}}
@@ -224,6 +271,20 @@
     $roleModal.on('hidden.bs.modal', () => showRole(null));
 
     window.onload = _ => {
-        renderCollections();{{#if show}}showRole("{{show}}");{{/if}}
+        renderRoles();
+        {{#if show}}
+            showRole("{{show}}");
+        {{/if}}
+        {{#if user.admin}}
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('new') === 'true') addRole();
+        {{/if}}
+    }
+
+    function escapeHTML(s) {
+        var el = document.createElement("span");
+        el.innerText = el.textContent = s;
+        s = el.innerHTML;
+        return s;
     }
 </script>

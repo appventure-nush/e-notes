@@ -7,13 +7,15 @@ class Role {
     defaultPerm: boolean;
     permissions: Map<string, boolean>;
 
-    constructor(rid: string | any, name?: string, desc?: string, defaultPerm?: boolean) {
+    constructor(rid: string | any, name?: string, desc?: string, defaultPerm?: boolean | string) {
         if (typeof rid === 'string') {
             this.rid = rid;
             this.name = name || rid;
             this.desc = desc || "No description yet.";
             this.permissions = new Map<string, boolean>();
-            this.defaultPerm = defaultPerm === true;
+            if (defaultPerm === "on" || defaultPerm === "true") defaultPerm = true;
+            if (defaultPerm === "off" || defaultPerm === "false") defaultPerm = false;
+            this.defaultPerm = !(!defaultPerm);
         } else {
             const src = rid as any;
             this.rid = src.rid;
