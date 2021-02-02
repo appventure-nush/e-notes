@@ -1,7 +1,6 @@
 import {Router} from 'express';
 import Role from '../../types/role';
 import {checkAdmin, checkUser, getAllRoles, getRole, updateRole} from '../../utils';
-import {firestore} from "firebase-admin";
 
 const roles = Router();
 
@@ -41,10 +40,9 @@ roles.post("/:rid", checkAdmin, async (req, res) => {
         rid: req.params.rid
     });
     else {
-        const ref = firestore().collection("roles").doc(req.params.rid);
         const role = new Role(req.body.rid, req.body.name, req.body.desc, req.body.defaultPerm);
         role.setPermissions(req.body.permissions);
-        await ref.set(role.toData());
+        await updateRole(role.rid, role);
         res.json(role.toData());
     }
 });

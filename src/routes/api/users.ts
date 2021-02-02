@@ -26,7 +26,7 @@ users.post("/:uid/admin", checkAdmin, async (req, res) => {
             reason: "user_not_found",
             rid: req.params.uid
         });
-        if (Array.isArray(req.body.roles)) user.roles.splice(0, req.body.roles.length, ...req.body.roles);
+        if (Array.isArray(req.body.roles)) user.roles = Array.from(req.body.roles).map(el => String(el));
         if (typeof req.body.admin === 'boolean') user.admin = req.body.admin;
         if (typeof req.body.permissions === 'object') user.setPermissions(req.body.permissions);
         await updateUser(user.uid, user);

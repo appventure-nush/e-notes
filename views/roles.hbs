@@ -102,10 +102,12 @@
                             </tbody>
                         </table>
                         <button id="save-btn" type="submit" class="btn btn-primary ml-3 mb-3">Save</button>
+                        <button id="delete-btn" type="button" class="btn btn-outline-danger mb-3">Delete</button>
                         <button id="cancel-btn" type="button" class="btn btn-link mb-3">Cancel</button>
                     </form>
                     <script>
                         let saveBtn = GEBI('save-btn');
+                        let deleteBtn = GEBI('delete-btn');
                         let cancelBtn = GEBI('cancel-btn');
                         cancelBtn.onclick = () => {
                             if (document.querySelector('#input-role-form .changed')) showRole(role.rid, false);
@@ -123,6 +125,26 @@
                         let iName = GEBI('input-role-name');
                         let iDesc = GEBI('input-role-desc');
                         let isAddingRole = false;
+                        let deleteLvl = 0;
+                        deleteBtn.onclick = e => {
+                            deleteLvl++;
+                            deleteBtn.innerText = "Delete? " + (5 - deleteLvl);
+                            if (deleteLvl >= 5) {
+                                deleteBtn.disabled = true;
+                                fetcher('/api/roles/' + iID.value, {
+                                    method: 'DELETE'
+                                }).then(role => {
+                                    if (role.status === 'ok') {
+                                        roles.update(iID.value, null);
+                                        $roleModal.modal('hide');
+                                        renderRoles();
+                                    } else alert('Failed! ' + role.reason);
+                                }).finally(() => {
+                                    deleteBtn.disabled = false;
+                                    deleteBtn.innerText = "Delete";
+                                });
+                            }
+                        }
 
                         addPermBtn.onclick = e => {
                             let cid = addPermInput.value;
@@ -136,6 +158,9 @@
 
                         function updateAdminInputs(role) {
                             $(iBox).show();
+                            deleteLvl = 0;
+                            deleteBtn.innerText = "Delete";
+                            $(deleteBtn).show();
                             iTitle.innerText = "Edit Role";
                             iDefault.checked = role.defaultPerm;
                             iPerms.innerHTML = Object.keys(role.permissions).sort().map(cid => `<tr><td>${cid}</td><td><select data-id="${cid}" id="input-perm-${cid.replace(/\s+/g, '_')}" class="custom-select custom-select-sm input-perm-row-select"><option value="true" ${role.permissions[cid] ? 'selected' : ''}>Allow</option><option value="false" ${role.permissions[cid] ? '' : 'selected'}>Deny</option><option value="undefined">Unset</option></select></td></tr>`).join('');
@@ -188,7 +213,7 @@
                                 }
                                 if (Object.keys(permissions).length !== 0) payload.permissions = permissions;
                                 if (Object.keys(payload).length === 0) return;
-                                iDefault.disabled = saveBtn.disabled = cancelBtn.disabled = true;
+                                iDefault.disabled = saveBtn.disabled = deleteBtn.disabled = cancelBtn.disabled = true;
                                 fetcher('/api/roles/' + role.rid + '/admin', {
                                     method: 'POST',
                                     headers: {'Content-Type': 'application/json'},
@@ -199,7 +224,7 @@
                                     showRole(role.rid, false);
                                     renderRoles();
                                 }).finally(() => {
-                                    iDefault.disabled = saveBtn.disabled = cancelBtn.disabled = false;
+                                    iDefault.disabled = saveBtn.disabled = deleteBtn.disabled = cancelBtn.disabled = false;
                                 });
                             }
                         };
@@ -213,6 +238,7 @@
                             iTitle.innerText = "New Role";
                             isAddingRole = true;
                             $(iBox).hide();
+                            $(deleteBtn).hide();
 
                             iID.removeAttribute('readonly');
                             iID.value = "";
@@ -264,7 +290,13 @@
             {{/if}}
             $roleModal.modal('show');
             history.pushState("", "", '/r/' + rid);
-            if (doubleRefresh) await roles.get(rid, false);
+            if (doubleRefresh) roles.get(rid, false).then(res => {
+                if (res.reason && res.reason === "role_not_found") {
+                    roles.update(rid, null);
+                    $roleModal.modal('hide');
+                    renderRoles();
+                }
+            })
         } else history.pushState("", "", '/r');
     }
 
