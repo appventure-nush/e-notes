@@ -164,6 +164,7 @@
                             iTitle.innerText = "Edit Role";
                             iDefault.checked = role.defaultPerm;
                             iPerms.innerHTML = Object.keys(role.permissions).sort().map(cid => `<tr><td>${cid}</td><td><select data-id="${cid}" id="input-perm-${cid.replace(/\s+/g, '_')}" class="custom-select custom-select-sm input-perm-row-select"><option value="true" ${role.permissions[cid] ? 'selected' : ''}>Allow</option><option value="false" ${role.permissions[cid] ? '' : 'selected'}>Deny</option><option value="undefined">Unset</option></select></td></tr>`).join('');
+                            iID.setAttribute('readonly', 'true');
                             for (let select of document.getElementsByClassName('input-perm-row-select')) addChangeListener(select, select.value, select.parentElement);
                             addChangeListener(iDefault, role.defaultPerm, el => el.checked, iDefault.parentElement);
                             addChangeListener(iID, iID.value = role.rid, iID.parentElement.parentElement);
