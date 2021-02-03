@@ -95,7 +95,7 @@ collections.post('/:cid/img', checkAdmin, async (req, res) => { // called for ev
             if (IMAGE_FORMATS.includes(type.mime.toLowerCase())) {
                 try {
                     const file = storage().bucket().file(`collections/${req.params.cid}/images/${req.body.name}`);
-                    await file.save(new Uint8Array(payload.data), {resumable: false});
+                    await file.save(payload.data, {resumable: false});
                     res.json({
                         status: 'success',
                         url: await getURL(`collections/${req.params.cid}/images/${req.body.name}`)

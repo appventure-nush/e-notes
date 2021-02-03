@@ -17,9 +17,9 @@
     }
 
     #file-body.has-drag {
-        -webkit-box-shadow: 0px 5px 20px 10px rgba(231, 166, 26, 0.46);
-        -moz-box-shadow: 0px 5px 20px 10px rgba(231, 166, 26, 0.46);
-        box-shadow: 0px 5px 20px 10px rgba(231, 166, 26, 0.46);
+        -webkit-box-shadow: 0 5px 20px 10px rgba(231, 166, 26, 0.46);
+        -moz-box-shadow: 0 5px 20px 10px rgba(231, 166, 26, 0.46);
+        box-shadow: 0 5px 20px 10px rgba(231, 166, 26, 0.46);
     }
 
     .progress-bar {
@@ -27,16 +27,22 @@
         height: 3px;
         margin: 0 -1.25rem -.75rem;
     }
+
+    #coll-content .card-header, #coll-content .card-footer {
+        padding: .5em .75em;
+    }
 </style>
 <script src="https://kit.fontawesome.com/c32b3db897.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bs-custom-file-input/dist/bs-custom-file-input.min.js"></script>
 <script src="/js/progressbar.min.js"></script>
-<div class="row" style="margin-top: 2em">
+<script src="/js/moment.min.js"></script>
+<div class="row mt-4" id="coll-content">
     <div class="col-lg-3">
         <div class="card mt-4">
             <p class="card-header">{{coll.name}}</p>
-            <div class="card-body">
-                <pre>{{coll.cid}}</pre>
-                <p class="card-text">{{coll.desc}}</p>
+            <div class="card-body p-2">
+                <pre class="mb-2">{{coll.cid}}</pre>
+                <p class="card-text mb-2">{{coll.desc}}</p>
                 {{#if coll.open}}
                     <span class="badge badge-success">Public</span>
                 {{else}}
@@ -241,7 +247,8 @@
                             <input type="text" class="form-control" id="note-form-id"
                                    aria-describedby="add-form-id-help"
                                    placeholder="Empty for random ID">
-                            <small id="add-form-id-help" class="form-text text-muted">Please don't use spaces</small>
+                            <small id="add-form-id-help" class="form-text text-muted">Please don't use spaces or special
+                                characters</small>
                         </div>
                         <div class="form-group">
                             <label for="note-form-name">Note Name</label>
@@ -253,9 +260,9 @@
                             <input type="text" class="form-control" id="note-form-desc"
                                    placeholder="Helpful information">
                         </div>
-                        <div class="form-group">
-                            <label for="note-form-file">Note Source</label>
-                            <input type="file" class="form-control-file" id="note-form-file">
+                        <div class="custom-file">
+                            <label for="note-form-file" class="custom-file-label">Note Source</label>
+                            <input type="file" class="custom-file-input" id="note-form-file">
                         </div>
                     </form>
                 </div>
@@ -268,6 +275,7 @@
                             onclick="actionBtnClicked(this.innerText.toLowerCase())"></button>
                 </div>
                 <script>
+                    bsCustomFileInput.init();
                     const idInput = GEBI('note-form-id');
                     const nameInput = GEBI('note-form-name');
                     const descInput = GEBI('note-form-desc');
@@ -386,7 +394,6 @@
         </div>
     </div>
 {{/if}}
-<script src="/js/moment.min.js"></script>
 <script>
     let cnote;
     let cnotes;

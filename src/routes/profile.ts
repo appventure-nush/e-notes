@@ -35,7 +35,7 @@ profile.post('/uploadPFP', checkUser, async (req, res) => {
             if (IMAGE_FORMATS.includes(type.mime.toLowerCase())) {
                 try {
                     const file = storage().bucket().file(`users/pfp/${req.body.cuid}.${type.ext}`);
-                    await file.save(new Uint8Array(await (await Jimp.read(new_profile_pic.data)).cover(256, 256).quality(80).getBufferAsync('image/jpeg')), {resumable: false});
+                    await file.save(await (await Jimp.read(new_profile_pic.data)).cover(256, 256).quality(80).getBufferAsync('image/jpeg'), {resumable: false});
                     await file.makePublic();
                     res.json({
                         status: 'success',
