@@ -17,15 +17,6 @@ class Collection {
             this.open = !(!cid.open);
         }
     }
-
-    toData() {
-        return {
-            cid: this.cid,
-            name: this.name,
-            desc: this.desc,
-            open: this.open
-        }
-    }
 }
 
 export default Collection;

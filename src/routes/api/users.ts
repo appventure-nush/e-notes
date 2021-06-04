@@ -12,8 +12,8 @@ users.get("/", checkUser, async (req, res) => auth().listUsers(1000).then((list:
 
 users.get("/:uid", checkUser, async (req, res) => {
     try {
-        if (req.params.uid === 'me') res.json(req.body.user.toData());
-        else res.json((await getUser(req.params.uid)).toData());
+        if (req.params.uid === 'me') res.json(req.body.user);
+        else res.json(await getUser(req.params.uid));
     } catch (e) {
         res.status(500).send("failed_to_get_user")
     }
@@ -30,7 +30,7 @@ users.post("/:uid/admin", checkAdmin, async (req, res) => {
         if (typeof req.body.admin === 'boolean') user.admin = req.body.admin;
         if (typeof req.body.permissions === 'object') user.setPermissions(req.body.permissions);
         await updateUser(user.uid, user);
-        res.json(user.toData());
+        res.json(user);
     } catch (e) {
         res.status(500).send("failed")
     }

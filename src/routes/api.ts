@@ -5,7 +5,10 @@ import users from './api/users';
 import collections from './api/collections';
 
 const api = Router();
-
+api.use(function (req, res, next) {
+    res.setHeader('Last-Modified', (new Date()).toUTCString());
+    next();
+});
 api.use("/roles", roles);
 api.use("/users", users);
 api.use("/collections", collections);

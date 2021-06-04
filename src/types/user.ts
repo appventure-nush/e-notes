@@ -1,15 +1,14 @@
-import {autoConvertMapToObject} from '../utils';
 import admin from "firebase-admin";
+import {MutablePermissions} from "./permissions";
 import UserRecord = admin.auth.UserRecord;
 
-class User {
+class User extends MutablePermissions {
     uid: string;
 
     nickname?: string;
     desc?: string;
     roles: string[];
     admin = false;
-    permissions: Map<string, boolean>;
 
     name?: string;
     email?: string;
@@ -17,17 +16,18 @@ class User {
     verified?: boolean;
 
     constructor(user: string | any) {
+        super();
         if (typeof user === 'string') {
             this.uid = user;
             this.roles = [];
-            this.permissions = new Map<string, boolean>();
+            this.permissions = {};
         } else {
             this.uid = user.uid;
             this.nickname = user.nickname;
             this.desc = user.desc;
             this.roles = user.roles;
             this.admin = user.admin;
-            this.permissions = new Map(Object.entries(user.permissions));
+            this.permissions = user.permissions;
         }
     }
 
@@ -37,38 +37,6 @@ class User {
         this.pfp = user.photoURL;
         this.verified = user.emailVerified;
         return this;
-    }
-
-    setPermissions(permissions: any) {
-        for (const permission of Object.keys(permissions)) this.setPermission(permission, permissions[permission]);
-    }
-
-    setPermission(cid: string, accepts: boolean | string) {
-        if (typeof accepts === 'undefined') this.permissions.delete(cid);
-        if (typeof accepts === 'string') if (accepts === "undefined" || accepts === "delete") {
-            this.permissions.delete(cid);
-            return;
-        } else accepts = accepts === "true";
-        this.permissions.set(cid, accepts);
-    }
-
-    accepts(cid: string) {
-        return this.permissions.has(cid) && this.permissions.get(cid);
-    }
-
-    rejects(cid: string) {
-        return this.permissions.has(cid) && this.permissions.get(cid) === false;
-    }
-
-    toData() {
-        return {
-            uid: this.uid,
-            nickname: this.nickname,
-            desc: this.desc,
-            roles: this.roles,
-            admin: this.admin,
-            permissions: autoConvertMapToObject(this.permissions)
-        };
     }
 }
 

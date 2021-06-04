@@ -18,7 +18,7 @@ profile.post('/', checkUser, async (req, res) => {
     try {
         if (nickname || desc || typeof nickname === 'string' || typeof nickname === 'string') return res.json({
             status: 'success',
-            user: (await updateUser(user.uid, new User(user))).toData()
+            user: await updateUser(user.uid, new User(user))
         });
         else return res.json({status: 'failed', reason: 'please give a nickname or a description'});
     } catch (e) {
@@ -39,7 +39,7 @@ profile.post('/uploadPFP', checkUser, async (req, res) => {
                     await file.makePublic();
                     res.json({
                         status: 'success',
-                        user: req.body.user.fill(await auth().updateUser(req.body.cuid, {photoURL: `https://storage.googleapis.com/e-notes-nush.appspot.com/users/pfp/${req.body.cuid}.jpg`})).toData()
+                        user: req.body.user.fill(await auth().updateUser(req.body.cuid, {photoURL: `https://storage.googleapis.com/e-notes-nush.appspot.com/users/pfp/${req.body.cuid}.jpg`}))
                     });
                 } catch (e) {
                     // await error("pfp change error", {

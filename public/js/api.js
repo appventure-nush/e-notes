@@ -12,20 +12,34 @@ function generateAPI(key, idKey, path) {
     }
     return {
         update: function (id, value) {
+            console.groupCollapsed(idKey + ".update(" + id + ")");
+            console.debug("updating", id, value);
             var index = cache[key].findIndex(item => item[idKey] === id);
             if (index === -1) {
+                console.debug("new item");
                 if (value) cache[key].push(value);
             } else if (value) cache[key][index] = {...cache[key][index], ...value};
             else cache[key].splice(index, 1);
             localStorage.setItem(key, JSON.stringify(cache[key]));
+            console.groupEnd();
             return value;
         },
         get: async function (id, useCache = true) {
+            console.groupCollapsed(idKey + ".get(" + id + ")");
             if (!id) return null;
             var item = cache[key].find(item => item[idKey] === id);
-            if (useCache && item && (idKey !== 'uid' || Array.isArray(item.roles))) return item;
+            console.debug("requesting ", id, idKey);
+            if (useCache && item && (idKey !== "uid" || item.roles)) {
+                console.debug("returning cached info MODE =", idKey);
+                console.debug(item);
+                console.groupEnd();
+                return item;
+            }
+            console.debug("fetching ", `/api/${path}/${id}`);
             item = await fetcher(`/api/${path}/${id}`)
-            if (item.reason) console.log(item.reason);
+            console.debug(item);
+            console.groupEnd();
+            if (item.reason) console.error(item.reason);
             else this.update(id, item);
             return item;
         },

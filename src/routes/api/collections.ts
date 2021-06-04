@@ -34,14 +34,8 @@ export async function getURL(name: string) {
     return url;
 }
 
-collections.get("/", checkUser, async (req, res) => {
-    res.json(await getAvailableCollections(req.body.cuid));
-});
-collections.post("/", checkAdmin, (req, res) => {
-    res.status(400).json({
-        reason: "collection_id_required"
-    });
-});
+collections.get("/", checkUser, (req, res) => res.json(getAvailableCollections(req.body.cuid)));
+collections.post("/", checkAdmin, (req, res) => res.status(400).json({reason: "collection_id_required"}));
 
 collections.get("/:cid", checkPermissions, async (req, res) => {
     const collection = getCollection(req.params.cid);
@@ -50,7 +44,7 @@ collections.get("/:cid", checkPermissions, async (req, res) => {
         reason: "collection_not_found",
         cid: req.params.cid
     })
-    else res.json(collection.toData());
+    else res.json(collection);
 });
 collections.post("/:cid", checkAdmin, async (req, res) => {
     let collection = getCollection(req.params.cid);
@@ -60,8 +54,8 @@ collections.post("/:cid", checkAdmin, async (req, res) => {
         if (req.body.desc) collection.desc = req.body.desc;
         if (req.body.open) collection.open = (req.body.open === "open");
     } else collection = new Collection(req.params.cid, req.body.name, req.body.desc, req.body.open);
-    await firestore().collection("collections").doc(req.params.cid).set(collection.toData());
-    res.json(collection.toData());
+    await firestore().collection("collections").doc(req.params.cid).set(collection);
+    res.json(collection);
 });
 collections.delete("/:cid", checkAdmin, async (req, res) => {
     const collection = getCollection(req.params.cid);

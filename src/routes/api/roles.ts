@@ -4,7 +4,7 @@ import {checkAdmin, checkUser, getAllRoles, getRole, updateRole} from '../../uti
 
 const roles = Router();
 
-roles.get("/", checkUser, (req, res) => res.json(getAllRoles().map(role => role.toData())));
+roles.get("/", checkUser, (req, res) => res.json(getAllRoles()));
 
 roles.get("/:rid", checkUser, async (req, res) => {
     const role = await getRole(req.params.rid);
@@ -12,7 +12,7 @@ roles.get("/:rid", checkUser, async (req, res) => {
         reason: "role_not_found",
         rid: req.params.rid
     })
-    else res.json(role.toData());
+    else res.json(role);
 });
 
 roles.delete("/:rid", checkAdmin, async (req, res) => {
@@ -43,7 +43,7 @@ roles.post("/:rid", checkAdmin, async (req, res) => {
         const role = new Role(req.body.rid, req.body.name, req.body.desc, req.body.defaultPerm);
         role.setPermissions(req.body.permissions);
         await updateRole(role.rid, role);
-        res.json(role.toData());
+        res.json(role);
     }
 });
 
@@ -59,7 +59,7 @@ roles.post("/:rid/admin", checkAdmin, async (req, res) => {
         if (typeof req.body.name === 'string') role.name = req.body.name;
         if (typeof req.body.desc === 'string') role.desc = req.body.desc;
         await updateRole(role.rid, role);
-        res.json(role.toData());
+        res.json(role);
     } catch (e) {
         res.status(500).send("failed")
     }

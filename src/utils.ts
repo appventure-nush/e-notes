@@ -1,6 +1,6 @@
 import User from './types/user';
 import Role from './types/role';
-import Note from "./types/note";
+import {Note} from "./types/note";
 import Collection from "./types/coll";
 import express from "express";
 import admin, {auth, firestore} from "firebase-admin";
@@ -21,7 +21,7 @@ export async function getUser(uid: string): Promise<User> { // heavy call functi
     let user = users.find(user => user.uid === uid);
     if (!user) {
         user = new User(fbUser.uid);
-        await firestore().collection("users").doc(fbUser.uid).set(user.toData());
+        await firestore().collection("users").doc(fbUser.uid).set(user);
     }
     return user.fill(fbUser);
 }
@@ -33,14 +33,14 @@ export function getRole(rid: string): Role { // heavy call function
 
 export async function updateUser(uid: string, value: User) {
     updateUserCache(uid, value);
-    if (value) await firestore().collection("users").doc(uid).set(value.toData());
+    if (value) await firestore().collection("users").doc(uid).set(value);
     else await firestore().collection("users").doc(uid).delete();
     return value;
 }
 
 export async function updateRole(rid: string, value: Role) {
     updateRoleCache(rid, value);
-    if (value) await firestore().collection("roles").doc(rid).set(value.toData());
+    if (value) await firestore().collection("roles").doc(rid).set(value);
     else await firestore().collection("roles").doc(rid).delete();
     return value;
 }
@@ -114,8 +114,8 @@ export async function hasPermissions(uid: string, cid: string) { // used in midd
     return reject && accept;
 }
 
-export async function getAvailableCollections(uid: string) { // used in middleware
-    return (await filterAsync(collections, c => hasPermissions(uid, c.cid))).map(coll => coll.toData());
+export function getAvailableCollections(uid: string) { // used in middleware
+    return collections.filter(c => hasPermissions(uid, c.cid));
 }
 
 async function getUID(req: express.Request) {
@@ -215,14 +215,6 @@ export async function setup() {
             else if (change.type === "modified") users[users.findIndex(user => user.uid === uid)] = new User(change.doc.data());
         });
     });
-}
-
-export const autoConvertMapToObject = (map: Map<string, any>) => {
-    const obj = {};
-    for (const [key, value] of map)
-        // @ts-ignore
-        obj[key] = value;
-    return obj;
 }
 
 function mapAsync<T, U>(array: T[], callback: (value: T, index: number, array: T[]) => Promise<U>): Promise<U[]> {

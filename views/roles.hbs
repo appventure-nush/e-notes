@@ -272,7 +272,7 @@
     const $roleModal = $('#role-modal');
 
     function renderRoles(forceReset = false) {
-        roles.getAll(!forceReset).then(roles => {
+        return roles.getAll(!forceReset).then(roles => {
             console.log(roles);
             display.innerHTML = roles.map(role => `<div class="col-lg-3 col-md-5 col-sm-12 role-card d-flex align-items-center" id="rid-${escapeHTML(role.rid)}">
 <a onclick="showRole('${escapeHTML(role.rid)}')" class="card-link"><pre>${escapeHTML(role.rid)}</pre> ${escapeHTML(role.name)}</a>
@@ -304,7 +304,7 @@
     $roleModal.on('hidden.bs.modal', () => showRole(null));
 
     window.onload = _ => {
-        renderRoles();
+        renderRoles().then(() => renderRoles(true));
         {{#if show}}
             showRole("{{show}}");
         {{/if}}

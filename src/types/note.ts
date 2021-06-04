@@ -1,4 +1,4 @@
-class Note {
+export class Note {
     cid: string;
     nid: string;
     name: string;
@@ -23,17 +23,4 @@ class Note {
             this.url = src.url;
         }
     }
-
-    toData() {
-        return {
-            cid: this.cid,
-            nid: this.nid,
-            name: this.name,
-            desc: this.desc,
-            lastEdit: this.lastEdit,
-            url: this.url
-        };
-    }
 }
-
-export default Note;
