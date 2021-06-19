@@ -26,6 +26,10 @@ export async function getUser(uid: string): Promise<User> { // heavy call functi
     return user.fill(fbUser);
 }
 
+export function findUserWithRole(rid: string): Promise<User[]> {
+    return Promise.all(users.filter(u => u.roles.includes(rid)).map(u => getUser(u.uid)));
+}
+
 export function getRole(rid: string): Role { // heavy call function
     if (!rid) return null;
     return roles.find(role => role.rid === rid);

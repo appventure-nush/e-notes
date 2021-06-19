@@ -62,6 +62,10 @@ function generateAPI(key, idKey, path) {
 var collections = generateAPI('collCache', 'cid', 'collections');
 var users = generateAPI('userCache', 'uid', 'users');
 var roles = generateAPI('roleCache', 'rid', 'roles');
+roles.getUsers = async function (id) {
+    console.debug('roles.getUsers(' + id + ")");
+    return await fetcher(`/api/roles/${id}/users`);
+};
 var notes = {
     get: async function (cid, rid) {
         if (!cid) return null;

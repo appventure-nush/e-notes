@@ -1,7 +1,9 @@
 import {Router} from 'express';
 import Role from '../../types/role';
-import {checkAdmin, checkUser, getAllRoles, getRole, updateRole} from '../../utils';
+import {checkAdmin, checkUser, findUserWithRole, getAllRoles, getRole, updateRole} from '../../utils';
+import apicache from 'apicache';
 
+const cache = apicache.middleware;
 const roles = Router();
 
 roles.get("/", checkUser, (req, res) => res.json(getAllRoles()));
@@ -14,6 +16,8 @@ roles.get("/:rid", checkUser, async (req, res) => {
     })
     else res.json(role);
 });
+
+roles.get("/:rid/users", checkUser, cache('1 min'), async (req, res) => res.json(findUserWithRole(req.params.rid)));
 
 roles.delete("/:rid", checkAdmin, async (req, res) => {
     if (!await getRole(req.params.rid)) return res.status(404).json({
