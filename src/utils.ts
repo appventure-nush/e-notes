@@ -1,7 +1,7 @@
-import {fillUser, makeUser, toUser, User} from './types/user';
-import {Role, roleAccepts, toRole} from './types/role';
-import {Note, toNote} from "./types/note";
-import {Collection, toColl} from "./types/coll";
+import {fillUser, makeUser, User} from './types/user';
+import {Role, roleAccepts} from './types/role';
+import {Note} from "./types/note";
+import {Collection} from "./types/coll";
 import express from "express";
 import admin, {auth, firestore} from "firebase-admin";
 import {_accepts, _rejects} from "./types/permissions";
@@ -85,7 +85,7 @@ export async function getNotes(cid: string): Promise<Note[]> {
         const allNotes = await firestore().collection("collections").doc(cid).collection("notes").get();
         noteCache.set(cid, coll = {
             cacheDate: Date.now(),
-            notes: allNotes.docs.map((doc: DocumentSnapshot) => toNote(doc.data()))
+            notes: allNotes.docs.map((doc: DocumentSnapshot) => doc.data() as Note)
         });
     }
     return coll.notes;
@@ -202,23 +202,23 @@ export function setup(): [() => void, () => void, () => void] {
     return [firestore().collection('collections').onSnapshot(querySnapshot => {
         querySnapshot.docChanges().forEach(change => {
             const cid = change.doc.data().cid;
-            if (change.type === "added") collections.push(toColl(change.doc.data()));
+            if (change.type === "added") collections.push(change.doc.data() as Collection);
             else if (change.type === "removed") collections.splice(collections.findIndex(coll => coll.cid === cid), 1);
-            else if (change.type === "modified") collections[collections.findIndex(coll => coll.cid === cid)] = toColl(change.doc.data());
+            else if (change.type === "modified") collections[collections.findIndex(coll => coll.cid === cid)] = change.doc.data() as Collection;
         });
     }), firestore().collection('roles').onSnapshot(querySnapshot => {
         querySnapshot.docChanges().forEach(change => {
             const rid = change.doc.data().rid;
-            if (change.type === "added") roles.push(toRole(change.doc.data()));
+            if (change.type === "added") roles.push(change.doc.data() as Role);
             else if (change.type === "removed") roles.splice(roles.findIndex(role => role.rid === rid), 1);
-            else if (change.type === "modified") roles[roles.findIndex(role => role.rid === rid)] = toRole(change.doc.data());
+            else if (change.type === "modified") roles[roles.findIndex(role => role.rid === rid)] = change.doc.data() as Role;
         });
     }), firestore().collection('users').onSnapshot(querySnapshot => {
         querySnapshot.docChanges().forEach(change => {
             const uid = change.doc.data().uid;
-            if (change.type === "added") users.push(toUser(change.doc.data()));
+            if (change.type === "added") users.push(change.doc.data() as User);
             else if (change.type === "removed") users.splice(users.findIndex(user => user.uid === uid), 1);
-            else if (change.type === "modified") users[users.findIndex(user => user.uid === uid)] = toUser(change.doc.data());
+            else if (change.type === "modified") users[users.findIndex(user => user.uid === uid)] = change.doc.data() as User;
         });
     })];
 }

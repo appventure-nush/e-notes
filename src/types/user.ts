@@ -1,17 +1,14 @@
 import admin from "firebase-admin";
 import {MutablePermissions} from "./permissions";
-import {firestore} from "firebase-admin/lib/firestore";
 import UserRecord = admin.auth.UserRecord;
-import DocumentData = firestore.DocumentData;
 
-export class User extends MutablePermissions {
+export interface User extends MutablePermissions {
     uid: string;
 
     nickname?: string;
     desc?: string;
     roles: string[];
-    admin = false;
-
+    admin: boolean;
     name?: string;
     email?: string;
     pfp?: string;
@@ -19,15 +16,7 @@ export class User extends MutablePermissions {
 }
 
 export function makeUser(uid: string): User {
-    let user = new User();
-    user.uid = uid;
-    user.roles = [];
-    user.permissions = {};
-    return user;
-}
-
-export function toUser(obj: DocumentData): User {
-    return obj as User;
+    return {admin: false, permissions: {}, roles: [], uid: uid};
 }
 
 export function fillUser(user: User, rec: UserRecord): User {

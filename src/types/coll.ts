@@ -1,7 +1,4 @@
-import {firestore} from "firebase-admin/lib/firestore";
-import DocumentData = firestore.DocumentData;
-
-export class Collection {
+export interface Collection {
     cid: string;
     name: string;
     desc: string;
@@ -9,14 +6,5 @@ export class Collection {
 }
 
 export function makeColl(cid: string | any, name?: string, desc?: string, open = false): Collection {
-    let coll = new Collection();
-    coll.cid = cid;
-    coll.name = name || cid;
-    coll.desc = desc || "No description yet.";
-    coll.open = !(!open);
-    return coll;
-}
-
-export function toColl(obj: DocumentData): Collection {
-    return obj as Collection;
+    return {cid: cid, desc: desc || "No description yet.", name: name || cid, open: !(!open)};
 }

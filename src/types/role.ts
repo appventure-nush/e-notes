@@ -1,8 +1,6 @@
 import {_accepts, MutablePermissions} from "./permissions";
-import {firestore} from "firebase-admin/lib/firestore";
-import DocumentData = firestore.DocumentData;
 
-export class Role extends MutablePermissions {
+export interface Role extends MutablePermissions {
     rid: string;
     name: string;
     desc: string;
@@ -10,19 +8,17 @@ export class Role extends MutablePermissions {
 }
 
 export function makeRole(rid: string, name?: string, desc?: string, defaultPerm?: boolean | string): Role {
-    let role = new Role();
-    role.rid = rid;
-    role.name = name || rid;
-    role.desc = desc || "No description yet.";
-    role.permissions = {};
+    let role: Role = {
+        defaultPerm: false,
+        desc: desc || "No description yet.",
+        name: name || rid,
+        permissions: {},
+        rid: rid
+    };
     if (defaultPerm === "on" || defaultPerm === "true") defaultPerm = true;
     if (defaultPerm === "off" || defaultPerm === "false") defaultPerm = false;
     role.defaultPerm = !(!defaultPerm);
     return role;
-}
-
-export function toRole(obj: DocumentData): Role {
-    return obj as Role;
 }
 
 export function roleAccepts(role: Role, cid: string) {
