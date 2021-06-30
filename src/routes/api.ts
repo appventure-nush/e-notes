@@ -5,7 +5,7 @@ import users from './api/users';
 import collections from './api/collections';
 
 const api = Router();
-api.use(function (req, res, next) {
+api.use((req, res, next) => {
     res.setHeader('Last-Modified', (new Date()).toUTCString());
     next();
 });

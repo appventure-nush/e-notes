@@ -33,7 +33,6 @@ users.post("/:uid/admin", checkAdmin, async (req, res) => {
         await updateUser(user.uid, user);
         res.json(user);
     } catch (e) {
-        console.log(e);
         res.status(500).send("failed")
     }
 });

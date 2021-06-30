@@ -30,10 +30,7 @@ export async function getUser(uid: string): Promise<User> { // heavy call functi
 }
 
 export function findUserWithRole(rid: string): Promise<User[]> {
-    return Promise.all(users.filter(u => u.roles.includes(rid)).map(u => {
-        console.log(u.uid);
-        return getUser(u.uid);
-    }));
+    return Promise.all(users.filter(u => u.roles.includes(rid)).map(u => getUser(u.uid)));
 }
 
 export function getRole(rid: string): Role { // heavy call function
@@ -200,32 +197,30 @@ export function getCollection(cid: string): Collection { // heavy call function
     return collections.find(coll => coll.cid === cid);
 }
 
-export async function setup() {
+export function setup(): [() => void, () => void, () => void] {
     // probably not very efficient
-    firestore().collection('collections').onSnapshot(querySnapshot => {
+    return [firestore().collection('collections').onSnapshot(querySnapshot => {
         querySnapshot.docChanges().forEach(change => {
             const cid = change.doc.data().cid;
             if (change.type === "added") collections.push(toColl(change.doc.data()));
             else if (change.type === "removed") collections.splice(collections.findIndex(coll => coll.cid === cid), 1);
             else if (change.type === "modified") collections[collections.findIndex(coll => coll.cid === cid)] = toColl(change.doc.data());
         });
-    });
-    firestore().collection('roles').onSnapshot(querySnapshot => {
+    }), firestore().collection('roles').onSnapshot(querySnapshot => {
         querySnapshot.docChanges().forEach(change => {
             const rid = change.doc.data().rid;
             if (change.type === "added") roles.push(toRole(change.doc.data()));
             else if (change.type === "removed") roles.splice(roles.findIndex(role => role.rid === rid), 1);
             else if (change.type === "modified") roles[roles.findIndex(role => role.rid === rid)] = toRole(change.doc.data());
         });
-    });
-    firestore().collection('users').onSnapshot(querySnapshot => {
+    }), firestore().collection('users').onSnapshot(querySnapshot => {
         querySnapshot.docChanges().forEach(change => {
             const uid = change.doc.data().uid;
             if (change.type === "added") users.push(toUser(change.doc.data()));
             else if (change.type === "removed") users.splice(users.findIndex(user => user.uid === uid), 1);
             else if (change.type === "modified") users[users.findIndex(user => user.uid === uid)] = toUser(change.doc.data());
         });
-    });
+    })];
 }
 
 function mapAsync<T, U>(array: T[], callback: (value: T, index: number, array: T[]) => Promise<U>): Promise<U[]> {

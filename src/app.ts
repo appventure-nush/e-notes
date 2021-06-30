@@ -56,7 +56,11 @@ app.use(express.static(path.join(__dirname, '..', 'public'), {maxAge: 31557600})
     });
     admin.firestore().settings({ignoreUndefinedProperties: true});
     app.locals.bucket = admin.storage().bucket();
-    await setup();
+    let listeners = setup();
+    setInterval(() => {
+        listeners.forEach(e => e());
+        listeners = setup();
+    }, 60 * 60 * 24 * 1000);
 });
 
 export default app;
