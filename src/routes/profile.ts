@@ -3,7 +3,7 @@ import {Router} from 'express';
 import {checkUser, updateUser} from "../utils";
 import imageType from "image-type";
 import {auth, storage} from "firebase-admin";
-import User from "../types/user";
+import {toUser} from "../types/user";
 
 const profile = Router();
 const IMAGE_FORMATS = ['image/gif', 'image/jpeg', 'image/png'];
@@ -12,13 +12,13 @@ profile.get('/', checkUser, (req, res) => {
 });
 profile.post('/', checkUser, async (req, res) => {
     const {nickname, desc} = req.body;
-    const user = req.body.user as User;
+    const user = req.body.user;
     if (nickname || typeof nickname === 'string') user.nickname = nickname;
     if (desc || typeof nickname === 'string') user.desc = desc;
     try {
         if (nickname || desc || typeof nickname === 'string' || typeof nickname === 'string') return res.json({
             status: 'success',
-            user: await updateUser(user.uid, new User(user))
+            user: await updateUser(user.uid, toUser(user))
         });
         else return res.json({status: 'failed', reason: 'please give a nickname or a description'});
     } catch (e) {

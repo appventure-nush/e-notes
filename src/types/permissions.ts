@@ -1,26 +1,26 @@
 export class MutablePermissions {
     permissions: { [key: string]: boolean };
+}
 
-    setPermissions(permissions: any) {
-        for (const permission of Object.keys(permissions)) this.setPermission(permission, permissions[permission]);
-    }
+export function _setPermissions(obj: MutablePermissions, permissions: any) {
+    for (const permission of Object.keys(permissions)) _setPermission(obj, permission, permissions[permission]);
+}
 
-    setPermission(cid: string, accepts: boolean | string) {
-        if (typeof accepts === 'undefined') delete this.permissions[cid];
-        if (typeof accepts === 'string') {
-            if (accepts === "undefined" || accepts === "delete") {
-                delete this.permissions[cid];
-                return;
-            } else accepts = accepts === "true";
-        }
-        this.permissions[cid] = accepts;
+export function _setPermission(obj: MutablePermissions, cid: string, accepts: boolean | string) {
+    if (typeof accepts === 'undefined') delete obj.permissions[cid];
+    if (typeof accepts === 'string') {
+        if (accepts === "undefined" || accepts === "delete") {
+            delete obj.permissions[cid];
+            return;
+        } else accepts = accepts === "true";
     }
+    obj.permissions[cid] = accepts;
+}
 
-    accepts(cid: string) {
-        return this.permissions.hasOwnProperty(cid) && this.permissions[cid];
-    }
+export function _accepts(obj: MutablePermissions, cid: string) {
+    return obj.permissions.hasOwnProperty(cid) && obj.permissions[cid];
+}
 
-    rejects(cid: string) {
-        return this.permissions.hasOwnProperty(cid) && this.permissions[cid] === false;
-    }
+export function _rejects(obj: MutablePermissions, cid: string) {
+    return obj.permissions.hasOwnProperty(cid) && obj.permissions[cid] === false;
 }

@@ -1,5 +1,5 @@
 import {Router} from 'express';
-import {Note} from '../../types/note';
+import {makeNote, toNote} from '../../types/note';
 import {firestore, storage} from "firebase-admin";
 import {checkAdmin, getNote, getNotes, updateNote} from "../../utils";
 
@@ -25,13 +25,13 @@ notes.post("/:nid", checkAdmin, async (req, res) => {
     const documentSnapshot = await ref.get();
     if (documentSnapshot.exists) {
         if (req.body.action && req.body.action === "add") return res.status(400).json({reason: "note_already_exist"});
-        note = new Note(documentSnapshot.data());
+        note = toNote(documentSnapshot.data());
         if (req.body.nid) note.nid = req.body.nid;
         if (req.body.name) note.name = req.body.name;
         if (req.body.desc) note.desc = req.body.desc;
         note.lastEdit = Date.now();
     } else {
-        note = new Note(req.params.nid, req.body.cid, req.body.name, req.body.desc);
+        note = makeNote(req.params.nid, req.body.cid, req.body.name, req.body.desc);
     }
     updateNote(req.body.cid, req.params.nid, note);
     res.json(note);
@@ -56,7 +56,7 @@ notes.post("/:nid/upload", checkAdmin, async (req, res) => {
             cid: req.body.cid,
             nid: req.params.nid
         });
-        const note = new Note(doc.data());
+        const note = toNote(doc.data());
         const file = storage().bucket().file(`collections/${req.body.cid}/notes/${req.params.nid}.html`);
         let str = newNoteSource.data.toString();
         const match = /charset=([^"']+)/.exec(str);

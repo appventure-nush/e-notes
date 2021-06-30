@@ -1,6 +1,7 @@
 import {Router} from 'express';
 import {auth} from "firebase-admin";
 import {checkAdmin, checkUser, getUser, updateUser} from '../../utils';
+import {_setPermissions} from "../../types/permissions";
 
 const users = Router();
 
@@ -28,10 +29,11 @@ users.post("/:uid/admin", checkAdmin, async (req, res) => {
         });
         if (Array.isArray(req.body.roles)) user.roles = Array.from(req.body.roles).map(el => String(el));
         if (typeof req.body.admin === 'boolean') user.admin = req.body.admin;
-        if (typeof req.body.permissions === 'object') user.setPermissions(req.body.permissions);
+        if (typeof req.body.permissions === 'object') _setPermissions(user, req.body.permissions);
         await updateUser(user.uid, user);
         res.json(user);
     } catch (e) {
+        console.log(e);
         res.status(500).send("failed")
     }
 });

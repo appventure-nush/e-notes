@@ -1,34 +1,30 @@
-import {MutablePermissions} from "./permissions";
+import {_accepts, MutablePermissions} from "./permissions";
+import {firestore} from "firebase-admin/lib/firestore";
+import DocumentData = firestore.DocumentData;
 
-class Role extends MutablePermissions {
+export class Role extends MutablePermissions {
     rid: string;
     name: string;
     desc: string;
     defaultPerm: boolean;
-
-    constructor(rid: string | any, name?: string, desc?: string, defaultPerm?: boolean | string) {
-        super();
-        if (typeof rid === 'string') {
-            this.rid = rid;
-            this.name = name || rid;
-            this.desc = desc || "No description yet.";
-            this.permissions = {};
-            if (defaultPerm === "on" || defaultPerm === "true") defaultPerm = true;
-            if (defaultPerm === "off" || defaultPerm === "false") defaultPerm = false;
-            this.defaultPerm = !(!defaultPerm);
-        } else {
-            const src = rid as any;
-            this.rid = src.rid;
-            this.name = src.name;
-            this.desc = src.desc;
-            this.permissions = src.permissions;
-            this.defaultPerm = src.defaultPerm;
-        }
-    }
-
-    accepts(cid: string) {
-        return this.defaultPerm || super.accepts(cid);
-    }
 }
 
-export default Role;
+export function makeRole(rid: string, name?: string, desc?: string, defaultPerm?: boolean | string): Role {
+    let role = new Role();
+    role.rid = rid;
+    role.name = name || rid;
+    role.desc = desc || "No description yet.";
+    role.permissions = {};
+    if (defaultPerm === "on" || defaultPerm === "true") defaultPerm = true;
+    if (defaultPerm === "off" || defaultPerm === "false") defaultPerm = false;
+    role.defaultPerm = !(!defaultPerm);
+    return role;
+}
+
+export function toRole(obj: DocumentData): Role {
+    return obj as Role;
+}
+
+export function roleAccepts(role: Role, cid: string) {
+    return this.defaultPerm || _accepts(role, cid);
+}

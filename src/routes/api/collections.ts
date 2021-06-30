@@ -10,7 +10,7 @@ import {
     getCollection,
     hasPermissions
 } from '../../utils';
-import Collection from "../../types/coll";
+import {makeColl} from "../../types/coll";
 import {firestore, storage} from "firebase-admin";
 import path from "path";
 import imageType from "image-type";
@@ -53,7 +53,7 @@ collections.post("/:cid", checkAdmin, async (req, res) => {
         if (req.body.name) collection.name = req.body.name;
         if (req.body.desc) collection.desc = req.body.desc;
         if (req.body.open) collection.open = (req.body.open === "open");
-    } else collection = new Collection(req.params.cid, req.body.name, req.body.desc, req.body.open);
+    } else collection = makeColl(req.params.cid, req.body.name, req.body.desc, req.body.open);
     await firestore().collection("collections").doc(req.params.cid).set(collection);
     res.json(collection);
 });

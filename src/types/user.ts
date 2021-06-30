@@ -1,8 +1,10 @@
 import admin from "firebase-admin";
 import {MutablePermissions} from "./permissions";
+import {firestore} from "firebase-admin/lib/firestore";
 import UserRecord = admin.auth.UserRecord;
+import DocumentData = firestore.DocumentData;
 
-class User extends MutablePermissions {
+export class User extends MutablePermissions {
     uid: string;
 
     nickname?: string;
@@ -14,30 +16,24 @@ class User extends MutablePermissions {
     email?: string;
     pfp?: string;
     verified?: boolean;
-
-    constructor(user: string | any) {
-        super();
-        if (typeof user === 'string') {
-            this.uid = user;
-            this.roles = [];
-            this.permissions = {};
-        } else {
-            this.uid = user.uid;
-            this.nickname = user.nickname;
-            this.desc = user.desc;
-            this.roles = user.roles;
-            this.admin = user.admin;
-            this.permissions = user.permissions;
-        }
-    }
-
-    fill(user: UserRecord) {
-        this.name = user.displayName;
-        this.email = user.email;
-        this.pfp = user.photoURL;
-        this.verified = user.emailVerified;
-        return this;
-    }
 }
 
-export default User;
+export function makeUser(uid: string): User {
+    let user = new User();
+    user.uid = uid;
+    user.roles = [];
+    user.permissions = {};
+    return user;
+}
+
+export function toUser(obj: DocumentData): User {
+    return obj as User;
+}
+
+export function fillUser(user: User, rec: UserRecord): User {
+    user.name = rec.displayName;
+    user.email = rec.email;
+    user.pfp = rec.photoURL;
+    user.verified = rec.emailVerified;
+    return user;
+}

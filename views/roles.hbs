@@ -110,7 +110,7 @@
                         let deleteBtn = GEBI('delete-btn');
                         let cancelBtn = GEBI('cancel-btn');
                         cancelBtn.onclick = () => {
-                            if (document.querySelector('#input-role-form .changed')) showRole(role.rid, false);
+                            if (document.querySelector('#input-role-form .changed')) showRole(null, role.rid, false);
                             else $roleModal.modal('hide');
                         }
                         let iForm = GEBI('input-role-form');
@@ -196,7 +196,7 @@
                                     if (role.reason) return alert(role.reason);
                                     console.log(role);
                                     roles.update(role.rid, role);
-                                    showRole(role.rid, false);
+                                    showRole(null, role.rid, false);
                                     renderRoles();
                                 }).finally(() => {
                                     iForm.classList.remove('disabled');
@@ -222,7 +222,7 @@
                                 }).then(role => {
                                     console.log(role);
                                     roles.update(role.rid, role);
-                                    showRole(role.rid, false);
+                                    showRole(null, role.rid, false);
                                     renderRoles();
                                 }).finally(() => {
                                     iDefault.disabled = saveBtn.disabled = deleteBtn.disabled = cancelBtn.disabled = false;
@@ -258,9 +258,96 @@
                     </script>
                 {{/if}}
                 <hr>
-                <div id="display-role-users">
+                <h5 class="px-3">Users with this role</h5>
+                <div id="display-role-users" class="px-3">
 
                 </div>
+                {{#if user.admin}}
+                    <script>
+                        let emailRegex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/g;
+
+                        function addToUsers(btn) {
+                            btn.disabled = true;
+                            let input = GEBI("input-add-users").value;
+                            let m;
+                            let emails = [];
+                            do {
+                                m = emailRegex.exec(input);
+                                if (m) emails.push(m[0]);
+                            } while (m);
+                            if (emails.length === 0) return alert("No users specified");
+                            if (confirm(`Give '${window.role.name}' (${window.role.rid}) to ${emails.length} users?`)) {
+                                fetchJSON("/api/roles/" + window.role.rid + "/users", {
+                                    method: 'POST',
+                                    body: JSON.stringify({
+                                        emails: emails,
+                                        action: "add"
+                                    })
+                                }).then(res => {
+                                    console.log(res);
+                                    if (res.status === "ok") {
+                                        alert("Updated " + res.updated + " users");
+                                        dUsers.innerHTML = renderUsersWhoHasRole(res.users);
+                                    }
+                                }).finally(() => {
+                                    btn.disabled = false;
+                                });
+                            } else {
+                                btn.disabled = false;
+                            }
+                        }
+
+                        function removeFromUsers(btn) {
+                            btn.disabled = true;
+                            let input = GEBI("input-remove-users").value;
+                            let m;
+                            let emails = [];
+                            do {
+                                m = emailRegex.exec(input);
+                                if (m) emails.push(m[0]);
+                            } while (m);
+                            if (emails.length === 0) return alert("No users specified");
+                            if (confirm(`Remove '${window.role.name}' (${window.role.rid}) from ${emails.length} users?`)) {
+                                fetchJSON("/api/roles/" + window.role.rid + "/users", {
+                                    method: 'POST',
+                                    body: JSON.stringify({
+                                        emails: emails,
+                                        action: "remove"
+                                    })
+                                }).then(res => {
+                                    console.log(res);
+                                    if (res.status === "ok") {
+                                        alert("Updated " + res.updated + " users");
+                                        dUsers.innerHTML = renderUsersWhoHasRole([]);
+                                    }
+                                }).finally(() => {
+                                    btn.disabled = false;
+                                });
+                            } else {
+                                btn.disabled = false;
+                            }
+                        }
+                    </script>
+                    <div class="input-group px-3 py-1">
+                        <input type="text" class="form-control" placeholder="Emails (,/SPACE/;)"
+                               id="input-add-users">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="button" onclick="addToUsers(this)">
+                                Grant
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="input-group px-3 py-1">
+                        <input type="text" class="form-control" placeholder="Emails (,/SPACE/;)"
+                               id="input-remove-users">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="button" onclick="removeFromUsers(this)">
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                {{/if}}
             </div>
         </div>
     </div>
@@ -280,18 +367,25 @@
         return roles.getAll(!forceReset).then(roles => {
             console.log(roles);
             display.innerHTML = roles.map(role => `<div class="col-lg-3 col-md-5 col-sm-12 role-card d-flex align-items-center" id="rid-${escapeHTML(role.rid)}">
-<a onclick="showRole('${escapeHTML(role.rid)}')" class="card-link"><pre>${escapeHTML(role.rid)}</pre> ${escapeHTML(role.name)}</a>
+<a onclick="showRole(this,'${escapeHTML(role.rid)}')" class="btn btn-light card-link"><pre>${escapeHTML(role.rid)}</pre> ${escapeHTML(role.name)}</a>
 </div>`).join('\n');
         });
     }
 
-    async function showRole(rid, doubleRefresh = true) {
+    function renderUsersWhoHasRole(users) {
+        if (users.length > 0) return users.map(u => `<span class="mr-1 badge bg-light text-dark">${u.name} <small>${u.email}</small></span>`).join("");
+        else return "<em>None</em>";
+    }
+
+    async function showRole(elem, rid, doubleRefresh = true) {
         if (rid) {
+            if (elem) elem.classList.add("disabled");
             window.role = await roles.get(rid);
             dRID.innerText = role.rid;
             dName.innerText = role.name;
             dDesc.innerHTML = marked(role.desc ? role.desc : "");
-            dUsers.innerHTML = (await roles.getUsers(rid))
+            let users = await roles.getUsers(rid);
+            dUsers.innerHTML = renderUsersWhoHasRole(users);
             {{#if user.admin}}
                 updateAdminInputs(role);
             {{/if}}
@@ -304,15 +398,16 @@
                     renderRoles();
                 }
             })
+            if (elem) elem.classList.remove("disabled");
         } else history.pushState("", "", '/r');
     }
 
-    $roleModal.on('hidden.bs.modal', () => showRole(null));
+    $roleModal.on('hidden.bs.modal', () => showRole(null, null));
 
     window.onload = _ => {
         renderRoles().then(() => renderRoles(true));
         {{#if show}}
-            showRole("{{show}}");
+            showRole(null, "{{show}}");
         {{/if}}
         {{#if user.admin}}
             const urlParams = new URLSearchParams(window.location.search);

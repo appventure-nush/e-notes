@@ -83,7 +83,7 @@
                     <script>
                         let saveBtn = GEBI('save-btn');
                         let cancelBtn = GEBI('cancel-btn');
-                        cancelBtn.onclick = () => showUser(user.uid, false)
+                        cancelBtn.onclick = () => showUser(cancelBtn, user.uid, false)
                         let iForm = GEBI('input-user-form');
                         let iAdmin = GEBI('input-user-admin');
                         iAdmin.addEventListener('change', () => {
@@ -139,7 +139,7 @@
                             }).then(user => {
                                 console.log(user);
                                 users.update(user.uid, user);
-                                showUser(user.uid, false);
+                                showUser(null, user.uid, false);
                             }).finally(() => {
                                 iRolesWrapper.classList.remove('disabled');
                                 iAdmin.disabled = saveBtn.disabled = cancelBtn.disabled = false;
@@ -172,14 +172,14 @@
         users.getAll(!forceReset).then(users => {
             console.log(users);
             display.innerHTML = users.map(user => `<div class="col-lg-3 col-md-5 col-sm-12 user-card d-flex align-items-center" id="uid-${user.uid}">
-<img src="${user.pfp || "/images/guest.png"}" class="rounded-circle mr-1" width="30" height="30" style="object-fit: cover;"/>
-<a onclick="showUser('${user.uid}')" class="card-link">${user.name}</a>
+<a onclick="showUser(this, '${user.uid}')" class="btn btn-light"><img src="${user.pfp || "/images/guest.png"}" class="rounded-circle mr-1" width="30" height="30" style="object-fit: cover;"/> ${user.name}</a>
 </div>`).join('\n');
         });
     }
 
-    async function showUser(uid, doubleRefresh = true) {
+    async function showUser(elem, uid, doubleRefresh = true) {
         if (uid) {
+            if (elem) elem.classList.add("disabled");
             window.user = await users.get(uid);
             dUID.innerText = user.uid;
             dName.innerText = user.name;
@@ -197,12 +197,13 @@
             $userModal.modal('show');
             history.pushState("", "", '/u/' + uid);
             if (doubleRefresh) await users.get(uid, false);
+            if (elem) elem.classList.remove("disabled");
         } else history.pushState("", "", '/u');
     }
 
-    $userModal.on('hidden.bs.modal', () => showUser(null));
+    $userModal.on('hidden.bs.modal', () => showUser(null, null));
 
     window.onload = _ => {
-        renderCollections();{{#if show}}showUser("{{show}}");{{/if}}
+        renderCollections();{{#if show}}showUser(null, "{{show}}");{{/if}}
     }
 </script>

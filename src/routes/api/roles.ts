@@ -1,7 +1,18 @@
 import {Router} from 'express';
-import Role from '../../types/role';
-import {checkAdmin, checkUser, findUserWithRole, getAllRoles, getRole, updateRole} from '../../utils';
+import {makeRole} from '../../types/role';
+import {
+    checkAdmin,
+    checkUser,
+    findUserWithRole,
+    getAllRoles,
+    getRole,
+    getUsers,
+    updateRole,
+    updateUser
+} from '../../utils';
 import apicache from 'apicache';
+import {_setPermissions} from "../../types/permissions";
+import {User} from "../../types/user";
 
 const cache = apicache.middleware;
 const roles = Router();
@@ -17,7 +28,42 @@ roles.get("/:rid", checkUser, async (req, res) => {
     else res.json(role);
 });
 
-roles.get("/:rid/users", checkUser, cache('1 min'), async (req, res) => res.json(findUserWithRole(req.params.rid)));
+roles.get("/:rid/users", checkUser, cache('1 min'), async (req, res) => {
+    // @ts-ignore
+    req.apicacheGroup = req.params.rid;
+    return res.json(await findUserWithRole(req.params.rid));
+});
+
+roles.post("/:rid/users", checkAdmin, async (req, res) => {
+    let found: User[];
+    let addOrNot = req.body.action === "add";
+    if (req.body.uids) found = (req.body.uids as string[]).map(e => getUsers().find(u => u.uid === e));
+    if (req.body.emails) found = (req.body.emails as string[]).map(e => getUsers().find(u => u.email === e));
+    if (!found || found.length === 0) res.status(400).json({
+        reason: "no users specified",
+        rid: req.params.rid
+    }); else {
+        let updated = 0;
+        let result = await Promise.all(found.map(user => {
+            if (addOrNot) {
+                if (user.roles.includes(req.params.rid)) return user;
+                user.roles.push(req.params.rid);
+                updated++;
+            } else {
+                if (!user.roles.includes(req.params.rid)) return user;
+                user.roles = user.roles.filter(role => role !== req.params.rid);
+                updated++;
+            }
+            return updateUser(user.uid, user);
+        }));
+        apicache.clear(req.params.rid);
+        res.json({
+            status: "ok",
+            updated: updated,
+            users: result
+        });
+    }
+});
 
 roles.delete("/:rid", checkAdmin, async (req, res) => {
     if (!await getRole(req.params.rid)) return res.status(404).json({
@@ -44,8 +90,8 @@ roles.post("/:rid", checkAdmin, async (req, res) => {
         rid: req.params.rid
     });
     else {
-        const role = new Role(req.body.rid, req.body.name, req.body.desc, req.body.defaultPerm);
-        role.setPermissions(req.body.permissions);
+        const role = makeRole(req.body.rid, req.body.name, req.body.desc, req.body.defaultPerm);
+        _setPermissions(role, req.body.permissions);
         await updateRole(role.rid, role);
         res.json(role);
     }
@@ -59,7 +105,7 @@ roles.post("/:rid/admin", checkAdmin, async (req, res) => {
             rid: req.params.rid
         });
         if (typeof req.body.defaultPerm === 'boolean') role.defaultPerm = req.body.defaultPerm;
-        if (typeof req.body.permissions === 'object') role.setPermissions(req.body.permissions);
+        if (typeof req.body.permissions === 'object') _setPermissions(role, req.body.permissions);
         if (typeof req.body.name === 'string') role.name = req.body.name;
         if (typeof req.body.desc === 'string') role.desc = req.body.desc;
         await updateRole(role.rid, role);

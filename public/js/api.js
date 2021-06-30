@@ -43,6 +43,11 @@ function generateAPI(key, idKey, path) {
             else this.update(id, item);
             return item;
         },
+        delete: async function (id) {
+            console.groupCollapsed(idKey + ".delete(" + id + ")");
+            console.groupEnd();
+            this.update(id, null);
+        },
         getAll: async function (useCache = true) {
             if (!useCache || !cache[key] || cache[key].length === 0) try {
                 console.log("getting latest " + path + "...");
@@ -93,6 +98,7 @@ function fetcher(url, options) {
 }
 
 function fetchJSON(url, options) {
+    if (!options.headers) options.headers = {};
     options.headers['Content-Type'] = 'application/json';
     return fetch(url, updateOptions(options)).then(res => res.json());
 }
