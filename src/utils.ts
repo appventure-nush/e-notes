@@ -199,6 +199,9 @@ export function getCollection(cid: string): Collection { // heavy call function
 
 export function setup(): [() => void, () => void, () => void] {
     // probably not very efficient
+    collections.splice(0, collections.length);
+    roles.splice(0, roles.length);
+    users.splice(0, users.length);
     return [firestore().collection('collections').onSnapshot(querySnapshot => {
         querySnapshot.docChanges().forEach(change => {
             const cid = change.doc.data().cid;
