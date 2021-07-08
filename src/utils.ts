@@ -6,6 +6,8 @@ import express from "express";
 import admin, {auth, firestore} from "firebase-admin";
 import {_accepts, _rejects} from "./types/permissions";
 import DocumentSnapshot = admin.firestore.DocumentSnapshot;
+import DocumentData = firestore.DocumentData;
+import QuerySnapshot = firestore.QuerySnapshot;
 
 const users: User[] = [];
 
@@ -199,23 +201,24 @@ export function getCollection(cid: string): Collection { // heavy call function
 
 export function setup(): [() => void, () => void, () => void] {
     // probably not very efficient
-    collections.splice(0, collections.length);
-    roles.splice(0, roles.length);
-    users.splice(0, users.length);
-    return [firestore().collection('collections').onSnapshot(querySnapshot => querySnapshot.docChanges().forEach(change => {
-        const cid = change.doc.data().cid;
-        if (change.type === "added") collections.push(change.doc.data() as Collection);
-        else if (change.type === "removed") collections.splice(collections.findIndex(coll => coll.cid === cid), 1);
-        else if (change.type === "modified") collections[collections.findIndex(coll => coll.cid === cid)] = change.doc.data() as Collection;
-    })), firestore().collection('roles').onSnapshot(querySnapshot => querySnapshot.docChanges().forEach(change => {
-        const rid = change.doc.data().rid;
-        if (change.type === "added") roles.push(change.doc.data() as Role);
-        else if (change.type === "removed") roles.splice(roles.findIndex(role => role.rid === rid), 1);
-        else if (change.type === "modified") roles[roles.findIndex(role => role.rid === rid)] = change.doc.data() as Role;
-    })), firestore().collection('users').onSnapshot(querySnapshot => querySnapshot.docChanges().forEach(change => {
-        const uid = change.doc.data().uid;
-        if (change.type === "added") users.push(change.doc.data() as User);
-        else if (change.type === "removed") users.splice(users.findIndex(user => user.uid === uid), 1);
-        else if (change.type === "modified") users[users.findIndex(user => user.uid === uid)] = change.doc.data() as User;
-    }))];
+    return [firestore().collection('collections').onSnapshot(genQuerySnapshotHandler(c => c.cid, collections)),
+        firestore().collection('roles').onSnapshot(genQuerySnapshotHandler(r => r.rid, roles)),
+        firestore().collection('users').onSnapshot(genQuerySnapshotHandler(u => u.uid, users))];
+}
+
+function genQuerySnapshotHandler<T>(getID: (el: T) => string, array: T[]): (querySnapshot: QuerySnapshot<DocumentData>) => void {
+    return (querySnapshot: QuerySnapshot<DocumentData>) => {
+        querySnapshot.docChanges().forEach(change => {
+            const t = change.doc.data() as T;
+            const id = getID(t);
+            const index = array.findIndex(elem => getID(elem) === id);
+            if (change.type === "added") {
+                if (index !== -1)
+                    array[index] = t;
+                else
+                    array.push(t);
+            } else if (change.type === "removed" && index !== -1) array.splice(index, 1);
+            else if (change.type === "modified" && index !== -1) array[index] = t;
+        });
+    }
 }

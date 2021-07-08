@@ -27,7 +27,9 @@ collection.get('/:cid/img/:img', checkUser, async (req, res) => {
     if (!await hasPermissions(req.body.cuid, req.params.cid)) return res.json({status: 'failed', reason: 'no_perm'});
     res.redirect(await getURL(`collections/${req.params.cid}/images/${req.params.img}`));
 });
-collection.get('/:cid/:nid', checkUser, (req, res) => {
+collection.get('/:cid/:nid', checkUser, async (req, res) => {
+    const note = await getNote(req.params.cid, req.params.nid);
+    if (!note) return res.status(404);
     res.render("collection", {
         title: req.params.cid + "/" + req.params.nid,
         user: req.body.user,

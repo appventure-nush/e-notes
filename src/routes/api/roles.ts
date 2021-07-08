@@ -35,17 +35,17 @@ roles.get("/:rid/users", checkUser, cache('1 min'), async (req, res) => {
 });
 
 roles.post("/:rid/users", checkAdmin, async (req, res) => {
-    let found: User[];
-    let addOrNot = req.body.action === "add";
-    if (req.body.uids) found = (req.body.uids as string[]).map(e => getUsers().find(u => u.uid === e));
-    if (req.body.emails) found = (req.body.emails as string[]).map(e => getUsers().find(u => u.email === e));
-    if (!found || found.length === 0) res.status(400).json({
+    let foundUsers: User[];
+    if (req.body.uids) foundUsers = (req.body.uids as string[]).map(e => getUsers().find(u => u.uid === e));
+    if (req.body.emails) foundUsers = (req.body.emails as string[]).map(e => getUsers().find(u => u.email === e));
+    if (!foundUsers || foundUsers.length === 0) res.status(400).json({
         reason: "no users specified",
         rid: req.params.rid
     }); else {
         let updated = 0;
-        let result = await Promise.all(found.map(user => {
-            if (addOrNot) {
+        foundUsers = foundUsers.filter(u => Boolean(u));
+        const result = await Promise.all(foundUsers.map(user => {
+            if (req.body.action === "add") {
                 if (user.roles.includes(req.params.rid)) return user;
                 user.roles.push(req.params.rid);
                 updated++;
@@ -59,7 +59,7 @@ roles.post("/:rid/users", checkAdmin, async (req, res) => {
         apicache.clear(req.params.rid);
         res.json({
             status: "ok",
-            updated: updated,
+            updated,
             users: result
         });
     }
