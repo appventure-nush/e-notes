@@ -19,12 +19,13 @@ index.get('/login', checkUserOptional, (req, res) => {
 
 index.get('/logout', (req, res) => {
     const sessionCookie = req.cookies.session || '';
+    if(!sessionCookie) return res.redirect("/");
     res.clearCookie('session');
     auth()
         .verifySessionCookie(sessionCookie)
         .then((decodedClaims) => auth().revokeRefreshTokens(decodedClaims.sub))
         .then(_ => res.render('logout', {layout: false}))
-        .catch(_ => res.status(403).send('logout failed'));
+        .catch(_ => res.status(403).send('logout failed<br>' + _.message));
 });
 
 index.post('/', (req, res) => {

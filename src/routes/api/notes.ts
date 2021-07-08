@@ -69,7 +69,7 @@ notes.post("/:nid/upload", checkAdmin, async (req, res) => {
         updateNote(req.body.cid, req.params.nid, note);
         res.json({
             status: 'success',
-            note: note
+            note
         });
         await ref.set(note);
     } else return res.json({status: 'failed', reason: 'where is the file'});

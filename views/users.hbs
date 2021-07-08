@@ -168,8 +168,8 @@
 
     const $userModal = $('#user-modal');
 
-    function renderCollections(forceReset = false) {
-        users.getAll(!forceReset).then(users => {
+    function renderUsers(forceReset = false) {
+        return users.getAll(!forceReset).then(users => {
             console.log(users);
             display.innerHTML = users.map(user => `<div class="col-lg-3 col-md-5 col-sm-12 user-card d-flex align-items-center" id="uid-${user.uid}">
 <a onclick="showUser(this, '${user.uid}')" class="btn btn-light"><img src="${user.pfp || "/images/guest.png"}" class="rounded-circle mr-1" width="30" height="30" style="object-fit: cover;"/> ${user.name}</a>
@@ -204,6 +204,7 @@
     $userModal.on('hidden.bs.modal', () => showUser(null, null));
 
     window.onload = _ => {
-        renderCollections();{{#if show}}showUser(null, "{{show}}");{{/if}}
+        renderUsers().then(() => renderUsers(true));
+                {{#if show}}showUser(null, "{{show}}");{{/if}}
     }
 </script>

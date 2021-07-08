@@ -202,35 +202,20 @@ export function setup(): [() => void, () => void, () => void] {
     collections.splice(0, collections.length);
     roles.splice(0, roles.length);
     users.splice(0, users.length);
-    return [firestore().collection('collections').onSnapshot(querySnapshot => {
-        querySnapshot.docChanges().forEach(change => {
-            const cid = change.doc.data().cid;
-            if (change.type === "added") collections.push(change.doc.data() as Collection);
-            else if (change.type === "removed") collections.splice(collections.findIndex(coll => coll.cid === cid), 1);
-            else if (change.type === "modified") collections[collections.findIndex(coll => coll.cid === cid)] = change.doc.data() as Collection;
-        });
-    }), firestore().collection('roles').onSnapshot(querySnapshot => {
-        querySnapshot.docChanges().forEach(change => {
-            const rid = change.doc.data().rid;
-            if (change.type === "added") roles.push(change.doc.data() as Role);
-            else if (change.type === "removed") roles.splice(roles.findIndex(role => role.rid === rid), 1);
-            else if (change.type === "modified") roles[roles.findIndex(role => role.rid === rid)] = change.doc.data() as Role;
-        });
-    }), firestore().collection('users').onSnapshot(querySnapshot => {
-        querySnapshot.docChanges().forEach(change => {
-            const uid = change.doc.data().uid;
-            if (change.type === "added") users.push(change.doc.data() as User);
-            else if (change.type === "removed") users.splice(users.findIndex(user => user.uid === uid), 1);
-            else if (change.type === "modified") users[users.findIndex(user => user.uid === uid)] = change.doc.data() as User;
-        });
-    })];
-}
-
-function mapAsync<T, U>(array: T[], callback: (value: T, index: number, array: T[]) => Promise<U>): Promise<U[]> {
-    return Promise.all(array.map(callback));
-}
-
-async function filterAsync<T>(array: T[], callback: (value: T, index: number, array: T[]) => Promise<boolean>): Promise<T[]> {
-    const filterMap = await mapAsync(array, callback);
-    return array.filter((value, index) => filterMap[index]);
+    return [firestore().collection('collections').onSnapshot(querySnapshot => querySnapshot.docChanges().forEach(change => {
+        const cid = change.doc.data().cid;
+        if (change.type === "added") collections.push(change.doc.data() as Collection);
+        else if (change.type === "removed") collections.splice(collections.findIndex(coll => coll.cid === cid), 1);
+        else if (change.type === "modified") collections[collections.findIndex(coll => coll.cid === cid)] = change.doc.data() as Collection;
+    })), firestore().collection('roles').onSnapshot(querySnapshot => querySnapshot.docChanges().forEach(change => {
+        const rid = change.doc.data().rid;
+        if (change.type === "added") roles.push(change.doc.data() as Role);
+        else if (change.type === "removed") roles.splice(roles.findIndex(role => role.rid === rid), 1);
+        else if (change.type === "modified") roles[roles.findIndex(role => role.rid === rid)] = change.doc.data() as Role;
+    })), firestore().collection('users').onSnapshot(querySnapshot => querySnapshot.docChanges().forEach(change => {
+        const uid = change.doc.data().uid;
+        if (change.type === "added") users.push(change.doc.data() as User);
+        else if (change.type === "removed") users.splice(users.findIndex(user => user.uid === uid), 1);
+        else if (change.type === "modified") users[users.findIndex(user => user.uid === uid)] = change.doc.data() as User;
+    }))];
 }
