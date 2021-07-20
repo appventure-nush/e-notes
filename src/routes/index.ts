@@ -3,6 +3,7 @@ import {checkUser, checkUserOptional} from '../utils';
 import {auth} from 'firebase-admin';
 import userRouter from "./users";
 import roleRouter from "./roles";
+import auditRouter from "./audits";
 import collRouter from "./collections";
 import profileRouter from "./profile";
 
@@ -19,7 +20,7 @@ index.get('/login', checkUserOptional, (req, res) => {
 
 index.get('/logout', (req, res) => {
     const sessionCookie = req.cookies.session || '';
-    if(!sessionCookie) return res.redirect("/");
+    if (!sessionCookie) return res.redirect("/");
     res.clearCookie('session');
     auth()
         .verifySessionCookie(sessionCookie)
@@ -45,6 +46,7 @@ index.post('/', (req, res) => {
 index.use("/u", userRouter);
 index.use("/c", collRouter);
 index.use("/r", roleRouter);
+index.use("/a", auditRouter);
 index.use("/profile", profileRouter);
 
 export default index;

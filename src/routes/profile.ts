@@ -4,6 +4,7 @@ import {checkUser, updateUser} from "../utils";
 import imageType from "image-type";
 import {auth, storage} from "firebase-admin";
 import {User} from "../types/user";
+import {Action, addAudit, Category, simpleAudit} from "../types/audit";
 
 const profile = Router();
 const IMAGE_FORMATS = ['image/gif', 'image/jpeg', 'image/png'];
@@ -16,11 +17,13 @@ profile.post('/', checkUser, async (req, res) => {
     if (nickname || typeof nickname === 'string') user.nickname = nickname;
     if (desc || typeof nickname === 'string') user.desc = desc;
     try {
-        if (nickname || desc || typeof nickname === 'string' || typeof nickname === 'string') return res.json({
-            status: 'success',
-            user: await updateUser(user.uid, user as User)
-        });
-        else return res.json({status: 'failed', reason: 'please give a nickname or a description'});
+        if (nickname || desc || typeof nickname === 'string' || typeof nickname === 'string') {
+            await addAudit(simpleAudit(user.uid, user.uid, Category.USER, Action.EDIT, [{nickname, desc}]));
+            return res.json({
+                status: 'success',
+                user: await updateUser(user.uid, user as User)
+            });
+        } else return res.json({status: 'failed', reason: 'please give a nickname or a description'});
     } catch (e) {
         // await error("profile change error", {message: e.message, body: req.body, uid: user.uid});
     }
@@ -44,6 +47,7 @@ profile.post('/uploadPFP', checkUser, async (req, res) => {
                         status: 'success',
                         user: req.body.user.fill(await auth().updateUser(req.body.cuid, {photoURL: url}))
                     });
+                    await addAudit(simpleAudit(req.body.cuid, req.body.cuid, Category.USER, Action.EDIT, [{pfp: url}]));
                 } catch (e) {
                     // await error("pfp change error", {
                     //     message: e.message,

@@ -1,4 +1,5 @@
 export interface Note {
+    index: number;
     cid: string;
     nid: string;
     name: string;
@@ -7,13 +8,14 @@ export interface Note {
     url: string;
 }
 
-export function makeNote(nid: string, cid?: string, name?: string, desc?: string): Note {
+export function makeNote(i: number, nid: string, cid?: string, name?: string, desc?: string): Note {
     return {
+        index: i,
         url: null,
         cid: cid,
         nid: nid,
         name: name || nid,
-        desc: desc || "No description yet.",
+        desc: desc,
         lastEdit: Date.now()
     };
 }

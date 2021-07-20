@@ -1,0 +1,102 @@
+<ul class="pagination" id="pages">
+    <li class="page-item">
+        <a id="last-page-btn" class="page-link" href="#" aria-label="Previous" onclick="lastPage()">
+            <span aria-hidden="true">&laquo;</span>
+            <span class="sr-only">Previous</span>
+        </a>
+    </li>
+
+    <li class="page-item">
+        <a id="next-page-btn" class="page-link" href="#" aria-label="Next" onclick="nextPage()">
+            <span aria-hidden="true">&raquo;</span>
+            <span class="sr-only">Next</span>
+        </a>
+    </li>
+</ul>
+<div class="list-group" id="audit-items">
+</div>
+<script>
+    window.currentNav = "audits";
+    let PAGE_SIZE = 32;
+    let currentPage = 0;
+    let audits = [];
+
+    const pageIndexes = GEBI("pages");
+    const items = GEBI("audit-items");
+    const lastBtn = GEBI("last-page-btn"), nextBtn = GEBI("next-page-btn");
+
+    function fetchNextPage() {
+        const url = new URL(`/api/audits/rendered`, document.baseURI),
+                params = {pageSize: PAGE_SIZE, last: audits[audits.length - 1]?.aid};
+        Object.keys(params).forEach(key => url.searchParams.append(key, params[key]))
+        return fetcher(url);
+    }
+
+    async function renderMessage(messages) {
+        return (await Promise.all(messages.map(async m => {
+            if (typeof m === "string") return m;
+            if (m.cat === 0) {
+                return `<a href="/c/${m.id}/">${m.deleted ? m.id : (await collections.get(m.id))?.name || m.id}</a>`;
+            } else if (m.cat === 1) {
+                return `<a href="/c/${m.cid}/${m.id}">${(await collections.get(m.cid))?.name || m.cid}/${m.id}</a>`;
+            } else if (m.cat === 2) {
+                return `<a href="/r/${m.id}">${m.deleted ? m.id : (await roles.get(m.id))?.name || m.id}</a>`;
+            } else if (m.cat === 3) {
+                return `<a href="/u/${m.id}">${m.deleted ? m.id : (await users.get(m.id))?.name || m.id}</a>`;
+            }
+        }))).join(" ");
+    }
+
+    function htmlToElement(html) {
+        var template = document.createElement('template');
+        html = html.trim(); // Never return a text node of whitespace as the result
+        template.innerHTML = html;
+        return template.content.firstChild;
+    }
+
+    function guidGenerator() {
+        var S4 = () => (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+        return (S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4());
+    }
+
+    async function renderPage(pageNo = 0) {
+        if (pageNo < 0) return;
+        if (pageNo * PAGE_SIZE >= audits.length) { // need new page
+            let result = await fetchNextPage();
+            if (result.length === 0) return;
+            pageIndexes.insertBefore(
+                    htmlToElement(`<li class="page-item"><a class="page-link" href="#" onclick="renderPage(${pageNo})">${pageNo + 1}</a></li>`),
+                    nextBtn.parentElement
+            );
+            audits.push(...result);
+        }
+        currentPage = pageNo;
+        pageIndexes.querySelectorAll(".page-link.active").forEach(e => e.classList.remove("active"));
+        pageIndexes.children.item(pageNo + 1).classList.add("active");
+
+        items.innerHTML = "";
+        for (let s = pageNo * PAGE_SIZE; s < (pageNo + 1) * PAGE_SIZE; s++) {
+            if (!audits[s]) break;
+            let id = guidGenerator();
+            items.innerHTML += `<li class="list-group-item" id="${audits[s].aid}">
+            <p class="mb-1" ${audits[s].body ? ` onclick="$('#${id}').toggle()"` : ''}>${await renderMessage(audits[s].message)}
+            ${audits[s].body ? '<span class="float-right">▾</span>' : ''}</p>
+            ${audits[s].body ? `<div class="mb-1 collapse" id="${id}">${await renderMessage(audits[s].body)}</div>` : ''}
+            <small>${audits[s].date}</small></li>`
+        }
+    }
+
+    async function nextPage() {
+        nextBtn.parentElement.classList.add("disabled");
+        await renderPage(currentPage + 1);
+        nextBtn.parentElement.classList.remove("disabled");
+    }
+
+    async function lastPage() {
+        lastBtn.parentElement.classList.add("disabled");
+        await renderPage(currentPage - 1);
+        lastBtn.parentElement.classList.remove("disabled");
+    }
+
+    renderPage();
+</script>

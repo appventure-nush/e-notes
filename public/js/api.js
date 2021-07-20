@@ -37,10 +37,13 @@ function generateAPI(key, idKey, path) {
             }
             console.debug("fetching ", `/api/${path}/${id}`);
             item = await fetcher(`/api/${path}/${id}`)
+
             console.debug(item);
             console.groupEnd();
-            if (item.reason) console.error(item.reason);
-            else this.update(id, item);
+            if (item.reason) {
+                console.error(item.reason);
+                return null;
+            } else this.update(id, item);
             return item;
         },
         delete: async function (id) {

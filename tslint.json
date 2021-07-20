@@ -1,12 +1,17 @@
 {
-    "defaultSeverity": "error",
+    "defaultSeverity": "warning",
     "extends": [
         "tslint:recommended"
     ],
     "jsRules": {},
     "rules": {
+        "no-trailing-whitespace": false,
+        "prefer-const": false,
+        "object-shorthand": false,
+        "object-literal-shorthand": false,
         "no-shadowed-variable": false,
-        "trailing-comma": false
+        "trailing-comma": false,
+        "one-variable-per-declaration": false
     },
     "rulesDirectory": []
 }

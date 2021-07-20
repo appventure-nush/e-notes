@@ -2,6 +2,7 @@ import {Router} from 'express';
 import {auth} from "firebase-admin";
 import {checkAdmin, checkUser, getUser, updateUser} from '../../utils';
 import {_setPermissions} from "../../types/permissions";
+import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 
 const users = Router();
 
@@ -27,11 +28,17 @@ users.post("/:uid/admin", checkAdmin, async (req, res) => {
             reason: "user_not_found",
             rid: req.params.uid
         });
-        if (Array.isArray(req.body.roles)) user.roles = Array.from(req.body.roles).map(el => String(el));
+        if (Array.isArray(req.body.roles)) {
+            await addAudit(simpleAudit(req.body.cuid, req.params.rid, Category.ROLE, Action.EDIT_ROLES, [{
+                "old": user.roles,
+                "new": user.roles = Array.from(req.body.roles).map(el => String(el))
+            }], {users: [user.uid]}));
+        }
         if (typeof req.body.admin === 'boolean') user.admin = req.body.admin;
         if (typeof req.body.permissions === 'object') _setPermissions(user, req.body.permissions);
         await updateUser(user.uid, user);
         res.json(user);
+        await addAudit(simpleAudit(req.body.cuid, req.params.rid, Category.USER, Action.EDIT_PERMISSION, [req.body]));
     } catch (e) {
         res.status(500).send("failed")
     }

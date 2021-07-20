@@ -84,6 +84,9 @@
             <li id="nav_home" role="presentation"><a href="/">Home</a></li>
             <li id="nav_users" role="presentation"><a href="/u">Users</a></li>
             <li id="nav_roles" role="presentation"><a href="/r">Roles</a></li>
+            {{#if user.admin}}
+                <li id="nav_audits" role="presentation"><a href="/a">Audits</a></li>
+            {{/if}}
             <hr>
             <li role="presentation">
                 <div class="input-group">
@@ -138,7 +141,8 @@
     const nav = {
         "index": "nav_home",
         "users": "nav_users",
-        "roles": "nav_roles"
+        "roles": "nav_roles",
+        "audits": "nav_audits"
     };
     if (nav[window.currentNav]) {
         let nav_item = GEBI(nav[window.currentNav]);

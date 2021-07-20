@@ -13,6 +13,7 @@ import {
 import apicache from 'apicache';
 import {_setPermissions} from "../../types/permissions";
 import {User} from "../../types/user";
+import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 
 const cache = apicache.middleware;
 const roles = Router();
@@ -62,16 +63,19 @@ roles.post("/:rid/users", checkAdmin, async (req, res) => {
             updated,
             users: result
         });
+        await addAudit(simpleAudit(req.body.cuid, req.params.rid, Category.ROLE, Action.EDIT_ROLES, ["grant_roles"], {users: foundUsers.map(u => u.uid)}));
     }
 });
 
 roles.delete("/:rid", checkAdmin, async (req, res) => {
-    if (!await getRole(req.params.rid)) return res.status(404).json({
+    let role = await getRole(req.params.rid);
+    if (!role) return res.status(404).json({
         reason: "role_not_found",
         rid: req.params.rid
     });
     else {
         await updateRole(req.params.rid, null);
+        await addAudit(simpleAudit(req.body.cuid, req.params.rid, Category.ROLE, Action.DELETE, [role]));
         res.json({status: "ok"});
     }
 });
@@ -94,6 +98,7 @@ roles.post("/:rid", checkAdmin, async (req, res) => {
         _setPermissions(role, req.body.permissions);
         await updateRole(role.rid, role);
         res.json(role);
+        await addAudit(simpleAudit(req.body.cuid, req.params.rid, Category.ROLE, Action.CREATE));
     }
 });
 
@@ -110,6 +115,7 @@ roles.post("/:rid/admin", checkAdmin, async (req, res) => {
         if (typeof req.body.desc === 'string') role.desc = req.body.desc;
         await updateRole(role.rid, role);
         res.json(role);
+        await addAudit(simpleAudit(req.body.cuid, req.params.rid, Category.ROLE, Action.EDIT_PERMISSION, [req.body]));
     } catch (e) {
         res.status(500).send("failed")
     }

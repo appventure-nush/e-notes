@@ -8,16 +8,19 @@ import {_accepts, _rejects} from "./types/permissions";
 import DocumentSnapshot = admin.firestore.DocumentSnapshot;
 import DocumentData = firestore.DocumentData;
 import QuerySnapshot = firestore.QuerySnapshot;
+import {Action, addAudit, Category, simpleAudit} from "./types/audit";
 
 const users: User[] = [];
 
 export const getUsers = (): User[] => users;
 const roles: Role[] = [];
 const collections: Collection[] = [];
-const noteCache: Map<string, {
-    notes: Note[],
-    cacheDate: number
-}> = new Map();
+const noteCache: {
+    [key: string]: {
+        notes: Note[],
+        cacheDate: number
+    }
+} = {};
 
 export async function getUser(uid: string): Promise<User> { // heavy call function
     if (!uid) return null;
@@ -25,8 +28,15 @@ export async function getUser(uid: string): Promise<User> { // heavy call functi
     if (!fbUser) return null;
     let user = users.find(user => user.uid === uid);
     if (!user) {
-        user = makeUser(fbUser.uid);
-        await firestore().collection("users").doc(fbUser.uid).set(user);
+        let ref = firestore().collection("users").doc(fbUser.uid);
+        let get = await ref.get();
+        if (get.exists) { // double checking
+            updateUserCache(fbUser.uid, user = get.data() as User);
+            // very weird but may happen
+        } else {
+            user = makeUser(fbUser.uid);
+            await Promise.all([ref.set(user), addAudit(simpleAudit("root", user.uid, Category.USER, Action.CREATE))]);
+        }
     }
     return fillUser(user, fbUser);
 }
@@ -77,24 +87,26 @@ export function getAllRoles(): Role[] {
 }
 
 export async function getNote(cid: string, nid: string): Promise<Note> {
-    return (await getNotes(cid)).find(note => note.nid === nid);
+    let notes = await getNotes(cid);
+    if (!notes) return null;
+    return notes.find(note => note.nid === nid);
 }
 
 export async function getNotes(cid: string): Promise<Note[]> {
-    let coll = noteCache.get(cid);
+    let coll = noteCache[cid];
     if (!coll) {
         if (!getCollection(cid)) return null;
         const allNotes = await firestore().collection("collections").doc(cid).collection("notes").get();
-        noteCache.set(cid, coll = {
+        noteCache[cid] = coll = {
             cacheDate: Date.now(),
             notes: allNotes.docs.map((doc: DocumentSnapshot) => doc.data() as Note)
-        });
+        }
     }
     return coll.notes;
 }
 
 export function updateNote(cid: string, nid: string, note: Note) {
-    const coll = noteCache.get(cid);
+    const coll = noteCache[cid];
     if (!coll) return;
     if (note) {
         const index = coll.notes.findIndex(n => n.nid === nid);
@@ -206,7 +218,7 @@ export function setup(): [() => void, () => void, () => void] {
         firestore().collection('users').onSnapshot(genQuerySnapshotHandler(u => u.uid, users))];
 }
 
-function genQuerySnapshotHandler<T>(getID: (el: T) => string, array: T[]): (querySnapshot: QuerySnapshot<DocumentData>) => void {
+export function genQuerySnapshotHandler<T>(getID: (el: T) => string, array: T[]): (querySnapshot: QuerySnapshot<DocumentData>) => void {
     return (querySnapshot: QuerySnapshot<DocumentData>) => {
         querySnapshot.docChanges().forEach(change => {
             const t = change.doc.data() as T;

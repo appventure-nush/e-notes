@@ -14,6 +14,7 @@ import {makeColl} from "../../types/coll";
 import {firestore, storage} from "firebase-admin";
 import path from "path";
 import imageType from "image-type";
+import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 
 const collections = Router();
 
@@ -48,12 +49,17 @@ collections.get("/:cid", checkPermissions, async (req, res) => {
 });
 collections.post("/:cid", checkAdmin, async (req, res) => {
     let collection = getCollection(req.params.cid);
+    let old = {...collection};
     if (collection) {
         if (req.body.action && req.body.action === "add") return res.status(400).json({reason: "collection_already_exist"});
         if (req.body.name) collection.name = req.body.name;
         if (req.body.desc) collection.desc = req.body.desc;
         if (req.body.open) collection.open = (req.body.open === "open");
-    } else collection = makeColl(req.params.cid, req.body.name, req.body.desc, req.body.open);
+        await addAudit(simpleAudit(req.body.cuid, req.params.cid, Category.COLLECTION, Action.EDIT, [old, collection]));
+    } else {
+        collection = makeColl(req.params.cid, req.body.name, req.body.desc, req.body.open);
+        await addAudit(simpleAudit(req.body.cuid, req.params.cid, Category.COLLECTION, Action.CREATE, [collection]));
+    }
     await firestore().collection("collections").doc(req.params.cid).set(collection);
     res.json(collection);
 });
@@ -65,6 +71,7 @@ collections.delete("/:cid", checkAdmin, async (req, res) => {
     }); else {
         await firestore().collection("collections").doc(req.params.cid).delete();
         res.json({status: "ok"});
+        await addAudit(simpleAudit(req.body.cuid, req.params.cid, Category.COLLECTION, Action.DELETE, [collection]));
     }
 });
 
@@ -94,6 +101,7 @@ collections.post('/:cid/img', checkAdmin, async (req, res) => { // called for ev
                         status: 'success',
                         url: await getURL(`collections/${req.params.cid}/images/${req.body.name}`)
                     });
+                    await addAudit(simpleAudit(req.body.cuid, req.params.cid, Category.COLLECTION, Action.UPLOAD_FILE, [file.name]));
                 } catch (e) {
                     // await error("image upload error", {
                     //     message: e.message,
@@ -106,12 +114,13 @@ collections.post('/:cid/img', checkAdmin, async (req, res) => { // called for ev
         } else return res.json({status: 'failed', reason: 'i like your funny words, magic man'});
     } else return res.json({status: 'failed', reason: 'where is the file'});
 });
-collections.delete('/:cid/img/:img', checkAdmin, (req, res) => {
+collections.delete('/:cid/img/:img', checkAdmin, async (req, res) => {
     if (!getCollection(req.params.cid)) return res.json({status: 'failed', reason: 'collection_not_found'});
     const file = storage().bucket().file(`collections/${req.params.cid}/images/${req.params.img}`);
     file.delete()
         .then(() => res.json({status: 'success'}))
         .catch(e => res.json({status: 'failed', reason: 'please contact an admin', error: e.message}));
+    await addAudit(simpleAudit(req.body.cuid, req.params.cid, Category.COLLECTION, Action.DELETE_FILE, [file.name]));
 });
 
 collections.use("/:cid/notes", checkPermissions, (req, res, next) => {
