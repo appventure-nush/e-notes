@@ -234,3 +234,13 @@ export function genQuerySnapshotHandler<T>(getID: (el: T) => string, array: T[])
         });
     }
 }
+function onlyUnique<T>(value:T, index:number, self:T[]) {
+    return self.indexOf(value) === index;
+}
+export function difference(a: any, b: any) {
+    let l: any = {};
+    for (let key of [...Object.keys(a), ...Object.keys(b)].filter(onlyUnique)) {
+        if (a[key] !== b[key]) l[key] = a[key];
+    }
+    return l;
+}

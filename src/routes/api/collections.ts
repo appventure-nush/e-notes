@@ -5,16 +5,18 @@ import {
     checkAdmin,
     checkPermissions,
     checkUser,
-    checkUserOptional,
+    checkUserOptional, difference,
     getAvailableCollections,
-    getCollection,
-    hasPermissions
+    getCollection, getNotes,
+    hasPermissions, updateNote
 } from '../../utils';
 import {makeColl} from "../../types/coll";
 import {firestore, storage} from "firebase-admin";
 import path from "path";
 import imageType from "image-type";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
+import notes from "./notes";
+import WriteResult = firestore.WriteResult;
 
 const collections = Router();
 
@@ -55,7 +57,7 @@ collections.post("/:cid", checkAdmin, async (req, res) => {
         if (req.body.name) collection.name = req.body.name;
         if (req.body.desc) collection.desc = req.body.desc;
         if (req.body.open) collection.open = (req.body.open === "open");
-        await addAudit(simpleAudit(req.body.cuid, req.params.cid, Category.COLLECTION, Action.EDIT, [old, collection]));
+        await addAudit(simpleAudit(req.body.cuid, req.params.cid, Category.COLLECTION, Action.EDIT, difference(old, collection)));
     } else {
         collection = makeColl(req.params.cid, req.body.name, req.body.desc, req.body.open);
         await addAudit(simpleAudit(req.body.cuid, req.params.cid, Category.COLLECTION, Action.CREATE, [collection]));
@@ -129,5 +131,26 @@ collections.use("/:cid/notes", checkPermissions, (req, res, next) => {
     if (!collection) return res.status(404).json({reason: "collection_not_found"});
     next();
 }, notesRouter);
+
+collections.post("/:cid/reorder", checkAdmin, async (req, res) => {
+    let tasks: Promise<WriteResult>[] = [];
+    let notes = await getNotes(req.params.cid);
+    for (let nid of Object.keys(req.body)) {
+        let note = notes.find(n => n.nid === nid);
+        if (!note) continue;
+        if (!Number.isSafeInteger(req.body[nid])) continue;
+        if (req.body[nid] < 0 || req.body[nid] >= notes.length) continue;
+        note.index = req.body[nid];
+        updateNote(req.params.cid, nid, note);
+        tasks.push(firestore().collection("collections").doc(req.params.cid).collection("notes").doc(nid).set(note));
+    }
+    await Promise.all(tasks);
+    let newMap: { [nid: string]: number } = {};
+    notes.forEach(n => newMap[n.nid] = n.index);
+    res.json({
+        status: 'success',
+        order: newMap
+    });
+});
 
 export default collections;

@@ -31,6 +31,30 @@
     #coll-content .card-header, #coll-content .card-footer {
         padding: .5em .75em;
     }
+
+    .note-item:hover .note-index, .note-item:hover .note-btns {
+        visibility: inherit;
+    }
+
+    .note-index {
+        visibility: hidden;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    .note-btns {
+        visibility: hidden;
+        position: absolute;
+        right: 0;
+        top: 0;
+        height: 100%;
+    }
+
+    .note-btns .btn {
+        padding: 0 0.5em;
+        border: 0;
+    }
 </style>
 <script src="https://kit.fontawesome.com/c32b3db897.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bs-custom-file-input/dist/bs-custom-file-input.min.js"></script>
@@ -389,6 +413,44 @@
                     function clearFields() {
                         idInput.value = nameInput.value = descInput.value = fileInput.value = "";
                     }
+
+                    function moveUp(nid, elem) {
+                        let i = cnotes.findIndex(n => n.nid === nid);
+                        if (i === 0) return;
+                        let payload = {};
+                        payload[cnotes[i].nid] = cnotes[i].index - 1;
+                        payload[cnotes[i - 1].nid] = cnotes[i - 1].index + 1;
+                        elem.disabled = true;
+                        fetcher(`/api/collections/${coll.cid}/reorder`, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify(payload)
+                        }).then(result => {
+                            elem.disabled = false;
+                            if (result.status !== "success") return alert(result.message);
+                            for (let nid of Object.keys(result.order)) cnotes.find(n => n.nid === nid).index = result.order[nid];
+                            renderNotes(cnote?.nid);
+                        });
+                    }
+
+                    function moveDown(nid, elem) {
+                        let i = cnotes.findIndex(n => n.nid === nid);
+                        if (i === cnotes.length - 1) return;
+                        let payload = {};
+                        payload[cnotes[i].nid] = cnotes[i].index + 1;
+                        payload[cnotes[i + 1].nid] = cnotes[i + 1].index - 1;
+                        elem.disabled = true;
+                        fetcher(`/api/collections/${coll.cid}/reorder`, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify(payload)
+                        }).then(result => {
+                            elem.disabled = false;
+                            if (result.status !== "success") return alert(result.message);
+                            for (let nid of Object.keys(result.order)) cnotes.find(n => n.nid === nid).index = result.order[nid];
+                            renderNotes(cnote?.nid);
+                        });
+                    }
                 </script>
             </div>
         </div>
@@ -410,7 +472,13 @@
 
     async function renderNotes(nid) {
         list.innerHTML = (cnotes = await window.notes
-                .getAll(coll.cid)).map(note => `<li id="list-${note.nid}" class="list-group-item" onclick="showNote('${note.nid}')">${note.name}</li>`).join("");
+                .getAll(coll.cid)).sort((a, b) => a.index - b.index).map(note => `<li id="list-${note.nid}" class="list-group-item note-item" onclick="showNote('${note.nid}')"><span class="badge badge-light note-index">#${note.index + 1}</span>${note.name}{{#if
+                user.admin}}
+            <div class="btn-group-vertical note-btns">
+            <button type="button" class="btn" tabindex="-1" onclick="moveUp('${note.nid}', this)"><i class="fas fa-caret-up"></i></button>
+            <button type="button" class="btn" tabindex="-1" onclick="moveDown('${note.nid}', this)"><i class="fas fa-caret-down"></i></button>
+            </div>
+                {{/if}}</li>`).join("");
         showNote(nid);
     }
 

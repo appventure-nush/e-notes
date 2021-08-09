@@ -5,12 +5,12 @@ import {checkAdmin, getNote, getNotes, updateNote} from "../../utils";
 import marked from 'marked';
 import iconv from "iconv-lite";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
+import WriteResult = firestore.WriteResult;
 // tslint:disable-next-line:no-var-requires
 const nb = require("notebookjs");
 const notes = Router();
 
-notes.get("/", async (req, res) => res.json((await getNotes(req.body.cid))
-    .sort((a, b) => isNaN(a.index) ? -1024 : isNaN(b.index) ? 1024 : a.index - b.index)));
+notes.get("/", async (req, res) => res.json(await getNotes(req.body.cid)));
 
 notes.get("/:nid", async (req, res) => {
     const note = await getNote(req.body.cid, req.params.nid);
@@ -44,11 +44,14 @@ notes.delete("/:nid", checkAdmin, async (req, res) => {
     let note = await getNote(req.body.cid, req.params.nid);
     if (note) {
         updateNote(req.body.cid, req.params.nid, null);
-        await Promise.all([
-            firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid).delete(),
-            storage().bucket().file(`collections/${req.body.cid}/notes/${req.params.nid}.html`).delete(),
-            addAudit(simpleAudit(req.body.cuid, note.nid, Category.NOTE, Action.EDIT, [note], {colls: [req.body.cid]}))
-        ]);
+        try {
+            await Promise.all([
+                firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid).delete(),
+                storage().bucket().file(`collections/${req.body.cid}/notes/${req.params.nid}.html`).delete(),
+                addAudit(simpleAudit(req.body.cuid, note.nid, Category.NOTE, Action.EDIT, [note], {colls: [req.body.cid]}))
+            ]);
+        } catch (e) {
+        }
     }
     res.json({status: "ok"});
 });
