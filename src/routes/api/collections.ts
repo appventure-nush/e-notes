@@ -141,9 +141,14 @@ collections.post("/:cid/reorder", checkAdmin, async (req, res) => {
         if (!Number.isSafeInteger(req.body[nid])) continue;
         if (req.body[nid] < 0 || req.body[nid] >= notes.length) continue;
         note.index = req.body[nid];
-        updateNote(req.params.cid, nid, note);
-        tasks.push(firestore().collection("collections").doc(req.params.cid).collection("notes").doc(nid).set(note));
     }
+    notes = notes.sort((a, b) => a.index - b.index);
+    notes.forEach((n, i) => {
+        if (n.index !== i || req.body.hasOwnProperty(n.nid)) {
+            n.index = i;
+            tasks.push(firestore().collection("collections").doc(req.params.cid).collection("notes").doc(n.nid).set(n));
+        }
+    })
     await Promise.all(tasks);
     let newMap: { [nid: string]: number } = {};
     notes.forEach(n => newMap[n.nid] = n.index);
