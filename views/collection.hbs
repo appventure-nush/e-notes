@@ -515,7 +515,12 @@
             noteTime.innerText = `Last edited • ${dateStr}`;
             GEBI(`list-${cnote.nid}`).classList.add('active');
             fetch(cnote.url).then(res => res.text()).then(text => {
-                shadowRoot.innerHTML = `${text}<style>.container{width:auto!important;}#notebook-container{padding:0;-webkit-box-shadow:none;box-shadow:none;}.prompt{min-width:0;}</style>`; // small hax
+                text = text.replace(/:root/g, ':host');
+                shadowRoot.innerHTML = `<style>
+.container{width:auto!important;}
+#notebook-container{padding:0!important;-webkit-box-shadow:none!important;box-shadow:none!important;}
+.prompt{min-width:0;}
+</style>` + text; // small hax
                 updateTheme(); // shadow dom is retarded
             });
         }
