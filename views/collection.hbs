@@ -516,11 +516,16 @@
             GEBI(`list-${cnote.nid}`).classList.add('active');
             fetch(cnote.url).then(res => res.text()).then(text => {
                 text = text.replace(/:root/g, ':host');
-                shadowRoot.innerHTML = `<style>
+                shadowRoot.innerHTML = `
+<style>
 .container{width:auto!important;}
 #notebook-container{padding:0!important;-webkit-box-shadow:none!important;box-shadow:none!important;}
 .prompt{min-width:0;}
-</style>` + text; // small hax
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/github-markdown-css/2.2.1/github-markdown.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/default.min.css">
+` + text; // small hax
                 updateTheme(); // shadow dom is retarded
             });
         }

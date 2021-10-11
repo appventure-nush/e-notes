@@ -59,7 +59,7 @@ collections.post("/:cid", checkAdmin, async (req, res) => {
         if (req.body.open) collection.open = (req.body.open === "open");
         await addAudit(simpleAudit(req.body.cuid, req.params.cid, Category.COLLECTION, Action.EDIT, difference(old, collection)));
     } else {
-        collection = makeColl(req.params.cid, req.body.name, req.body.desc, req.body.open);
+        collection = makeColl(req.params.cid, req.body.cuid, req.body.name, req.body.desc, req.body.open);
         await addAudit(simpleAudit(req.body.cuid, req.params.cid, Category.COLLECTION, Action.CREATE, [collection]));
     }
     await firestore().collection("collections").doc(req.params.cid).set(collection);

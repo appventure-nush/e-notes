@@ -8,15 +8,17 @@ export interface User extends MutablePermissions {
     nickname?: string;
     desc?: string;
     roles: string[];
-    admin: boolean;
     name?: string;
     email?: string;
     pfp?: string;
     verified?: boolean;
+    admin: boolean;
+    teacher: boolean;
+    has_control_over?: string[];
 }
 
 export function makeUser(uid: string): User {
-    return {admin: false, permissions: {}, roles: [], uid: uid};
+    return {admin: false, teacher: false, permissions: {}, roles: [], uid: uid};
 }
 
 export function fillUser(user: User, rec: UserRecord): User {
