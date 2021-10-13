@@ -185,7 +185,7 @@
     function renderCollections(useCache = true) {
         return collections.getAll(useCache).then(colls => {
             console.log(colls);
-            display.innerHTML = colls.map(coll => `<div class="col-lg-3 col-md-5 col-sm-12 collection-card" id="coll-${escapeHTML(coll.cid)}">\n<div class="card">\n<div class="card-body">\n<h5 class="card-title"><a href="/c/${escapeHTML(coll.cid)}/">${coll.name}</a></h5>\n<h6 class="card-subtitle text-muted"><pre class="mb-1">${escapeHTML(coll.cid)}</pre></h6>\n${coll.open ? '<span class="badge badge-success">Public</span>' : '<span class="badge badge-danger">Private</span>'}\n<p class="card-text">${marked(coll.desc)}</p>\n<a href="/c/${escapeHTML(coll.cid)}/" class="card-link">Open</a>\n{{#if
+            display.innerHTML = colls.map(coll => `<div class="col-lg-3 col-md-5 col-sm-12 collection-card" id="coll-${escapeHTML(coll.cid)}">\n<div class="card">\n<div class="card-body">\n<h5 class="card-title"><a href="/c/${escapeHTML(coll.cid)}/">${coll.name}</a></h5>\n<h6 class="card-subtitle text-muted"><pre class="mb-1">${escapeHTML(coll.cid)}</pre></h6>\n${coll.open ? '<span class="badge badge-success">Public</span>' : '<span class="badge badge-danger">Private</span>'}\n<p class="card-text">${marked(coll.desc || "")}</p>\n<a href="/c/${escapeHTML(coll.cid)}/" class="card-link">Open</a>\n{{#if
                     user.admin}}\n<a href="#" class="card-link" data-toggle="modal" data-target="#admin-collection-popup" data-action="edit" data-cid="${escapeHTML(coll.cid)}">Edit</a>\n{{/if}}\n</div>\n</div>\n</div>`).join('\n');
         });
     }

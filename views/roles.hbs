@@ -383,7 +383,7 @@
             window.role = await roles.get(rid);
             dRID.innerText = role.rid;
             dName.innerText = role.name;
-            dDesc.innerHTML = marked(role.desc ? role.desc : "");
+            dDesc.innerHTML = marked((role.desc ? role.desc : "")||"");
             let users = await roles.getUsers(rid);
             dUsers.innerHTML = renderUsersWhoHasRole(users);
             {{#if user.admin}}
