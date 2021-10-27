@@ -18,9 +18,9 @@ export function _setPermission(obj: MutablePermissions, cid: string, accepts: bo
 }
 
 export function _accepts(obj: MutablePermissions, cid: string) {
-    return obj.permissions.hasOwnProperty(cid) && obj.permissions[cid];
+    return obj && obj.permissions && obj.permissions.hasOwnProperty(cid) && obj.permissions[cid] === true;
 }
 
 export function _rejects(obj: MutablePermissions, cid: string) {
-    return obj.permissions.hasOwnProperty(cid) && obj.permissions[cid] === false;
+    return obj && obj.permissions && obj.permissions.hasOwnProperty(cid) && obj.permissions[cid] === false;
 }

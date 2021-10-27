@@ -22,5 +22,5 @@ export function makeRole(rid: string, name?: string, desc?: string, defaultPerm?
 }
 
 export function roleAccepts(role: Role, cid: string) {
-    return this.defaultPerm || _accepts(role, cid);
+    return role && (role.defaultPerm || _accepts(role, cid));
 }
