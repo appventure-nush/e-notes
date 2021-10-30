@@ -17,6 +17,7 @@ import imageType from "image-type";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 import notes from "./notes";
 import WriteResult = firestore.WriteResult;
+import {error, failed, success} from "../../response";
 
 const collections = Router();
 
@@ -37,49 +38,49 @@ export async function getURL(name: string) {
     return url;
 }
 
-collections.get("/", checkUser, (req, res) => res.json(getAvailableCollections(req.body.cuid)));
-collections.post("/", checkAdmin, (req, res) => res.status(400).json({reason: "collection_id_required"}));
+collections.get("/", checkUser, (req, res) => res.json(getAvailableCollections(req.uid)));
+collections.post("/", checkAdmin, (req, res) => res.json(failed("collection_id_required")));
 
 collections.get("/:cid", checkPermissions, async (req, res) => {
     const collection = getCollection(req.params.cid);
 
-    if (!collection) return res.status(404).json({
+    if (!collection) return res.json(failed({
         reason: "collection_not_found",
         cid: req.params.cid
-    })
+    }))
     else res.json(collection);
 });
 collections.post("/:cid", checkAdmin, async (req, res) => {
     let collection = getCollection(req.params.cid);
     let old = {...collection};
     if (collection) {
-        if (req.body.action && req.body.action === "add") return res.status(400).json({reason: "collection_already_exist"});
+        if (req.body.action && req.body.action === "add") return res.json(failed("collection_already_exist"));
         if (req.body.name) collection.name = req.body.name;
         if (req.body.desc) collection.desc = req.body.desc;
         if (req.body.open) collection.open = (req.body.open === "open");
-        await addAudit(simpleAudit(req.body.cuid, req.params.cid, Category.COLLECTION, Action.EDIT, difference(old, collection)));
+        await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.EDIT, difference(old, collection)));
     } else {
-        collection = makeColl(req.params.cid, req.body.cuid, req.body.name, req.body.desc, req.body.open);
-        await addAudit(simpleAudit(req.body.cuid, req.params.cid, Category.COLLECTION, Action.CREATE, [collection]));
+        collection = makeColl(req.params.cid, req.uid, req.body.name, req.body.desc, req.body.open);
+        await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.CREATE, [collection]));
     }
     await firestore().collection("collections").doc(req.params.cid).set(collection);
     res.json(collection);
 });
 collections.delete("/:cid", checkAdmin, async (req, res) => {
     const collection = getCollection(req.params.cid);
-    if (!collection) return res.status(404).json({
+    if (!collection) return res.json(failed({
         reason: "collection_not_found",
         cid: req.params.cid
-    }); else {
+    })); else {
         await firestore().collection("collections").doc(req.params.cid).delete();
-        res.json({status: "ok"});
-        await addAudit(simpleAudit(req.body.cuid, req.params.cid, Category.COLLECTION, Action.DELETE, [collection]));
+        res.json(success());
+        await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.DELETE, [collection]));
     }
 });
 
 collections.get('/:cid/img', checkUserOptional, async (req, res) => {
-    if (!getCollection(req.params.cid)) return res.json({status: 'failed', reason: 'collection_not_found'});
-    if (!await hasPermissions(req.body.cuid, req.params.cid)) return res.json({status: 'failed', reason: 'no_perm'});
+    if (!getCollection(req.params.cid)) return res.json(req.uid);
+    if (!await hasPermissions(req.uid, req.params.cid)) return res.json(failed('no_perm'));
     const files = (await storage().bucket().getFiles({
         directory: `collections/${req.params.cid}/images/`
     }))[0].filter(file => file.name !== `collections/${req.params.cid}/images/`);
@@ -89,8 +90,8 @@ collections.get('/:cid/img', checkUserOptional, async (req, res) => {
     }))));
 });
 collections.post('/:cid/img', checkAdmin, async (req, res) => { // called for every file
-    if (!getCollection(req.params.cid)) return res.json({status: 'failed', reason: 'collection_not_found'});
-    if (!req.files) return res.json({status: 'failed', reason: 'where is the file'});
+    if (!getCollection(req.params.cid)) return res.json(failed('collection_not_found'));
+    if (!req.files) return res.json(failed('where is the file'));
     const payload = req.files.payload;
     if (payload && "data" in payload) {
         const type = imageType(payload.data);
@@ -99,36 +100,35 @@ collections.post('/:cid/img', checkAdmin, async (req, res) => { // called for ev
                 try {
                     const file = storage().bucket().file(`collections/${req.params.cid}/images/${req.body.name}`);
                     await file.save(payload.data, {resumable: false});
-                    res.json({
-                        status: 'success',
+                    res.json(success({
                         url: await getURL(`collections/${req.params.cid}/images/${req.body.name}`)
-                    });
-                    await addAudit(simpleAudit(req.body.cuid, req.params.cid, Category.COLLECTION, Action.UPLOAD_FILE, [file.name]));
+                    }));
+                    await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.UPLOAD_FILE, [file.name]));
                 } catch (e) {
                     // await error("image upload error", {
                     //     message: e.message,
                     //     body: req.body,
                     //     type
                     // });
-                    res.json({status: 'failed', reason: 'please contact an admin'});
+                    res.json(failed('please contact an admin'));
                 }
-            } else return res.json({status: 'failed', reason: 'only gif/jpg/png allowed!'});
-        } else return res.json({status: 'failed', reason: 'i like your funny words, magic man'});
-    } else return res.json({status: 'failed', reason: 'where is the file'});
+            } else return res.json(failed('only gif/jpg/png allowed!'));
+        } else return res.json(failed('i like your funny words, magic man'));
+    } else return res.json(failed('where is the file'));
 });
 collections.delete('/:cid/img/:img', checkAdmin, async (req, res) => {
-    if (!getCollection(req.params.cid)) return res.json({status: 'failed', reason: 'collection_not_found'});
+    if (!getCollection(req.params.cid)) return res.json(failed('collection_not_found'));
     const file = storage().bucket().file(`collections/${req.params.cid}/images/${req.params.img}`);
     file.delete()
-        .then(() => res.json({status: 'success'}))
-        .catch(e => res.json({status: 'failed', reason: 'please contact an admin', error: e.message}));
-    await addAudit(simpleAudit(req.body.cuid, req.params.cid, Category.COLLECTION, Action.DELETE_FILE, [file.name]));
+        .then(() => res.json(success()))
+        .catch(e => res.json(error(e.message)));
+    await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.DELETE_FILE, [file.name]));
 });
 
 collections.use("/:cid/notes", checkPermissions, (req, res, next) => {
     req.body.cid = req.params.cid;
     const collection = getCollection(req.params.cid);
-    if (!collection) return res.status(404).json({reason: "collection_not_found"});
+    if (!collection) return res.json({reason: "collection_not_found"});
     next();
 }, notesRouter);
 
@@ -152,10 +152,9 @@ collections.post("/:cid/reorder", checkAdmin, async (req, res) => {
     await Promise.all(tasks);
     let newMap: { [nid: string]: number } = {};
     notes.forEach(n => newMap[n.nid] = n.index);
-    res.json({
-        status: 'success',
+    res.json(success({
         order: newMap
-    });
+    }));
 });
 
 export default collections;

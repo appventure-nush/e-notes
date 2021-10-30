@@ -8,6 +8,7 @@ import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 
 import katex from '@traptitech/markdown-it-katex';
 import highlight from "markdown-it-highlightjs";
+import {failed, success} from "../../response";
 
 const md = new Markdown({
     html: true,
@@ -24,11 +25,11 @@ notes.get("/", async (req, res) => res.json(await getNotes(req.body.cid)));
 
 notes.get("/:nid", async (req, res) => {
     const note = await getNote(req.body.cid, req.params.nid);
-    if (!note) return res.status(404).json({
+    if (!note) return res.json(failed({
         reason: "note_not_found",
         cid: req.body.cid,
         nid: req.params.nid
-    });
+    }));
     else res.json(note);
 });
 
@@ -36,16 +37,16 @@ notes.post("/:nid", checkAdmin, async (req, res) => {
     let note = await getNote(req.body.cid, req.params.nid);
     let old = {...note};
     if (note) {
-        if (req.body.action && req.body.action === "add") return res.status(400).json({reason: "note_already_exist"});
+        if (req.body.action && req.body.action === "add") return res.json(failed({reason: "note_already_exist"}));
         if (req.body.nid) note.nid = req.body.nid;
         if (req.body.name) note.name = req.body.name;
         if (req.body.desc) note.desc = req.body.desc;
         note.lastEdit = Date.now();
-        note.lastEditBy = req.body.cuid;
-        await addAudit(simpleAudit(req.body.cuid, note.nid, Category.NOTE, Action.EDIT, [old], {colls: [req.body.cid]}));
+        note.lastEditBy = req.uid;
+        await addAudit(simpleAudit(req.uid, note.nid, Category.NOTE, Action.EDIT, [old], {colls: [req.body.cid]}));
     } else {
-        note = makeNote((await getNotes(req.body.cid)).length, req.params.nid, req.body.cid, req.body.cuid, req.body.name, req.body.desc);
-        await addAudit(simpleAudit(req.body.cuid, note.nid, Category.NOTE, Action.CREATE, [], {colls: [req.body.cid]}));
+        note = makeNote((await getNotes(req.body.cid)).length, req.params.nid, req.body.cid, req.uid, req.body.name, req.body.desc);
+        await addAudit(simpleAudit(req.uid, note.nid, Category.NOTE, Action.CREATE, [], {colls: [req.body.cid]}));
     }
     updateNote(req.body.cid, req.params.nid, note);
     await firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid).set(note);
@@ -59,21 +60,21 @@ notes.delete("/:nid", checkAdmin, async (req, res) => {
             await Promise.all([
                 firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid).delete(),
                 storage().bucket().file(`collections/${req.body.cid}/notes/${req.params.nid}.html`).delete(),
-                addAudit(simpleAudit(req.body.cuid, note.nid, Category.NOTE, Action.EDIT, [note], {colls: [req.body.cid]}))
+                addAudit(simpleAudit(req.uid, note.nid, Category.NOTE, Action.EDIT, [note], {colls: [req.body.cid]}))
             ]);
         } catch (e) {
-            
+
         }
     }
-    res.json({status: "ok"});
+    res.json(success());
 });
 notes.post("/:nid/upload", checkAdmin, async (req, res) => {
-    if (!req.files) return res.json({status: 'failed', reason: 'where is the file'});
+    if (!req.files) return res.json(failed('where is the file'));
     const newNoteSource = req.files.note_source;
     if (newNoteSource && "data" in newNoteSource) {
         const ref = firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid);
         const doc = await ref.get();
-        if (!doc.exists) return res.status(404).json({
+        if (!doc.exists) return res.json({
             reason: "note_not_found",
             cid: req.body.cid,
             nid: req.params.nid
@@ -94,15 +95,14 @@ notes.post("/:nid/upload", checkAdmin, async (req, res) => {
         await file.save(str, {resumable: false});
         note.url = (await file.getSignedUrl({action: 'read', expires: '01-01-2500'}))[0];
         note.lastEdit = Date.now();
-        note.lastEditBy = req.body.cuid;
+        note.lastEditBy = req.uid;
         updateNote(req.body.cid, req.params.nid, note);
-        res.json({
-            status: 'success',
+        res.json(success({
             note
-        });
+        }));
         await ref.set(note);
-        await addAudit(simpleAudit(req.body.cuid, note.nid, Category.NOTE, Action.UPLOAD_FILE, [file.name], {colls: [req.body.cid]}));
-    } else return res.json({status: 'failed', reason: 'where is the file'});
+        await addAudit(simpleAudit(req.uid, note.nid, Category.NOTE, Action.UPLOAD_FILE, [file.name], {colls: [req.body.cid]}));
+    } else return res.json(failed('where is the file'));
 });
 
 export default notes;

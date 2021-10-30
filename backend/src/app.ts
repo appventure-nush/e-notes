@@ -13,15 +13,13 @@ import path from "path";
 import compression from "compression";
 
 import history from "connect-history-api-fallback";
-
-import cors from "cors";
+import {createProxyMiddleware} from "http-proxy-middleware";
 
 const app = express();
 const csrfProtection = csrf({cookie: true});
 app.engine('hbs', exphbs({defaultLayout: 'main', extname: '.hbs'}));
 app.set('view engine', 'hbs');
 if (process.env.ENVIRONMENT !== 'local') app.enable('view cache');
-if (process.env.ENVIRONMENT === 'local') app.use(cors());
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
@@ -30,13 +28,16 @@ app.use(cookieParser());
 
 app.use(morgan('dev'));
 app.use("/api", apiRouter);
-app.use("/", csrfProtection, history({
-    verbose: true
-}));
+if (process.env.ENVIRONMENT === 'local') {
+    app.use('/', createProxyMiddleware({target: 'http://localhost:8090', changeOrigin: true}));
+} else {
+    app.use("/", csrfProtection, history({
+        verbose: true
+    }));
+}
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     if (err.code !== 'EBADCSRFTOKEN') return next(err);
-    res.status(403);
-    res.send("bWF5YmUgaSBzaG91bGQgZ2l2ZSB5b3UgYSBmbGFn");
+    res.status(403).send("bWF5YmUgaSBzaG91bGQgZ2l2ZSB5b3UgYSBmbGFn");
 });
 app.use(express.static(path.join(__dirname, '..', 'public'), {maxAge: 31557600}));
 

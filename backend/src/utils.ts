@@ -9,6 +9,7 @@ import DocumentSnapshot = admin.firestore.DocumentSnapshot;
 import DocumentData = firestore.DocumentData;
 import QuerySnapshot = firestore.QuerySnapshot;
 import {Action, addAudit, Category, simpleAudit} from "./types/audit";
+import {failed} from "./response";
 
 const users: User[] = [];
 
@@ -152,8 +153,8 @@ export async function checkUser(req: express.Request, res: express.Response, nex
     try {
         const uid = await getUID(req);
         if (uid) {
-            req.body.cuid = uid;
-            req.body.user = await getUser(uid);
+            req.uid = uid;
+            req.user = await getUser(uid);
             return next();
         } else return res.redirect('/login');
     } catch (e) {
@@ -166,8 +167,8 @@ export async function checkUserOptional(req: express.Request, res: express.Respo
     try {
         const uid = await getUID(req);
         if (uid) {
-            req.body.cuid = uid;
-            req.body.user = await getUser(uid);
+            req.uid = uid;
+            req.user = await getUser(uid);
         }
         return next();
     } catch (e) {
@@ -181,8 +182,8 @@ export async function checkPermissions(req: express.Request, res: express.Respon
         const uid = await getUID(req);
         if (uid) {
             if (await hasPermissions(uid, req.params.cid)) return next();
-            else return res.status(403).send("not authorized");
-        } else return res.status(403).send("not logged in");
+            else return res.json(failed("not authorized"));
+        } else return res.json(failed("not logged in"));
     } catch (e) {
         // await error({func: 'checkPermissions', body: req.body, path: req.path});
         return res.redirect('/login');
@@ -195,11 +196,11 @@ export async function checkAdmin(req: express.Request, res: express.Response, ne
         if (uid) {
             const user = await getUser(uid);
             if (user.admin === true) {
-                req.body.cuid = uid;
-                req.body.user = await getUser(uid);
+                req.uid = uid;
+                req.user = await getUser(uid);
                 return next();
-            } else return res.status(403).send("not admin");
-        } else return res.status(403).send("not logged in");
+            } else return res.json(failed("not admin"));
+        } else return res.json(failed("not logged in"));
     } catch (e) {
         // await error({func: 'checkAdmin', body: req.body, path: req.path});
         return res.redirect('/login');
@@ -234,9 +235,11 @@ export function genQuerySnapshotHandler<T>(getID: (el: T) => string, array: T[])
         });
     }
 }
-function onlyUnique<T>(value:T, index:number, self:T[]) {
+
+function onlyUnique<T>(value: T, index: number, self: T[]) {
     return self.indexOf(value) === index;
 }
+
 export function difference(a: any, b: any) {
     let l: any = {};
     for (let key of [...Object.keys(a), ...Object.keys(b)].filter(onlyUnique)) {

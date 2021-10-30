@@ -1,4 +1,3 @@
-
-function login(){
+function login() {
 
 }
