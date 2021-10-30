@@ -8,7 +8,7 @@ import {
     checkUserOptional, difference,
     getAvailableCollections,
     getCollection, getNotes,
-    hasPermissions, updateNote
+    hasPermissions
 } from '../../utils';
 import {makeColl} from "../../types/coll";
 import {firestore, storage} from "firebase-admin";

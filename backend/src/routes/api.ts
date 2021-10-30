@@ -4,12 +4,14 @@ import roles from './api/roles';
 import users from './api/users';
 import audits from './api/audits';
 import collections from './api/collections';
+import authentication from "./api/authentication";
 
 const api = Router();
 api.use((req, res, next) => {
     res.setHeader('Last-Modified', (new Date()).toUTCString());
     next();
 });
+api.use("/auth", authentication);
 api.use("/roles", roles);
 api.use("/users", users);
 api.use("/audits", audits);

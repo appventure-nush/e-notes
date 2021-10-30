@@ -8,19 +8,20 @@ import fileUpload from 'express-fileupload';
 import express, {NextFunction, Request, Response} from "express";
 import {setup} from './utils';
 import apiRouter from "./routes/api"
-
 import path from "path";
 
 import compression from "compression";
 
 import history from "connect-history-api-fallback";
 
+import cors from "cors";
+
 const app = express();
 const csrfProtection = csrf({cookie: true});
 app.engine('hbs', exphbs({defaultLayout: 'main', extname: '.hbs'}));
 app.set('view engine', 'hbs');
 if (process.env.ENVIRONMENT !== 'local') app.enable('view cache');
-
+if (process.env.ENVIRONMENT === 'local') app.use(cors());
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
