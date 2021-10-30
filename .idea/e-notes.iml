@@ -9,6 +9,7 @@
       <excludeFolder url="file://$MODULE_DIR$/functions" />
       <excludeFolder url="file://$MODULE_DIR$/backend/dist" />
       <excludeFolder url="file://$MODULE_DIR$/frontend/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/backend/public" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

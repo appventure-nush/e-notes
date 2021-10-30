@@ -6,28 +6,32 @@ import exphbs from 'express-handlebars';
 import cookieParser from 'cookie-parser';
 import fileUpload from 'express-fileupload';
 import express, {NextFunction, Request, Response} from "express";
-
 import {setup} from './utils';
 import apiRouter from "./routes/api"
-import indexRouter from "./routes/index"
 
 import path from "path";
 
 import compression from "compression";
+
+import history from "connect-history-api-fallback";
 
 const app = express();
 const csrfProtection = csrf({cookie: true});
 app.engine('hbs', exphbs({defaultLayout: 'main', extname: '.hbs'}));
 app.set('view engine', 'hbs');
 if (process.env.ENVIRONMENT !== 'local') app.enable('view cache');
+
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
-app.use(fileUpload({limits: {fileSize: 8 * 1024 * 1024}}));
+app.use(fileUpload({limits: {fileSize: 16 * 1024 * 1024}}));
 app.use(cookieParser());
+
 app.use(morgan('dev'));
 app.use("/api", apiRouter);
-app.use("/", csrfProtection, indexRouter);
+app.use("/", csrfProtection, history({
+    verbose: true
+}));
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
     if (err.code !== 'EBADCSRFTOKEN') return next(err);
     res.status(403);
