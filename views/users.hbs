@@ -77,13 +77,31 @@
                             </tbody>
                         </table>
                         <button id="save-btn" type="submit" class="btn btn-primary">Save</button>
+                        <button id="delete-btn" type="button" class="btn btn-danger">Delete</button>
                         <button id="cancel-btn" type="button" class="btn btn-link">Cancel</button>
                     </form>
                     <script src="/js/tagin.min.js"></script>
                     <script>
                         let saveBtn = GEBI('save-btn');
                         let cancelBtn = GEBI('cancel-btn');
-                        cancelBtn.onclick = () => showUser(cancelBtn, user.uid, false)
+                        let deleteBtn = GEBI('delete-btn');
+                        cancelBtn.onclick = () => showUser(cancelBtn, null, false)
+                        deleteBtn.onclick = () => {
+                            if (confirm("Delete " + user.email + "?")) {
+                                fetcher('/api/users/' + user.uid, {
+                                    method: 'DELETE'
+                                }).then(user => {
+                                    console.log(user);
+                                    if (!user.reason) {
+                                        users.delete(user.uid);
+                                        showUser(null, null, false);
+                                    } else alert(user.reason);
+                                }).finally(() => {
+                                    iRolesWrapper.classList.remove('disabled');
+                                    iAdmin.disabled = saveBtn.disabled = cancelBtn.disabled = false;
+                                });
+                            }
+                        }
                         let iForm = GEBI('input-user-form');
                         let iAdmin = GEBI('input-user-admin');
                         iAdmin.addEventListener('change', () => {
