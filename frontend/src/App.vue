@@ -13,9 +13,9 @@
               <v-list-item-subtitle>{{ email }}</v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
-          <div class="px-3">
+          <div class="mx-2">
             <v-chip
-                class="ma-2"
+                class="ma-1"
                 v-if="$store.state.profile.admin"
                 color="red"
                 label
@@ -24,6 +24,7 @@
               admin
             </v-chip>
             <v-chip
+                class="ma-1"
                 v-for="role in $store.state.profile.roles"
                 :key="role"
                 outlined
