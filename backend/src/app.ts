@@ -8,6 +8,7 @@ import fileUpload from 'express-fileupload';
 import express, {NextFunction, Request, Response} from "express";
 import {setup} from './utils';
 import apiRouter from "./routes/api"
+import collectionRouter from "./routes/collection"
 import path from "path";
 
 import compression from "compression";
@@ -28,6 +29,7 @@ app.use(cookieParser());
 
 app.use(morgan('dev'));
 app.use("/api", apiRouter);
+app.use("/collection", collectionRouter);
 if (process.env.ENVIRONMENT === 'local') {
     app.use('/', createProxyMiddleware({target: 'http://localhost:8090', changeOrigin: true}));
 } else {

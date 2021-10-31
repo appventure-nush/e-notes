@@ -1,12 +1,28 @@
 <template>
-  <p>Hello</p>
+  <v-container>
+    <v-row>
+      <v-col cols="4" v-for="(coll,i) in $store.state.collections" :key="coll.cid">
+        <collection-display v-model="$store.state.collections[i]"/>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script lang="ts">
 import {Component, Vue} from "vue-property-decorator";
+import {get} from "@/api/api";
+import CollectionDisplay from "@/components/CollectionDisplay.vue";
 
-@Component
+@Component({
+  components: {
+    'collection-display': CollectionDisplay
+  }
+})
 export default class Home extends Vue {
   name = 'Home'
+
+  mounted() {
+    get("/api/collections").then(res => res.json()).then(json => this.$store.commit("collections", json))
+  }
 }
 </script>

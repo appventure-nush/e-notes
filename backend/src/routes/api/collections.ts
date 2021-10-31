@@ -15,7 +15,6 @@ import {firestore, storage} from "firebase-admin";
 import path from "path";
 import imageType from "image-type";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
-import notes from "./notes";
 import WriteResult = firestore.WriteResult;
 import {error, failed, success} from "../../response";
 
@@ -38,7 +37,7 @@ export async function getURL(name: string) {
     return url;
 }
 
-collections.get("/", checkUser, (req, res) => res.json(getAvailableCollections(req.uid)));
+collections.get("/", checkUser, async (req, res) => res.json(await getAvailableCollections(req.uid)));
 collections.post("/", checkAdmin, (req, res) => res.json(failed("collection_id_required")));
 
 collections.get("/:cid", checkPermissions, async (req, res) => {

@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter, {RouteConfig} from 'vue-router'
 import Home from '../views/Home.vue'
+import HomeAppbar from '../components/HomeAppbar.vue'
 import firebase from "firebase/compat";
 
 Vue.use(VueRouter)
@@ -9,7 +10,20 @@ const routes: Array<RouteConfig> = [
     {
         path: '/',
         name: 'Home',
-        component: Home,
+        components: {
+            default: Home,
+            appbar: HomeAppbar
+        },
+        meta: {
+            icon: "mdi-view-dashboard",
+            public: true,
+            auth: true
+        }
+    },
+    {
+        path: '/profile',
+        name: 'Profile',
+        component: () => import('../views/Profile.vue'),
         meta: {
             auth: true
         }
@@ -21,6 +35,38 @@ const routes: Array<RouteConfig> = [
         meta: {
             naked: true
         }
+    },
+    {
+        path: '/collection/:cid',
+        name: 'Collection',
+        components: {
+            default: () => import('../views/Collection.vue'),
+            appbar: () => import('../components/CollectionAppbar.vue')
+        },
+        meta: {
+            auth: true
+        },
+        props: {
+            default: true,
+            appbar: true
+        },
+        children: [
+            {
+                props: true,
+                name: "Note",
+                path: ':nid/view',
+                component: () => import('../views/Note.vue')
+            },
+            {
+                props: true,
+                name: "Note",
+                path: ':nid',
+                redirect: to => ({
+                    name: "Note",
+                    path: `/collections/${to.params.cid}/notes/${to.params.nid}/view`
+                }),
+            }
+        ]
     }
 ]
 

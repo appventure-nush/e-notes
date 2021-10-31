@@ -7,4 +7,6 @@ export interface Note {
     lastEditBy: string;
     lastEdit: number;
     url: string;
+
+    jupyter?: boolean;
 }

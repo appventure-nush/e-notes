@@ -122,7 +122,7 @@ export function updateNote(cid: string, nid: string, note: Note) {
 // 3) role rejection (specified not allow)
 // 4) role acceptance (specified allow)
 // 5) role default (default allow) there is no default reject
-export async function hasPermissions(uid: string, cid: string) { // used in middleware
+export async function hasPermissions(uid: string, cid: string): Promise<boolean> { // used in middleware
     const user = await getUser(uid);
     if (!user) return false;
     const collection = getCollection(cid);
@@ -130,15 +130,16 @@ export async function hasPermissions(uid: string, cid: string) { // used in midd
     if (_accepts(user, cid)) return true;
     if (_rejects(user, cid)) return false;
     if (collection.open) return true;
-    const userRoles = user.roles.map(rid => getRole(rid)).filter(role => !(!role));
+    const userRoles = user.roles.map(rid => getRole(rid)).filter(role => role);
 
     const reject = !userRoles.some(role => _rejects(role, cid));
     const accept = userRoles.some(role => roleAccepts(role, cid));
     return reject && accept;
 }
 
-export function getAvailableCollections(uid: string) { // used in middleware
-    return collections.filter(c => hasPermissions(uid, c.cid));
+export async function getAvailableCollections(uid: string) { // used in middleware
+    const flags = await Promise.all(collections.map(c => hasPermissions(uid, c.cid)));
+    return collections.filter((c, i) => flags[i]);
 }
 
 async function getUID(req: express.Request) {

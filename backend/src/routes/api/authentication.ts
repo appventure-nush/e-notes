@@ -24,7 +24,7 @@ authentication.post('/', (req, res) => {
             res.cookie('session', sessionCookie, options);
             res.json(success());
         }, _ => {
-            res.json(failed('NZ2XG2D3NRHTS2KOL5TDISKMGNSH2==='));
+            res.json(failed({reason: 'NZ2XG2D3NRHTS2KOL5TDISKMGNSH2===', message: _.message}));
         });
 });
 authentication.post('/profile', checkUser, async (req, res) => {

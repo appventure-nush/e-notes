@@ -7,6 +7,8 @@ export interface Note {
     lastEditBy: string;
     lastEdit: number;
     url: string;
+
+    jupyter?: boolean;
 }
 
 export function makeNote(i: number, nid: string, cid: string, owner: string, name?: string, desc?: string): Note {

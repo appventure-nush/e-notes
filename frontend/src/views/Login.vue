@@ -1,14 +1,40 @@
 <template>
-  <v-container>
+  <v-container style="max-width:699px">
+    <h1>Login
+      <v-btn small icon @click="toggleDark" class="mr-1">
+        <v-icon v-text="$store.state.dark?'mdi-white-balance-sunny':'mdi-moon-waxing-crescent'"></v-icon>
+      </v-btn>
+    </h1>
+    <v-row
+        class="my-2"
+        align="center"
+        justify="space-around">
+      <v-col>
+        <v-btn
+            @click="microsoft"
+            outlined
+            color="primary">
+          <v-icon left>
+            mdi-microsoft
+          </v-icon>
+          Login with Microsoft
+        </v-btn>
+      </v-col>
+    </v-row>
+    <v-divider/>
     <v-form
         ref="form"
-        v-model="valid"
-        lazy-validation>
-
+        v-model="valid">
+      <v-alert
+          v-if="errorMsg"
+          elevation="5"
+          type="error"
+      >{{ errorMsg }}
+      </v-alert>
       <v-text-field
           v-model="email"
           :rules="emailRules"
-          label="E-mail"
+          label="Email"
           required
       ></v-text-field>
 
@@ -30,7 +56,7 @@
         Login
       </v-btn>
       <v-btn
-          :disabled="now<nextAllowed"
+          :disabled="now<nextAllowed||attempting"
           class="mr-4"
           @click="sendEmail"
       >
@@ -45,9 +71,19 @@
 </template>
 
 <script lang="ts">
-import {Component, Vue} from "vue-property-decorator";
+import {Component, Vue, Watch} from "vue-property-decorator";
 import {auth} from "@/main";
+import {post} from "@/api/api";
+import {
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  OAuthProvider,
+  signInWithPopup,
+  fetchSignInMethodsForEmail
+} from "firebase/auth";
 
+const provider = new OAuthProvider('microsoft.com');
+provider.setCustomParameters({prompt: 'consent'});
 @Component
 export default class Login extends Vue {
   name = "Login";
@@ -59,7 +95,13 @@ export default class Login extends Vue {
 
   attempting = false;
 
-  errorMsg = '';
+  errorMsg? = '';
+
+  @Watch('errorMsg')
+  onErrorMsgChange() {
+    this.valid = false;
+  }
+
   email = '';
   emailRules = [
     (v: string) => !!v || 'E-mail is required',
@@ -72,19 +114,48 @@ export default class Login extends Vue {
     () => !this.errorMsg || this.errorMsg
   ];
 
-  login() {
-    if (!this.valid) return;
-    this.attempting = true;
-    this.$store.dispatch('login', {
-      email: this.email,
-      password: this.password,
-    }).catch(e => {
-      console.log(JSON.stringify(e));
-      this.errorMsg = e.code;
-    }).finally(() => this.attempting = false);
+  toggleDark(): boolean {
+    this.$store.dispatch('toggleDark');
+    return this.$vuetify.theme.dark = this.$store.state.dark;
   }
 
-  sendEmail() {
+  login(): void {
+    this.attempting = true;
+    this.errorMsg = undefined;
+    signInWithEmailAndPassword(auth, this.email, this.password)
+        .then(firebaseData => firebaseData.user?.getIdToken(true))
+        .then(token => this.verifyToken(token)).catch(e => console.log(this.errorMsg = e.code))
+        .finally(() => this.attempting = false);
+  }
+
+  microsoft(): Promise<void> {
+    this.errorMsg = undefined;
+    return signInWithPopup(auth, provider).then(result => {
+      console.log("oath return", result.user.email);
+      const credential = OAuthProvider.credentialFromResult(result);
+      if (!(credential && credential.idToken)) throw "Credential is null";
+      return result.user.getIdToken(true);
+    }).then(token => this.verifyToken(token)).catch(error => {
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        fetchSignInMethodsForEmail(auth, error.customData.email).then(methods => {
+          this.errorMsg = methods[0] !== 'password' ?
+              "Another account of same email already exists" :
+              "Email/password account already exist, please reset password. And link microsoft account in profile after login";
+        });
+      } else this.errorMsg = error.code;
+    });
+  }
+
+  verifyToken(token: string): Promise<void> {
+    return post("/api/auth", {token: token})
+        .then(res => res.json())
+        .then(res => {
+          if (res.status === "success") this.$store.dispatch("fetchUserProfile");
+          else throw res.reason;
+        });
+  }
+
+  sendEmail(): void {
     if (!this.valid) return;
     this.now = Date.now();
     this.nextAllowed = Date.now() + 60 * 1000;
@@ -92,9 +163,7 @@ export default class Login extends Vue {
       this.now = Date.now();
       if (this.now > this.nextAllowed) clearInterval(int);
     }, 16);
-    auth.sendPasswordResetEmail(this.email).then(res => {
-      console.log(res);
-    })
+    sendPasswordResetEmail(auth, this.email).then(res => console.log(res))
   }
 }
 </script>
