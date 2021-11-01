@@ -20,6 +20,7 @@ export interface State {
 
     currentCollection?: Collection;
     currentNotes?: Note[];
+    currentRoles?: Role[];
     currentUser?: User;
     currentNote?: Note;
     currentRole?: Role;

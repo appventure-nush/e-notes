@@ -3,6 +3,7 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import './plugins/vuera'
+import './plugins/others'
 import vuetify from './plugins/vuetify'
 import firebase from 'firebase/compat/app';
 import {getAuth} from "firebase/auth";

@@ -1,9 +1,7 @@
 <template>
   <v-card
       class="mx-auto"
-      max-width="344"
-      outlined
-  >
+      outlined>
     <v-list-item three-line>
       <v-list-item-content>
         <div class="text-overline">
@@ -23,8 +21,7 @@
           outlined
           rounded
           text
-          :to="{name:'Collection', params:{cid:value.cid}}"
-      >
+          :to="{name:'Collection', params:{cid:value.cid}}">
         Open
       </v-btn>
     </v-card-actions>

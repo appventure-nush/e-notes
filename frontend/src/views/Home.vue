@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-row>
-      <v-col cols="4" v-for="(coll,i) in $store.state.collections" :key="coll.cid">
+      <v-col cols="12" md="6" lg="4" v-for="(coll,i) in $store.state.collections" :key="coll.cid">
         <collection-display v-model="$store.state.collections[i]"/>
       </v-col>
     </v-row>

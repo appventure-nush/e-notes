@@ -9,6 +9,7 @@ import {User} from "@/types/user";
 import VuexPersistence from 'vuex-persist';
 import {Collection} from "@/types/coll";
 import {Note} from "@/types/note";
+import {Role} from "@/types/role";
 
 Vue.use(Vuex)
 const vuexLocal = new VuexPersistence<State>({
@@ -21,6 +22,7 @@ export default new Vuex.Store<State>({
         user: <firebase.User>{},
         profile: <User>{},
         currentNotes: [],
+        currentRoles: [],
         collections: [],
 
         currentNote: <Note>{},
@@ -44,6 +46,9 @@ export default new Vuex.Store<State>({
         },
         setCurrentNotes(state, notes: Note[]) {
             state.currentNotes = notes;
+        },
+        setCurrentRoles(state, roles: Role[]) {
+            state.currentRoles = roles;
         },
         setCurrentNote(state, note: Note) {
             state.currentNote = note;

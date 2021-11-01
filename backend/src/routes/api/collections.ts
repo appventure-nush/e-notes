@@ -5,18 +5,18 @@ import {
     checkAdmin,
     checkPermissions,
     checkUser,
-    checkUserOptional, difference,
+    difference, getAllRoles,
     getAvailableCollections,
-    getCollection, getNotes,
-    hasPermissions
+    getCollection, getNotes
 } from '../../utils';
 import {makeColl} from "../../types/coll";
 import {firestore, storage} from "firebase-admin";
-import path from "path";
 import imageType from "image-type";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 import WriteResult = firestore.WriteResult;
 import {error, failed, success} from "../../response";
+import {_accepts, _rejects} from "../../types/permissions";
+import {roleAccepts} from "../../types/role";
 
 const collections = Router();
 
@@ -39,7 +39,6 @@ export async function getURL(name: string) {
 
 collections.get("/", checkUser, async (req, res) => res.json(await getAvailableCollections(req.uid)));
 collections.post("/", checkAdmin, (req, res) => res.json(failed("collection_id_required")));
-
 collections.get("/:cid", checkPermissions, async (req, res) => {
     const collection = getCollection(req.params.cid);
 
@@ -76,17 +75,10 @@ collections.delete("/:cid", checkAdmin, async (req, res) => {
         await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.DELETE, [collection]));
     }
 });
-
-collections.get('/:cid/img', checkUserOptional, async (req, res) => {
-    if (!getCollection(req.params.cid)) return res.json(req.uid);
-    if (!await hasPermissions(req.uid, req.params.cid)) return res.json(failed('no_perm'));
-    const files = (await storage().bucket().getFiles({
-        directory: `collections/${req.params.cid}/images/`
-    }))[0].filter(file => file.name !== `collections/${req.params.cid}/images/`);
-    res.json(await Promise.all(files.map(async file => ({
-        name: path.basename(file.name),
-        url: await getURL(file.name)
-    }))));
+collections.get('/:cid/img', checkPermissions, async (req, res) => {
+    if (!getCollection(req.params.cid)) return res.json(failed('collection_not_found'));
+    const file = storage().bucket().file(`collections/${req.params.cid}/images`);
+    storage().bucket().getFiles({})
 });
 collections.post('/:cid/img', checkAdmin, async (req, res) => { // called for every file
     if (!getCollection(req.params.cid)) return res.json(failed('collection_not_found'));
@@ -123,14 +115,13 @@ collections.delete('/:cid/img/:img', checkAdmin, async (req, res) => {
         .catch(e => res.json(error(e.message)));
     await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.DELETE_FILE, [file.name]));
 });
-
 collections.use("/:cid/notes", checkPermissions, (req, res, next) => {
     req.body.cid = req.params.cid;
     const collection = getCollection(req.params.cid);
     if (!collection) return res.json({reason: "collection_not_found"});
     next();
 }, notesRouter);
-
+collections.get("/:cid/roles", checkPermissions, (req, res) => res.json(getAllRoles().filter(role => roleAccepts(role, req.params.cid) && !_rejects(role, req.params.cid))))
 collections.post("/:cid/reorder", checkAdmin, async (req, res) => {
     let tasks: Promise<WriteResult>[] = [];
     let notes = await getNotes(req.params.cid);

@@ -1,8 +1,18 @@
 <template>
   <v-container>
-    <h3>Note</h3>
-    <p>{{ nid }}</p>
-
+    <v-card
+        shaped
+        outlined>
+      <v-card-title>{{ note.name }}</v-card-title>
+      <v-card-subtitle>{{ note.nid }}</v-card-subtitle>
+      <v-card-text>
+        <div><strong>Last Edited</strong></div>
+        <UserChip :uid.sync="note.lastEditBy" admin>
+          <template v-slot:additional>{{ note.lastEdit | moment("dddd, MMMM Do YYYY") }}</template>
+        </UserChip>
+      </v-card-text>
+    </v-card>
+    <v-divider class="my-3"/>
     <div ref="shadowRoot" v-if="!note.jupyter"></div>
     <JupyterViewer v-else :rawIpynb="doc"></JupyterViewer>
     <v-skeleton-loader
@@ -18,6 +28,7 @@ import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
 // @ts-ignore
 import JupyterViewer from "react-jupyter-notebook";
 import {get} from "@/api/api";
+import UserChip from "@/components/UserChip.vue";
 
 const additionalStyles = '<style>\n' +
     '.container{width:auto!important;}\n' +
@@ -30,6 +41,7 @@ const additionalStyles = '<style>\n' +
 // @ts-ignore
 @Component({
   components: {
+    UserChip,
     JupyterViewer
   }
 })
@@ -65,7 +77,7 @@ export default class Note extends Vue {
     get(`/api/collections/${this.cid}/notes/${this.nid}`).then(res => res.json()).then(json => {
       if (json.status && json.status !== "success") return this.$router.push(`/collections/${this.cid}`);
       this.$store.commit("setCurrentNote", json);
-      get(this.note.url).then(res => res.text()).then(text => {
+      fetch(this.note.url).then(res => res.text()).then(text => {
         console.log("loading done")
         this.loading = false;
         this.doc = this.note.jupyter ? JSON.parse(text) : additionalStyles + text;

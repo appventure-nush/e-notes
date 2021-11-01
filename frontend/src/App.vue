@@ -103,6 +103,7 @@
       </v-navigation-drawer>
       <v-app-bar
           app
+          elevate-on-scroll
           hide-on-scroll
           color="primary"
           dark>
