@@ -52,11 +52,11 @@ authentication.post('/pfp', checkUser, async (req, res) => {
         if (type && type.mime.toUpperCase() === new_profile_pic.mimetype.toUpperCase()) {
             if (IMAGE_FORMATS.includes(type.mime.toLowerCase())) try {
                 const file = storage().bucket().file(`users/pfp/${req.uid}.${type.ext}`);
-                await file.save(await (await Jimp.read(new_profile_pic.data)).cover(256, 256).quality(80).getBufferAsync('image/jpeg'), {resumable: false});
-                const url = (await file.getSignedUrl({
-                    action: 'read',
-                    expires: '01-01-2500'
-                }))[0];
+                await file.save(await (await Jimp.read(new_profile_pic.data)).cover(256, 256).quality(80).getBufferAsync('image/jpeg'), {
+                    public: true,
+                    resumable: false
+                });
+                const url = file.publicUrl()
                 res.json(success({
                     user: fillUser(req.user, await auth().updateUser(req.uid, {photoURL: url}))
                 }));

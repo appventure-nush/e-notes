@@ -77,30 +77,29 @@ collections.delete("/:cid", checkAdmin, async (req, res) => {
 });
 collections.get('/:cid/img', checkPermissions, async (req, res) => {
     if (!getCollection(req.params.cid)) return res.json(failed('collection_not_found'));
-    const file = storage().bucket().file(`collections/${req.params.cid}/images`);
-    storage().bucket().getFiles({})
+    const files = (await storage().bucket().getFiles({prefix: `collections/${req.params.cid}/images`}))[0];
+    res.json(files.map(f => ({
+        src: f.publicUrl(),
+        name: f.name.substring(f.name.lastIndexOf('/') + 1)
+    })).filter(i => i.name));
 });
-collections.post('/:cid/img', checkAdmin, async (req, res) => { // called for every file
+collections.post('/:cid/img', checkAdmin, async (req, res) => {
     if (!getCollection(req.params.cid)) return res.json(failed('collection_not_found'));
     if (!req.files) return res.json(failed('where is the file'));
-    const payload = req.files.payload;
+    const payload = req.files.file;
     if (payload && "data" in payload) {
         const type = imageType(payload.data);
         if (type && type.mime.toUpperCase() === payload.mimetype.toUpperCase()) {
             if (IMAGE_FORMATS.includes(type.mime.toLowerCase())) {
                 try {
-                    const file = storage().bucket().file(`collections/${req.params.cid}/images/${req.body.name}`);
-                    await file.save(payload.data, {resumable: false});
+                    const file = storage().bucket().file(`collections/${req.params.cid}/images/${payload.name}`);
+                    await file.save(payload.data, {public: true, resumable: false});
                     res.json(success({
-                        url: await getURL(`collections/${req.params.cid}/images/${req.body.name}`)
+                        name: payload.name,
+                        url: file.publicUrl()
                     }));
                     await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.UPLOAD_FILE, [file.name]));
                 } catch (e) {
-                    // await error("image upload error", {
-                    //     message: e.message,
-                    //     body: req.body,
-                    //     type
-                    // });
                     res.json(failed('please contact an admin'));
                 }
             } else return res.json(failed('only gif/jpg/png allowed!'));

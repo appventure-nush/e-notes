@@ -8,6 +8,16 @@ export function get(path: string) {
     });
 }
 
+export function del(path: string) {
+    return fetch(path, {
+        method: "DELETE",
+        credentials: 'same-origin',
+        headers: {
+            'Accept': 'application/json'
+        }
+    });
+}
+
 export function post(path: string, body: any) {
     return fetch(path, {
         method: "POST",

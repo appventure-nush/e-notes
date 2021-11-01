@@ -13,6 +13,6 @@ export function failed(obj?: any): object {
 }
 
 export function error(obj?: any): object {
-    if (typeof obj === "string") return {status: "error", message: obj};
+    if (typeof obj === "string") return {status: "error", reason: obj};
     return {status: "error", ...obj};
 }
