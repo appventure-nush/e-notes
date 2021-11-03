@@ -6,11 +6,10 @@
         <v-card-subtitle class="pb-2" v-text="coll.cid"></v-card-subtitle>
         <v-chip class="mx-4 mb-2" small label :color="coll.open?'success':'error'"
                 v-text="coll.open?'Open':'Private'"></v-chip>
-        <v-divider/>
         <v-card-text>
           <markdown :content="coll.desc" :options="$store.state.markdownOptions"></markdown>
         </v-card-text>
-
+        <v-divider/>
         <v-card-text class="pb-2"><strong>Roles with access</strong></v-card-text>
         <div class="mx-3">
           <v-chip class="mx-1" small label
@@ -45,7 +44,7 @@
             <span v-show="upload && upload.dropActive">Drag and drop here for upload</span>
           </div>
           <v-list v-if="files.length>0">
-            <v-card :loading="files[i].active" elevation="0" v-for="(f,i) in files" :key="`upload_list_${f.name}`">
+            <v-card :loading="files[i].active" flat v-for="(f,i) in files" :key="`upload_list_${f.name}`">
               <template slot="progress">
                 <v-progress-linear
                     :value="parseFloat(files[i].progress)"
@@ -68,9 +67,9 @@
               </v-list-item>
             </v-card>
           </v-list>
-          <Gallery v-model="images" :deleting="deleting" @delete="deleteImage($event)"></Gallery>
         </div>
-        <v-card-actions class="ma-3">
+        <Gallery v-model="images" :deleting="deleting" @delete="deleteImage($event)"></Gallery>
+        <v-card-actions v-if="canEdit($store.state.currentCollection)">
           <CollectionPopup editing :preset="coll">
             <template v-slot:activator="{on}">
               <v-btn text color="primary" v-on="on">
@@ -82,6 +81,18 @@
             Delete
           </v-btn>
         </v-card-actions>
+        <v-divider/>
+        <v-card-title>Notes</v-card-title>
+        <v-card-text>
+          <v-list>
+            <v-list-item
+                :to="{name:'Note',params:{cid:$route.params.cid,nid:note.nid}}"
+                v-for="note in $store.state.currentNotes"
+                :key="note.nid">
+              {{ note.name }}
+            </v-list-item>
+          </v-list>
+        </v-card-text>
       </v-card>
     </template>
     <router-view></router-view>

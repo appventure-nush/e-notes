@@ -8,5 +8,7 @@ export interface Note {
     lastEdit: number;
     url: string;
 
-    jupyter?: boolean;
+    type?: NoteType;
 }
+
+export type NoteType = "jupyter" | "markdown" | "html";

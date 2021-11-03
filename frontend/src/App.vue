@@ -75,7 +75,8 @@
           <!-- if in collection/notes page, show notes list -->
           <template v-if="$route.name==='Collection'||$route.name==='Note'">
             <v-divider/>
-            <v-list-group prepend-icon="mdi-folder">
+            <!-- Notes of the current collection -->
+            <v-list-group prepend-icon="mdi-folder" :value="true">
               <template v-slot:activator>
                 <v-list-item-title>{{ $store.state.currentCollection.name }}</v-list-item-title>
               </template>
@@ -98,15 +99,21 @@
                 </v-list-item-content>
               </v-list-item>
             </v-list-group>
-            <v-list-item
-                v-for="coll in $store.state.collections.filter(c=>c.cid!==$route.params.cid)"
-                :to="{name:'Collection',params:{cid:coll.cid}}"
-                :key="coll.cid"
-                link>
-              <v-list-item-content>
-                <v-list-item-title>{{ coll.name }}</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
+            <!-- Other collections -->
+            <v-list-group prepend-icon="mdi-folder">
+              <template v-slot:activator>
+                <v-list-item-title>Other collections</v-list-item-title>
+              </template>
+              <v-list-item
+                  v-for="coll in $store.state.collections.filter(c=>c.cid!==$route.params.cid)"
+                  :to="{name:'Collection',params:{cid:coll.cid}}"
+                  :key="coll.cid"
+                  link>
+                <v-list-item-content>
+                  <v-list-item-title>{{ coll.name }}</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list-group>
           </template>
         </v-list>
       </v-navigation-drawer>

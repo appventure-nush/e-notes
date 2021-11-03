@@ -1,5 +1,5 @@
 import {Router} from 'express';
-import {makeNote, Note} from '../../types/note';
+import {makeNote, Note, NoteType} from '../../types/note';
 import {firestore, storage} from "firebase-admin";
 import {checkAdmin, getNote, getNotes, updateNote} from "../../utils";
 import Markdown from 'markdown-it';
@@ -82,18 +82,20 @@ notes.post("/:nid/upload", checkAdmin, async (req, res) => {
         const note = doc.data() as Note;
         const file = storage().bucket().file(`collections/${req.body.cid}/notes/${req.params.nid}.html`);
         let str = newNoteSource.data.toString();
-
+        let type: NoteType = "html";
         // Jupyter notebook renderer
-        // @ts-ignore
-        if (newNoteSource.name.endsWith(".ipynb")) str = nb.parse(JSON.parse(str)).render().outerHTML;
-        // Markdown renderer
-        if (newNoteSource.name.toLowerCase().endsWith(".md")) str = md.render(str);
-
-        const match = /charset=([^"']+)/.exec(str); // charset fix
-        if (match && match[1] && iconv.encodingExists(match[1])) str = iconv.decode(newNoteSource.data, match[1]);
-
+        if (newNoteSource.name.endsWith(".ipynb")) {
+            type = "jupyter";
+            str = JSON.stringify(JSON.parse(str));
+        } else if (newNoteSource.name.toLowerCase().endsWith(".md")) {
+            type = "markdown";
+        } else {
+            const match = /charset=([^"']+)/.exec(str); // charset fix
+            if (match && match[1] && iconv.encodingExists(match[1])) str = iconv.decode(newNoteSource.data, match[1]);
+        }
         await file.save(str, {resumable: false});
         note.url = (await file.getSignedUrl({action: 'read', expires: '01-01-2500'}))[0];
+        note.type = type;
         note.lastEdit = Date.now();
         note.lastEditBy = req.uid;
         updateNote(req.body.cid, req.params.nid, note);

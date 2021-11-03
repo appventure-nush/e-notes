@@ -22,9 +22,9 @@ export default new Vuex.Store<State>({
         dark: false,
         user: <firebase.User>{},
         profile: <User>{},
-        currentNotes: [],
-        currentRoles: [],
-        collections: [],
+        currentNotes: <Note[]>[],
+        currentRoles: <Role[]>[],
+        collections: <Collection[]>[],
 
         drawerOpen: false,
         collectionListOpen: false,

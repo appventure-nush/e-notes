@@ -12,14 +12,15 @@
         </UserChip>
       </v-card-text>
       <v-card-actions v-if="canEdit($store.state.currentCollection)">
-        
+        <v-btn text color="primary">Edit</v-btn>
       </v-card-actions>
     </v-card>
     <v-divider class="my-3"/>
-    <div ref="shadowRoot" v-if="!note.jupyter"></div>
-    <JupyterViewer v-else :rawIpynb="doc"></JupyterViewer>
+    <JupyterViewer v-if="note.type==='jupyter'" :rawIpynb="doc"></JupyterViewer>
+    <markdown v-else-if="note.type==='markdown'" :content="doc" :options="$store.state.markdownOptions"></markdown>
+    <div ref="shadowRoot"></div>
     <v-skeleton-loader
-        v-if="loading"
+        v-if="!doc"
         class="mx-auto"
         type="article,image,article,card"
     ></v-skeleton-loader>
@@ -31,6 +32,9 @@ import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
 // @ts-ignore
 import JupyterViewer from "react-jupyter-notebook";
 import UserChip from "@/components/UserChip.vue";
+//@ts-ignore
+import MarkdownItVueLight from 'markdown-it-vue/dist/markdown-it-vue-light.umd.min.js'
+import 'markdown-it-vue/dist/markdown-it-vue-light.css'
 
 const additionalStyles = '<style>\n' +
     '.container{width:auto!important;}\n' +
@@ -44,7 +48,8 @@ const additionalStyles = '<style>\n' +
 @Component({
   components: {
     UserChip,
-    JupyterViewer
+    JupyterViewer,
+    markdown: MarkdownItVueLight as any
   }
 })
 export default class Note extends Vue {
@@ -54,17 +59,16 @@ export default class Note extends Vue {
   @Prop(String) readonly nid?: string;
   name = "Note";
   doc?: any = null;
-  loading = false;
   shadow?: ShadowRoot;
 
   @Watch('doc')
   onDocChange() {
-    if (!this.shadow) return;
-    this.shadow.innerHTML = this.doc;
+    if (this.note.type && this.note.type !== "html") return;
+    this.shadow = this.shadowRoot.attachShadow({mode: 'open'});
+    this.shadow.innerHTML = additionalStyles + this.doc;
   }
 
   mounted() {
-    this.shadow = this.shadowRoot.attachShadow({mode: 'open'});
     this.onNoteChange();
   }
 
@@ -75,13 +79,11 @@ export default class Note extends Vue {
   @Watch('nid')
   onNoteChange() {
     this.doc = "";
-    this.loading = true;
     this.$store.cache.dispatch("getCollectionNotes", this.cid).then((res: Note[]) => res.find(n => n.nid === this.nid)).then(json => {
       if (!json) return this.$router.push(`/collections/${this.cid}`);
       this.$store.commit("setCurrentNote", json);
       fetch(this.note.url).then(res => res.text()).then(text => {
-        this.loading = false;
-        this.doc = this.note.jupyter ? JSON.parse(text) : additionalStyles + text;
+        this.doc = this.note.type === "jupyter" ? JSON.parse(text) : text;
       });
     })
   }

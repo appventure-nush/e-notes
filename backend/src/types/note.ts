@@ -8,8 +8,10 @@ export interface Note {
     lastEdit: number;
     url: string;
 
-    jupyter?: boolean;
+    type?: NoteType;
 }
+
+export type NoteType = "jupyter" | "markdown" | "html";
 
 export function makeNote(i: number, nid: string, cid: string, owner: string, name?: string, desc?: string): Note {
     return {
