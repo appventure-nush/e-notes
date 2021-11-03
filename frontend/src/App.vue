@@ -98,6 +98,15 @@
                 </v-list-item-content>
               </v-list-item>
             </v-list-group>
+            <v-list-item
+                v-for="coll in $store.state.collections.filter(c=>c.cid!==$route.params.cid)"
+                :to="{name:'Collection',params:{cid:coll.cid}}"
+                :key="coll.cid"
+                link>
+              <v-list-item-content>
+                <v-list-item-title>{{ coll.name }}</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
           </template>
         </v-list>
       </v-navigation-drawer>
@@ -105,10 +114,11 @@
           app
           elevate-on-scroll
           hide-on-scroll
+          scroll-threshold="169"
           color="primary"
           dark>
-        <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
-        <v-toolbar-title>{{ $route.name }}</v-toolbar-title>
+        <v-app-bar-nav-icon @click="drawer=!drawer"></v-app-bar-nav-icon>
+        <v-toolbar-title v-if="!$route.meta.hideTitle">{{ $route.name }}</v-toolbar-title>
         <router-view name="appbar"></router-view>
         <v-spacer></v-spacer>
         <v-btn small icon @click="toggleDark" class="mr-1">
@@ -127,8 +137,6 @@ import {Component, Vue} from "vue-property-decorator";
 
 @Component
 export default class App extends Vue {
-  drawer = false;
-
   get pfp() {
     return this.$store.state.profile.pfp || "/images/guest.png";
   }
@@ -141,12 +149,20 @@ export default class App extends Vue {
     return this.$store.state.profile.email;
   }
 
+  get drawer() {
+    return this.$store.state.drawerOpen;
+  }
+
+  set drawer(val: boolean) {
+    this.$store.commit("setDrawer", val);
+  }
+
   mounted() {
     console.log('mounted')
   }
 
   toggleDark() {
-    this.$store.dispatch('toggleDark');
+    this.$store.commit('toggleDark');
     this.$vuetify.theme.dark = this.$store.state.dark;
   }
 }

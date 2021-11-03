@@ -15,27 +15,12 @@ import imageType from "image-type";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 import WriteResult = firestore.WriteResult;
 import {error, failed, success} from "../../response";
-import {_accepts, _rejects} from "../../types/permissions";
+import {_rejects} from "../../types/permissions";
 import {roleAccepts} from "../../types/role";
 
 const collections = Router();
 
 const IMAGE_FORMATS = ['image/gif', 'image/jpeg', 'image/png'];
-const LOCAL_IMAGE_CACHE = new Map<string, [any, number]>();
-const URL_CACHE_AGE = 3600000;
-
-export async function getURL(name: string) {
-    if (LOCAL_IMAGE_CACHE.has(name)) {
-        const cache = LOCAL_IMAGE_CACHE.get(name);
-        if (cache[1] > Date.now()) return cache[0];
-    }
-    const url = (await storage().bucket().file(name).getSignedUrl({
-        action: 'read',
-        expires: Date.now() + URL_CACHE_AGE
-    }))[0];
-    LOCAL_IMAGE_CACHE.set(name, [url, Date.now() + URL_CACHE_AGE]); // 1 minute file url expiration
-    return url;
-}
 
 collections.get("/", checkUser, async (req, res) => res.json(await getAvailableCollections(req.uid)));
 collections.post("/", checkAdmin, (req, res) => res.json(failed("collection_id_required")));
@@ -53,16 +38,16 @@ collections.post("/:cid", checkAdmin, async (req, res) => {
     let old = {...collection};
     if (collection) {
         if (req.body.action && req.body.action === "add") return res.json(failed("collection_already_exist"));
-        if (req.body.name) collection.name = req.body.name;
-        if (req.body.desc) collection.desc = req.body.desc;
-        if (req.body.open) collection.open = (req.body.open === "open");
+        if (req.body.hasOwnProperty("name")) collection.name = req.body.name;
+        if (req.body.hasOwnProperty("desc")) collection.desc = req.body.desc;
+        if (req.body.hasOwnProperty("open")) collection.open = Boolean(req.body.open);
         await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.EDIT, difference(old, collection)));
     } else {
         collection = makeColl(req.params.cid, req.uid, req.body.name, req.body.desc, req.body.open);
         await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.CREATE, [collection]));
     }
     await firestore().collection("collections").doc(req.params.cid).set(collection);
-    res.json(collection);
+    res.json(success({collection}));
 });
 collections.delete("/:cid", checkAdmin, async (req, res) => {
     const collection = getCollection(req.params.cid);
@@ -79,7 +64,7 @@ collections.get('/:cid/img', checkPermissions, async (req, res) => {
     if (!getCollection(req.params.cid)) return res.json(failed('collection_not_found'));
     const files = (await storage().bucket().getFiles({prefix: `collections/${req.params.cid}/images`}))[0];
     res.json(files.map(f => ({
-        src: f.publicUrl(),
+        url: f.publicUrl(),
         name: f.name.substring(f.name.lastIndexOf('/') + 1)
     })).filter(i => i.name));
 });

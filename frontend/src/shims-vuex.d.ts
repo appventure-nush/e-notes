@@ -18,6 +18,9 @@ export interface State {
     user?: firebase.User;
     profile?: User;
 
+    drawerOpen: boolean;
+    collectionListOpen: boolean;
+
     currentCollection?: Collection;
     currentNotes?: Note[];
     currentRoles?: Role[];

@@ -3,7 +3,7 @@ import {MutablePermissions} from "./permissions";
 export const CREATE_COLLECTION = 0b0001;
 export const VIEW_OTHER_COLLECTION = 0b0010;
 export const EDIT_OTHER_COLLECTION = 0b0100;
-export const DELETE_OTHER_COLLECTION = 0b1000;
+export const IDK_YET = 0b1000;
 
 export interface User extends MutablePermissions {
     uid: string;

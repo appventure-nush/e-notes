@@ -25,71 +25,61 @@
         </div>
         <v-card-text class="pb-2"><strong>Images</strong></v-card-text>
         <div class="mx-4 mb-4">
-          <div v-if="$store.state.profile.admin">
-            <v-btn outlined :disabled="upload&&upload.active" class="mr-2">
+          <div v-if="canEdit($store.state.currentCollection)">
+            <v-btn outlined :disabled="upload&&upload.active" class="mr-2" @click="upload.$el.children[0].click()">
               <v-icon left>
                 mdi-upload
               </v-icon>
+              Select Files
               <file-upload ref="upload"
+                           v-model="files"
+                           accept="image/*"
                            :thread="3"
                            :timeout="60 * 1000"
-                           v-model="files"
                            :drop="true"
                            :multiple="true"
-                           accept="image/*"
                            :post-action="`/api/collections/${cid}/img`">
-                Select Images
               </file-upload>
             </v-btn>
             <v-btn @click="initUpload" text>Upload</v-btn>
+            <span v-show="upload && upload.dropActive">Drag and drop here for upload</span>
           </div>
           <v-list v-if="files.length>0">
             <v-card :loading="files[i].active" elevation="0" v-for="(f,i) in files" :key="`upload_list_${f.name}`">
+              <template slot="progress">
+                <v-progress-linear
+                    :value="parseFloat(files[i].progress)"
+                    height="2"
+                ></v-progress-linear>
+              </template>
               <v-list-item>
                 <v-list-item-avatar>
                   <v-img :src="createObjectURL(f.file)"></v-img>
                 </v-list-item-avatar>
                 <v-list-item-content>
-                  <template slot="progress">
-                    <v-progress-linear
-                        v-model="files[i].progress"
-                        height="2"
-                    ></v-progress-linear>
-                  </template>
+                  <v-list-item-title v-text="f.name"></v-list-item-title>
+                  <v-list-item-subtitle v-text="humanFileSize(f.size)"></v-list-item-subtitle>
                 </v-list-item-content>
-                <v-list-item-title>{{ f.name }}</v-list-item-title>
+                <v-list-item-action>
+                  <v-btn icon small @click="upload.remove(f)">
+                    <v-icon color="red lighten-1">mdi-close</v-icon>
+                  </v-btn>
+                </v-list-item-action>
               </v-list-item>
             </v-card>
           </v-list>
-          <v-row class="ma-2">
-            <v-col cols="6" sm="4" md="3" lg="2"
-                   :key="image.name" class="pa-2"
-                   v-for="image in images">
-              <v-card elevation="0" outlined :loading="deleting.includes(image.name)">
-                <template slot="progress">
-                  <v-progress-linear
-                      indeterminate
-                      height="2"
-                  ></v-progress-linear>
-                </template>
-                <v-img :src="image.src" aspect-ratio="1"
-                       class="white--text align-end">
-                  <v-list-item-content class="pb-0" style="background:rgba(0,0,0,0.4)">
-                    <v-card-text class="py-0">{{ image.name }}</v-card-text>
-                    <v-btn
-                        v-if="$store.state.profile.admin"
-                        color="red" text @click="deleteImage(image.name)" :disabled="deleting.includes(image.name)">
-                      Delete
-                    </v-btn>
-                  </v-list-item-content>
-                </v-img>
-              </v-card>
-            </v-col>
-          </v-row>
+          <Gallery v-model="images" :deleting="deleting" @delete="deleteImage($event)"></Gallery>
         </div>
-        <v-card-actions>
-          <v-btn text>
-            Hello
+        <v-card-actions class="ma-3">
+          <CollectionPopup editing :preset="coll">
+            <template v-slot:activator="{on}">
+              <v-btn text color="primary" v-on="on">
+                Edit
+              </v-btn>
+            </template>
+          </CollectionPopup>
+          <v-btn text color="error" class="ml-4">
+            Delete
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -100,17 +90,22 @@
 
 <script lang="ts">
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
-import {del, get} from "@/api/api";
-import MarkdownItVue from 'markdown-it-vue'
-import 'markdown-it-vue/dist/markdown-it-vue.css'
+import {del} from "@/api/api";
 import UserChip from "@/components/UserChip.vue";
 import {VUFile} from "@/shims-others";
 import VueUploadComponent from "vue-upload-component";
+import CollectionPopup from "@/components/CollectionPopup.vue";
+import Gallery from "@/components/Gallery.vue";
+//@ts-ignore
+import MarkdownItVueLight from 'markdown-it-vue/dist/markdown-it-vue-light.umd.min.js'
+import 'markdown-it-vue/dist/markdown-it-vue-light.css'
 
 @Component({
   components: {
+    Gallery,
+    CollectionPopup,
     UserChip,
-    markdown: MarkdownItVue as any
+    markdown: MarkdownItVueLight as any
   }
 })
 export default class Collection extends Vue {
@@ -118,6 +113,26 @@ export default class Collection extends Vue {
   @Ref('upload') upload?: VueUploadComponent;
   name = "Collection";
   files: VUFile[] = [];
+  deleting: string[] = [];
+  images: { url: string, name: string }[] = [];
+  blobs: { [name: string]: string } = {};
+
+  @Watch('cid')
+  onCIDChange() {
+    this.deleting = [];
+    this.images = [];
+    this.files = [];
+    this.$store.cache.dispatch("getCollection", this.cid).then(json => {
+      if (json.status && json.status !== "success") {
+        console.log(json);
+        return this.$router.push("/");
+      }
+      this.$store.commit("setCurrentColl", json);
+    });
+    this.$store.cache.dispatch("getCollectionRoles", this.cid).then(json => this.$store.commit("setCurrentRoles", json));
+    this.$store.cache.dispatch("getCollectionNotes", this.cid).then(json => this.$store.commit("setCurrentNotes", json));
+    this.$store.cache.dispatch("getCollectionImages", this.cid).then(json => this.images = json);
+  }
 
   @Watch('files')
   onFilesChange() {
@@ -129,25 +144,13 @@ export default class Collection extends Vue {
       if (index > -1) this.images.splice(index, 1);
       this.images.push({
         name: f.name,
-        src: (f.response as any).url
+        url: (f.response as any).url
       })
     }
   }
 
-  deleting: string[] = [];
-  images: { src: string, name: string }[] = [];
-
   mounted() {
-    get(`/api/collections/${this.cid}`).then(res => res.json()).then(json => {
-      if (json.status && json.status !== "success") {
-        console.log(json);
-        return this.$router.push("/");
-      }
-      this.$store.commit("setCurrentColl", json);
-    });
-    get(`/api/collections/${this.cid}/roles`).then(res => res.json()).then(json => this.$store.commit("setCurrentRoles", json));
-    get(`/api/collections/${this.cid}/notes`).then(res => res.json()).then(json => this.$store.commit("setCurrentNotes", json));
-    get(`/api/collections/${this.cid}/img`).then(res => res.json()).then(json => this.images = json);
+    this.onCIDChange();
   }
 
   initUpload() {
@@ -169,8 +172,6 @@ export default class Collection extends Vue {
   get coll() {
     return this.$store.state.currentCollection;
   }
-
-  blobs: { [name: string]: string } = {};
 
   createObjectURL(object: File) {
     if (this.blobs[object.name]) return this.blobs[object.name];

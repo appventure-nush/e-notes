@@ -31,12 +31,13 @@
 <script lang="ts">
 import {Component, Prop, Vue} from "vue-property-decorator";
 import {Collection} from "@/types/coll";
-import MarkdownItVue from 'markdown-it-vue'
-import 'markdown-it-vue/dist/markdown-it-vue.css'
+// @ts-ignore
+import MarkdownItVueLight from 'markdown-it-vue/dist/markdown-it-vue-light.umd.min.js'
+import 'markdown-it-vue/dist/markdown-it-vue-light.css'
 
 @Component({
   components: {
-    markdown: MarkdownItVue as any
+    markdown: MarkdownItVueLight as any
   }
 })
 export default class CollectionDisplay extends Vue {

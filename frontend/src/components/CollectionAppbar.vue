@@ -1,20 +1,11 @@
 <template>
-  <div>
-    <div v-if="$route.name==='Collection'">
-      <v-row class="mx-2">
-        <v-col>
-          <v-btn @click="edit" outlined>Edit Collection</v-btn>
-        </v-col>
-      </v-row>
-    </div>
-    <div v-else>
-      <v-row class="mx-2">
-        <v-col>
-          <v-btn @click="edit" outlined>Edit Note</v-btn>
-        </v-col>
-      </v-row>
-    </div>
-  </div>
+  <v-breadcrumbs dark :items="items" large>
+    <template v-slot:item="{ item }">
+      <v-breadcrumbs-item :to="item.route" exact>
+        <span class="white--text">{{ item.text }}</span>
+      </v-breadcrumbs-item>
+    </template>
+  </v-breadcrumbs>
 </template>
 
 <script lang="ts">
@@ -27,6 +18,27 @@ export default class CollectionAppbar extends Vue {
 
   edit() {
     alert("Edit");
+  }
+
+  get items() {
+    return [{
+      text: "Home",
+      route: {
+        name: "Home"
+      }
+    }, {
+      text: this.$store.state.currentCollection.name,
+      route: {
+        name: "Collection",
+        params: {cid: this.$store.state.currentCollection.cid}
+      }
+    }, ...(this.$route.name !== 'Collection' ? [{
+      text: this.$store.state.currentNote.name,
+      route: {
+        name: "Note",
+        params: {cid: this.$store.state.currentNote.cid, nid: this.$store.state.currentNote.nid}
+      }
+    }] : [])]
   }
 }
 </script>

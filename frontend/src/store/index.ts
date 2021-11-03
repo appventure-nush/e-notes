@@ -10,6 +10,7 @@ import VuexPersistence from 'vuex-persist';
 import {Collection} from "@/types/coll";
 import {Note} from "@/types/note";
 import {Role} from "@/types/role";
+import createCache from 'vuex-cache';
 
 Vue.use(Vuex)
 const vuexLocal = new VuexPersistence<State>({
@@ -24,6 +25,9 @@ export default new Vuex.Store<State>({
         currentNotes: [],
         currentRoles: [],
         collections: [],
+
+        drawerOpen: false,
+        collectionListOpen: false,
 
         currentNote: <Note>{},
         currentCollection: <Collection>{},
@@ -56,7 +60,9 @@ export default new Vuex.Store<State>({
         setCurrentColl(state, coll: Collection) {
             state.currentCollection = coll;
         },
-
+        setDrawer(state, open) {
+            state.drawerOpen = open;
+        },
         collections(state, collections: Collection[]) {
             state.collections = collections;
         }
@@ -74,10 +80,12 @@ export default new Vuex.Store<State>({
             commit("setUser", undefined);
             await router.push('/login');
         },
-        toggleDark({commit}) {
-            commit('toggleDark');
-        }
+        getUser: (_, uid: string) => get(`/api/users/${uid}`).then(res => res.json()),
+        getCollection: (_, cid: string) => get(`/api/collections/${cid}`).then(res => res.json()),
+        getCollectionNotes: (_, cid: string) => get(`/api/collections/${cid}/notes`).then(res => res.json()),
+        getCollectionRoles: (_, cid: string) => get(`/api/collections/${cid}/roles`).then(res => res.json()),
+        getCollectionImages: (_, cid: string) => get(`/api/collections/${cid}/img`).then(res => res.json()),
     },
     modules: {},
-    plugins: [vuexLocal.plugin]
+    plugins: [vuexLocal.plugin, createCache()]
 })

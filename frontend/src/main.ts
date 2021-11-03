@@ -8,6 +8,8 @@ import vuetify from './plugins/vuetify'
 import firebase from 'firebase/compat/app';
 import {getAuth} from "firebase/auth";
 
+import './mixins'
+
 Vue.config.productionTip = false
 export const app = firebase.initializeApp({
     apiKey: "AIzaSyARHcPTpQ09ekeN91DtgfrAl8kA3bgrcYM",

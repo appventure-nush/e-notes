@@ -44,6 +44,7 @@ const routes: Array<RouteConfig> = [
             appbar: () => import('../components/CollectionAppbar.vue')
         },
         meta: {
+            hideTitle: true,
             auth: true
         },
         props: {
@@ -55,6 +56,9 @@ const routes: Array<RouteConfig> = [
                 props: true,
                 name: "Note",
                 path: ':nid/view',
+                meta: {
+                    hideTitle: true
+                },
                 component: () => import('../views/Note.vue')
             },
             {

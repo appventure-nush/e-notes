@@ -5,7 +5,7 @@
         <v-list-item-avatar color="grey darken-3">
           <v-img
               lazy-src="/images/guest.png"
-              :src="user.pfp"
+              :src="user.pfp||'/images/guest.png'"
           ></v-img>
         </v-list-item-avatar>
 
@@ -21,16 +21,11 @@
 
 <script lang="ts">
 import {Component, Prop, Vue, Watch} from "vue-property-decorator";
-import {get} from "@/api/api";
 import {User} from "@/types/user";
 
 @Component
 export default class UserChip extends Vue {
   @Prop(String) readonly uid: string | undefined
-
-  @Watch('uid') onUidChange(o: string) {
-    this.updateDisplay(o)
-  }
 
   @Prop(Boolean) readonly admin: boolean | undefined
   name = "UserChip"
@@ -40,6 +35,7 @@ export default class UserChip extends Vue {
     this.updateDisplay(this.uid);
   }
 
+  @Watch('uid')
   updateDisplay(uid?: string) {
     this.user = null;
     if (!uid) {
@@ -50,7 +46,7 @@ export default class UserChip extends Vue {
       } as User;
       return;
     }
-    get("/api/users/" + uid).then(res => res.json()).then(res => {
+    this.$store.cache.dispatch("getUser", uid).then(res => {
       if (res.status && res.status !== "success") return;
       this.user = res;
     });

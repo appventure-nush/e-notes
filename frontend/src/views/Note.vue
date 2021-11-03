@@ -8,9 +8,12 @@
       <v-card-text>
         <div><strong>Last Edited</strong></div>
         <UserChip :uid.sync="note.lastEditBy" admin>
-          <template v-slot:additional>{{ note.lastEdit | moment("dddd, MMMM Do YYYY") }}</template>
+          <template v-slot:additional>{{ note.lastEdit | moment("MMMM Do YYYY, hh:mm a") }}</template>
         </UserChip>
       </v-card-text>
+      <v-card-actions v-if="canEdit($store.state.currentCollection)">
+        
+      </v-card-actions>
     </v-card>
     <v-divider class="my-3"/>
     <div ref="shadowRoot" v-if="!note.jupyter"></div>
@@ -18,7 +21,7 @@
     <v-skeleton-loader
         v-if="loading"
         class="mx-auto"
-        type="card"
+        type="article,image,article,card"
     ></v-skeleton-loader>
   </v-container>
 </template>
@@ -27,7 +30,6 @@
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
 // @ts-ignore
 import JupyterViewer from "react-jupyter-notebook";
-import {get} from "@/api/api";
 import UserChip from "@/components/UserChip.vue";
 
 const additionalStyles = '<style>\n' +
@@ -74,11 +76,10 @@ export default class Note extends Vue {
   onNoteChange() {
     this.doc = "";
     this.loading = true;
-    get(`/api/collections/${this.cid}/notes/${this.nid}`).then(res => res.json()).then(json => {
-      if (json.status && json.status !== "success") return this.$router.push(`/collections/${this.cid}`);
+    this.$store.cache.dispatch("getCollectionNotes", this.cid).then((res: Note[]) => res.find(n => n.nid === this.nid)).then(json => {
+      if (!json) return this.$router.push(`/collections/${this.cid}`);
       this.$store.commit("setCurrentNote", json);
       fetch(this.note.url).then(res => res.text()).then(text => {
-        console.log("loading done")
         this.loading = false;
         this.doc = this.note.jupyter ? JSON.parse(text) : additionalStyles + text;
       });
@@ -88,7 +89,6 @@ export default class Note extends Vue {
   @Watch('$route.hash')
   onHashChange() {
     if (!this.shadow) return;
-    console.log(this.$route.hash);
     let elementToFocus = this.shadow.getElementById(window.location.hash.slice(1)) || this.shadow.querySelector(`[name='${window.location.hash.slice(1)}']`);
     if (elementToFocus) elementToFocus.scrollIntoView();
   }

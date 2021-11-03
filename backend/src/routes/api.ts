@@ -18,7 +18,5 @@ api.use("/roles", roles);
 api.use("/users", users);
 api.use("/audits", audits);
 api.use("/collections", collections);
-api.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-    res.status(403).json(error(err.message));
-});
+api.use((err: Error, req: Request, res: Response, next: NextFunction) => res.json(error(err.message)));
 export default api;

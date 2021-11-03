@@ -115,7 +115,7 @@ export default class Login extends Vue {
   ];
 
   toggleDark(): boolean {
-    this.$store.dispatch('toggleDark');
+    this.$store.commit('toggleDark');
     return this.$vuetify.theme.dark = this.$store.state.dark;
   }
 
