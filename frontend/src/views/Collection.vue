@@ -7,68 +7,111 @@
         <v-chip class="mx-4 mb-2" small label :color="coll.open?'success':'error'"
                 v-text="coll.open?'Open':'Private'"></v-chip>
         <v-card-text>
-          <markdown :content="coll.desc" :options="$store.state.markdownOptions"></markdown>
+          <v-expansion-panels :value="0">
+            <v-expansion-panel>
+              <v-expansion-panel-header expand-icon="mdi-menu-down">
+                <span>
+                <v-icon small>
+                  mdi-text-long
+                </v-icon>
+                Description
+                </span>
+              </v-expansion-panel-header>
+              <v-expansion-panel-content>
+                <markdown :content="coll.desc" :options="$store.state.markdownOptions"></markdown>
+              </v-expansion-panel-content>
+            </v-expansion-panel>
+            <v-expansion-panel>
+              <v-expansion-panel-header expand-icon="mdi-menu-down"><span>
+                <v-icon small>
+                  mdi-lock
+                </v-icon>
+                Permissions</span>
+              </v-expansion-panel-header>
+              <v-expansion-panel-content>
+                <div><strong>Roles with access</strong></div>
+                <v-chip class="mx-1" small label
+                        v-for="role in $store.state.currentRoles"
+                        v-text="role.rid"
+                        :key="role.rid">
+                </v-chip>
+                <div class="mt-2"><strong>Owner</strong></div>
+                <UserChip :uid.sync="coll.owner" admin></UserChip>
+              </v-expansion-panel-content>
+            </v-expansion-panel>
+            <v-expansion-panel>
+              <v-expansion-panel-header expand-icon="mdi-menu-down"><span>
+                <v-icon small>mdi-image-multiple</v-icon>
+                Images</span>
+              </v-expansion-panel-header>
+              <v-expansion-panel-content>
+                <div class="mx-4 mb-4">
+                  <div v-if="canEdit($store.state.currentCollection)">
+                    <v-btn outlined :disabled="upload&&upload.active" class="mr-2"
+                           @click="upload.$el.children[0].click()">
+                      <v-icon left>
+                        mdi-upload
+                      </v-icon>
+                      Select Files
+                      <file-upload ref="upload"
+                                   v-model="files"
+                                   accept="image/*"
+                                   :thread="3"
+                                   :timeout="60 * 1000"
+                                   :drop="true"
+                                   :multiple="true"
+                                   :post-action="`/api/collections/${cid}/img`">
+                      </file-upload>
+                    </v-btn>
+                    <v-btn @click="initUpload" text>Upload</v-btn>
+                    <span v-show="upload && upload.dropActive">Drag and drop here for upload</span>
+                  </div>
+                  <v-list v-if="files.length>0">
+                    <v-card :loading="files[i].active" flat v-for="(f,i) in files" :key="`upload_list_${f.name}`">
+                      <template slot="progress">
+                        <v-progress-linear
+                            :value="parseFloat(files[i].progress)"
+                            height="2"
+                        ></v-progress-linear>
+                      </template>
+                      <v-list-item>
+                        <v-list-item-avatar>
+                          <v-img :src="createObjectURL(f.file)"></v-img>
+                        </v-list-item-avatar>
+                        <v-list-item-content>
+                          <v-list-item-title v-text="f.name"></v-list-item-title>
+                          <v-list-item-subtitle v-text="humanFileSize(f.size)"></v-list-item-subtitle>
+                        </v-list-item-content>
+                        <v-list-item-action>
+                          <v-btn icon small @click="upload.remove(f)">
+                            <v-icon color="red lighten-1">mdi-close</v-icon>
+                          </v-btn>
+                        </v-list-item-action>
+                      </v-list-item>
+                    </v-card>
+                  </v-list>
+                </div>
+                <Gallery v-model="images" :deleting="deleting" @delete="deleteImage($event)"></Gallery>
+              </v-expansion-panel-content>
+            </v-expansion-panel>
+            <v-expansion-panel>
+              <v-expansion-panel-header expand-icon="mdi-menu-down"><span>
+                <v-icon small>mdi-file-document-multiple</v-icon>
+                Notes</span>
+              </v-expansion-panel-header>
+              <v-expansion-panel-content>
+                <v-list>
+                  <v-list-item
+                      :to="{name:'Note',params:{cid:$route.params.cid,nid:note.nid}}"
+                      v-for="note in $store.state.currentNotes"
+                      :key="note.nid">
+                    {{ note.name }}
+                  </v-list-item>
+                </v-list>
+              </v-expansion-panel-content>
+            </v-expansion-panel>
+          </v-expansion-panels>
         </v-card-text>
-        <v-divider/>
-        <v-card-text class="pb-2"><strong>Roles with access</strong></v-card-text>
-        <div class="mx-3">
-          <v-chip class="mx-1" small label
-                  v-for="role in $store.state.currentRoles"
-                  v-text="role.rid"
-                  :key="role.rid">
-          </v-chip>
-        </div>
-        <v-card-text class="pb-2"><strong>Owner</strong></v-card-text>
-        <div class="mx-4">
-          <UserChip :uid.sync="coll.owner" admin></UserChip>
-        </div>
-        <v-card-text class="pb-2"><strong>Images</strong></v-card-text>
-        <div class="mx-4 mb-4">
-          <div v-if="canEdit($store.state.currentCollection)">
-            <v-btn outlined :disabled="upload&&upload.active" class="mr-2" @click="upload.$el.children[0].click()">
-              <v-icon left>
-                mdi-upload
-              </v-icon>
-              Select Files
-              <file-upload ref="upload"
-                           v-model="files"
-                           accept="image/*"
-                           :thread="3"
-                           :timeout="60 * 1000"
-                           :drop="true"
-                           :multiple="true"
-                           :post-action="`/api/collections/${cid}/img`">
-              </file-upload>
-            </v-btn>
-            <v-btn @click="initUpload" text>Upload</v-btn>
-            <span v-show="upload && upload.dropActive">Drag and drop here for upload</span>
-          </div>
-          <v-list v-if="files.length>0">
-            <v-card :loading="files[i].active" flat v-for="(f,i) in files" :key="`upload_list_${f.name}`">
-              <template slot="progress">
-                <v-progress-linear
-                    :value="parseFloat(files[i].progress)"
-                    height="2"
-                ></v-progress-linear>
-              </template>
-              <v-list-item>
-                <v-list-item-avatar>
-                  <v-img :src="createObjectURL(f.file)"></v-img>
-                </v-list-item-avatar>
-                <v-list-item-content>
-                  <v-list-item-title v-text="f.name"></v-list-item-title>
-                  <v-list-item-subtitle v-text="humanFileSize(f.size)"></v-list-item-subtitle>
-                </v-list-item-content>
-                <v-list-item-action>
-                  <v-btn icon small @click="upload.remove(f)">
-                    <v-icon color="red lighten-1">mdi-close</v-icon>
-                  </v-btn>
-                </v-list-item-action>
-              </v-list-item>
-            </v-card>
-          </v-list>
-        </div>
-        <Gallery v-model="images" :deleting="deleting" @delete="deleteImage($event)"></Gallery>
         <v-card-actions v-if="canEdit($store.state.currentCollection)">
           <CollectionPopup editing :preset="coll">
             <template v-slot:activator="{on}">
@@ -81,18 +124,6 @@
             Delete
           </v-btn>
         </v-card-actions>
-        <v-divider/>
-        <v-card-title>Notes</v-card-title>
-        <v-card-text>
-          <v-list>
-            <v-list-item
-                :to="{name:'Note',params:{cid:$route.params.cid,nid:note.nid}}"
-                v-for="note in $store.state.currentNotes"
-                :key="note.nid">
-              {{ note.name }}
-            </v-list-item>
-          </v-list>
-        </v-card-text>
       </v-card>
     </template>
     <router-view></router-view>

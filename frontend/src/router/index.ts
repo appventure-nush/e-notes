@@ -3,6 +3,7 @@ import VueRouter, {RouteConfig} from 'vue-router'
 import Home from '../views/Home.vue'
 import HomeAppbar from '../components/HomeAppbar.vue'
 import firebase from "firebase/compat";
+import PageNotFound from "@/views/PageNotFound.vue";
 
 Vue.use(VueRouter)
 
@@ -71,7 +72,8 @@ const routes: Array<RouteConfig> = [
                 }),
             }
         ]
-    }
+    },
+    {path: "*", name: "404", component: PageNotFound, meta: {auth: true}}
 ]
 
 const router = new VueRouter({
@@ -84,7 +86,7 @@ router.beforeEach((to, from, next) => {
         const user = firebase.auth().currentUser;
         if (user == null) {
             next({
-                path: '/login',
+                name: "Login",
                 params: {to: to.fullPath}
             })
         } else {

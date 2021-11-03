@@ -4,15 +4,42 @@
         shaped
         outlined>
       <v-card-title>{{ note.name }}</v-card-title>
-      <v-card-subtitle>{{ note.nid }}</v-card-subtitle>
+      <v-card-subtitle>{{ note.nid }}<br>
+        <v-chip label color="primary" small outlined>
+          {{ !note.type ? "auto" : note.type }}
+        </v-chip>
+      </v-card-subtitle>
       <v-card-text>
         <div><strong>Last Edited</strong></div>
         <UserChip :uid.sync="note.lastEditBy" admin>
           <template v-slot:additional>{{ note.lastEdit | moment("MMMM Do YYYY, hh:mm a") }}</template>
         </UserChip>
       </v-card-text>
+      <v-card-text>
+        <v-expansion-panels>
+          <v-expansion-panel>
+            <v-expansion-panel-header expand-icon="mdi-menu-down">
+                <span>
+                <v-icon small>
+                  mdi-text-long
+                </v-icon>
+                Description
+                </span>
+            </v-expansion-panel-header>
+            <v-expansion-panel-content>
+              <markdown :content="note.desc" :options="$store.state.markdownOptions"></markdown>
+            </v-expansion-panel-content>
+          </v-expansion-panel>
+        </v-expansion-panels>
+      </v-card-text>
       <v-card-actions v-if="canEdit($store.state.currentCollection)">
-        <v-btn text color="primary">Edit</v-btn>
+        <NotePopup editing :preset="note" :cid="cid">
+          <template v-slot:activator="{on}">
+            <v-btn text color="primary" v-on="on">
+              Edit
+            </v-btn>
+          </template>
+        </NotePopup>
       </v-card-actions>
     </v-card>
     <v-divider class="my-3"/>
@@ -35,6 +62,7 @@ import UserChip from "@/components/UserChip.vue";
 //@ts-ignore
 import MarkdownItVueLight from 'markdown-it-vue/dist/markdown-it-vue-light.umd.min.js'
 import 'markdown-it-vue/dist/markdown-it-vue-light.css'
+import NotePopup from "@/components/NotePopup.vue";
 
 const additionalStyles = '<style>\n' +
     '.container{width:auto!important;}\n' +
@@ -47,6 +75,7 @@ const additionalStyles = '<style>\n' +
 // @ts-ignore
 @Component({
   components: {
+    NotePopup,
     UserChip,
     JupyterViewer,
     markdown: MarkdownItVueLight as any
@@ -63,12 +92,14 @@ export default class Note extends Vue {
 
   @Watch('doc')
   onDocChange() {
+    if (!this.shadow) return;
+    this.shadow.innerHTML = "";
     if (this.note.type && this.note.type !== "html") return;
-    this.shadow = this.shadowRoot.attachShadow({mode: 'open'});
     this.shadow.innerHTML = additionalStyles + this.doc;
   }
 
   mounted() {
+    this.shadow = this.shadowRoot.attachShadow({mode: 'open'});
     this.onNoteChange();
   }
 

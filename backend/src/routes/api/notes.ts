@@ -38,9 +38,10 @@ notes.post("/:nid", checkAdmin, async (req, res) => {
     let old = {...note};
     if (note) {
         if (req.body.action && req.body.action === "add") return res.json(failed({reason: "note_already_exist"}));
-        if (req.body.nid) note.nid = req.body.nid;
-        if (req.body.name) note.name = req.body.name;
-        if (req.body.desc) note.desc = req.body.desc;
+        if (req.body.hasOwnProperty("nid")) note.nid = req.body.nid;
+        if (req.body.hasOwnProperty("name")) note.name = req.body.name;
+        if (req.body.hasOwnProperty("desc")) note.desc = req.body.desc;
+        if (req.body.hasOwnProperty("type")) note.type = req.body.type;
         note.lastEdit = Date.now();
         note.lastEditBy = req.uid;
         await addAudit(simpleAudit(req.uid, note.nid, Category.NOTE, Action.EDIT, [old], {colls: [req.body.cid]}));
@@ -50,21 +51,17 @@ notes.post("/:nid", checkAdmin, async (req, res) => {
     }
     updateNote(req.body.cid, req.params.nid, note);
     await firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid).set(note);
-    res.json(note);
+    res.json(success({note}));
 });
 notes.delete("/:nid", checkAdmin, async (req, res) => {
     let note = await getNote(req.body.cid, req.params.nid);
     if (note) {
         updateNote(req.body.cid, req.params.nid, null);
-        try {
-            await Promise.all([
-                firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid).delete(),
-                storage().bucket().file(`collections/${req.body.cid}/notes/${req.params.nid}.html`).delete(),
-                addAudit(simpleAudit(req.uid, note.nid, Category.NOTE, Action.EDIT, [note], {colls: [req.body.cid]}))
-            ]);
-        } catch (e) {
-
-        }
+        await Promise.all([
+            firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid).delete(),
+            storage().bucket().file(`collections/${req.body.cid}/notes/${req.params.nid}.html`).delete(),
+            addAudit(simpleAudit(req.uid, note.nid, Category.NOTE, Action.EDIT, [note], {colls: [req.body.cid]}))
+        ]);
     }
     res.json(success());
 });
@@ -95,7 +92,7 @@ notes.post("/:nid/upload", checkAdmin, async (req, res) => {
         }
         await file.save(str, {resumable: false});
         note.url = (await file.getSignedUrl({action: 'read', expires: '01-01-2500'}))[0];
-        note.type = type;
+        if (!note.type) note.type = type;
         note.lastEdit = Date.now();
         note.lastEditBy = req.uid;
         updateNote(req.body.cid, req.params.nid, note);
