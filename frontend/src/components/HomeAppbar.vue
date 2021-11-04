@@ -1,32 +1,26 @@
 <template>
-  <v-btn-toggle
-      v-model="text"
-      group>
-    <v-btn value="left">
-      Left
-    </v-btn>
-
-    <v-btn value="center">
-      Center
-    </v-btn>
-
-    <v-btn value="right">
-      Right
-    </v-btn>
-
-    <v-btn value="justify">
-      Justify
-    </v-btn>
-  </v-btn-toggle>
+  <v-row class="px-5">
+    <v-col>
+      <CollectionPopup>
+        <template v-slot:activator="{on}">
+          <v-btn text v-on="on">
+            New
+          </v-btn>
+        </template>
+      </CollectionPopup>
+    </v-col>
+  </v-row>
 </template>
 
 <script lang="ts">
 import {Component, Vue} from "vue-property-decorator";
+import CollectionPopup from "@/components/CollectionPopup.vue";
 
-@Component
+@Component({
+  components: {CollectionPopup}
+})
 export default class HomeAppbar extends Vue {
   name = "HomeAppbar"
-  text = ""
 }
 </script>
 

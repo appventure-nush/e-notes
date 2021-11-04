@@ -24,6 +24,13 @@
           :to="{name:'Collection', params:{cid:value.cid}}">
         Open
       </v-btn>
+      <CollectionPopup editing :preset="value" v-if="canEdit(value)">
+        <template v-slot:activator="{on}">
+          <v-btn outlined rounded text v-on="on" class="ml-2">
+            Edit
+          </v-btn>
+        </template>
+      </CollectionPopup>
     </v-card-actions>
   </v-card>
 </template>
@@ -34,9 +41,11 @@ import {Collection} from "@/types/coll";
 // @ts-ignore
 import MarkdownItVueLight from 'markdown-it-vue/dist/markdown-it-vue-light.umd.min.js'
 import 'markdown-it-vue/dist/markdown-it-vue-light.css'
+import CollectionPopup from "@/components/CollectionPopup.vue";
 
 @Component({
   components: {
+    CollectionPopup,
     markdown: MarkdownItVueLight as any
   }
 })

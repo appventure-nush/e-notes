@@ -80,6 +80,9 @@ export default new Vuex.Store<State>({
             commit("setUser", undefined);
             await router.push('/login');
         },
+        getUsers: (_) => get("/api/users").then(res => res.json()),
+        getRoles: (_) => get("/api/roles").then(res => res.json()),
+        getCollections: (_) => get("/api/collections").then(res => res.json()),
         getUser: (_, uid: string) => get(`/api/users/${uid}`).then(res => res.json()),
         getCollection: (_, cid: string) => get(`/api/collections/${cid}`).then(res => res.json()),
         getCollectionNotes: (_, cid: string) => get(`/api/collections/${cid}/notes`).then(res => res.json()),

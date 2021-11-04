@@ -22,7 +22,7 @@ export default class Home extends Vue {
   name = 'Home'
 
   mounted() {
-    get("/api/collections").then(res => res.json()).then(json => this.$store.commit("collections", json))
+    this.$store.cache.dispatch("getCollections").then(json => this.$store.commit("collections", json))
   }
 }
 </script>

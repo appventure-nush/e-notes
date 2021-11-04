@@ -7,7 +7,7 @@
         <v-chip class="mx-4 mb-2" small label :color="coll.open?'success':'error'"
                 v-text="coll.open?'Open':'Private'"></v-chip>
         <v-card-text>
-          <v-expansion-panels :value="0">
+          <v-expansion-panels :value="0" flat>
             <v-expansion-panel>
               <v-expansion-panel-header expand-icon="mdi-menu-down">
                 <span>
@@ -120,6 +120,13 @@
               </v-btn>
             </template>
           </CollectionPopup>
+          <NotePopup :cid="coll.cid">
+            <template v-slot:activator="{on}">
+              <v-btn text color="primary" v-on="on" class="ml-4">
+                New Note
+              </v-btn>
+            </template>
+          </NotePopup>
           <v-btn text color="error" class="ml-4">
             Delete
           </v-btn>
@@ -141,9 +148,11 @@ import Gallery from "@/components/Gallery.vue";
 //@ts-ignore
 import MarkdownItVueLight from 'markdown-it-vue/dist/markdown-it-vue-light.umd.min.js'
 import 'markdown-it-vue/dist/markdown-it-vue-light.css'
+import NotePopup from "@/components/NotePopup.vue";
 
 @Component({
   components: {
+    NotePopup,
     Gallery,
     CollectionPopup,
     UserChip,

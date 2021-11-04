@@ -100,28 +100,29 @@
               </v-list-item>
             </v-list-group>
             <!-- Other collections -->
-            <v-list-group prepend-icon="mdi-folder">
-              <template v-slot:activator>
-                <v-list-item-title>Other collections</v-list-item-title>
-              </template>
-              <v-list-item
-                  v-for="coll in $store.state.collections.filter(c=>c.cid!==$route.params.cid)"
-                  :to="{name:'Collection',params:{cid:coll.cid}}"
-                  :key="coll.cid"
-                  link>
-                <v-list-item-content>
-                  <v-list-item-title>{{ coll.name }}</v-list-item-title>
-                </v-list-item-content>
-              </v-list-item>
-            </v-list-group>
           </template>
+          <v-list-group prepend-icon="mdi-folder">
+            <template v-slot:activator>
+              <v-list-item-title
+                  v-text="$route.name==='Collection'||$route.name==='Note'?'Others':'Collections'"></v-list-item-title>
+            </template>
+            <v-list-item
+                v-for="coll in $store.state.collections.filter(c=>c.cid!==$route.params.cid||!($route.name==='Collection'||$route.name==='Note'))"
+                :to="{name:'Collection',params:{cid:coll.cid}}"
+                :key="coll.cid"
+                link>
+              <v-list-item-content>
+                <v-list-item-title>{{ coll.name }}</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-group>
         </v-list>
       </v-navigation-drawer>
       <v-app-bar
           app
           elevate-on-scroll
           hide-on-scroll
-          scroll-threshold="169"
+          scroll-threshold="69"
           color="primary"
           dark>
         <v-app-bar-nav-icon @click="drawer=!drawer"></v-app-bar-nav-icon>

@@ -15,8 +15,8 @@
           <template v-slot:additional>{{ note.lastEdit | moment("MMMM Do YYYY, hh:mm a") }}</template>
         </UserChip>
       </v-card-text>
-      <v-card-text>
-        <v-expansion-panels>
+      <v-card-text v-if="note.desc">
+        <v-expansion-panels flat>
           <v-expansion-panel>
             <v-expansion-panel-header expand-icon="mdi-menu-down">
                 <span>
@@ -42,12 +42,12 @@
         </NotePopup>
       </v-card-actions>
     </v-card>
-    <v-divider class="my-3"/>
+    <v-divider class="my-3" v-if="this.doc"/>
     <JupyterViewer v-if="note.type==='jupyter'" :rawIpynb="doc"></JupyterViewer>
     <markdown v-else-if="note.type==='markdown'" :content="doc" :options="$store.state.markdownOptions"></markdown>
     <div ref="shadowRoot"></div>
     <v-skeleton-loader
-        v-if="!doc"
+        v-if="loading"
         class="mx-auto"
         type="article,image,article,card"
     ></v-skeleton-loader>
@@ -88,6 +88,7 @@ export default class Note extends Vue {
   @Prop(String) readonly nid?: string;
   name = "Note";
   doc?: any = null;
+  loading = false;
   shadow?: ShadowRoot;
 
   @Watch('doc')
@@ -110,12 +111,14 @@ export default class Note extends Vue {
   @Watch('nid')
   onNoteChange() {
     this.doc = "";
+    this.loading = true;
     this.$store.cache.dispatch("getCollectionNotes", this.cid).then((res: Note[]) => res.find(n => n.nid === this.nid)).then(json => {
       if (!json) return this.$router.push(`/collections/${this.cid}`);
       this.$store.commit("setCurrentNote", json);
-      fetch(this.note.url).then(res => res.text()).then(text => {
+      if (this.note.url) fetch(this.note.url).then(res => res.text()).then(text => {
         this.doc = this.note.type === "jupyter" ? JSON.parse(text) : text;
-      });
+      }); else this.doc = "";
+      this.loading = false;
     })
   }
 
