@@ -1,17 +1,14 @@
 import {Router} from 'express';
-import {auth} from "firebase-admin";
-import {checkAdmin, checkUser, getUser, updateUser} from '../../utils';
+import {checkAdmin, checkUser, getUser, getUsers, updateUser} from '../../utils';
 import {_setPermissions} from "../../types/permissions";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 import {error, failed, success} from "../../response";
+import {auth} from "firebase-admin";
+import {fillUser} from "../../types/user";
 
 const users = Router();
 
-users.get("/", checkUser, async (req, res) => auth().listUsers(1000).then((list: auth.ListUsersResult) => res.json({
-    users: list.users.map(user => ({
-        uid: user.uid, email: user.email, name: user.displayName, pfp: user.photoURL || ""
-    })), token: list.pageToken
-})));
+users.get("/", checkUser, (req, res) => Promise.all(getUsers().map(async u => fillUser(u, await auth().getUser(u.uid)))).then(u => res.json(u)));
 
 users.get("/:uid", checkUser, async (req, res) => {
     try {

@@ -90,5 +90,5 @@ export default new Vuex.Store<State>({
         getCollectionImages: (_, cid: string) => get(`/api/collections/${cid}/img`).then(res => res.json()),
     },
     modules: {},
-    plugins: [vuexLocal.plugin, createCache()]
+    plugins: [vuexLocal.plugin, createCache({timeout: 60 * 60 * 1000})]
 })

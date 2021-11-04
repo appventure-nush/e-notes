@@ -28,6 +28,7 @@ export function makeUser(uid: string): User {
 }
 
 export function fillUser(user: User, rec: UserRecord): User {
+    if (!rec) return user;
     user.name = rec.displayName;
     user.email = rec.email;
     user.pfp = rec.photoURL;

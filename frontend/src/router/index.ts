@@ -22,9 +22,19 @@ const routes: Array<RouteConfig> = [
         }
     },
     {
+        path: '/users',
+        name: 'Users',
+        component: () => import("@/views/Users.vue"),
+        meta: {
+            icon: "mdi-account-multiple",
+            public: true,
+            auth: true
+        }
+    },
+    {
         path: '/profile',
         name: 'Profile',
-        component: () => import('../views/Profile.vue'),
+        component: () => import('@/views/Profile.vue'),
         meta: {
             auth: true
         }
@@ -32,7 +42,7 @@ const routes: Array<RouteConfig> = [
     {
         path: '/login',
         name: 'Login',
-        component: () => import('../views/Login.vue'),
+        component: () => import('@/views/Login.vue'),
         meta: {
             naked: true
         }
@@ -41,8 +51,8 @@ const routes: Array<RouteConfig> = [
         path: '/collection/:cid',
         name: 'Collection',
         components: {
-            default: () => import('../views/Collection.vue'),
-            appbar: () => import('../components/CollectionAppbar.vue')
+            default: () => import('@/views/Collection.vue'),
+            appbar: () => import('@/components/CollectionAppbar.vue')
         },
         meta: {
             hideTitle: true,
@@ -60,11 +70,11 @@ const routes: Array<RouteConfig> = [
                 meta: {
                     hideTitle: true
                 },
-                component: () => import('../views/Note.vue')
+                component: () => import('@/views/Note.vue')
             },
             {
                 props: true,
-                name: "Note",
+                name: "Note Redirect",
                 path: ':nid',
                 redirect: to => ({
                     name: "Note",
