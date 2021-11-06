@@ -18,7 +18,8 @@ const routes: Array<RouteConfig> = [
         meta: {
             icon: "mdi-view-dashboard",
             public: true,
-            auth: true
+            auth: true,
+            exact: true
         }
     },
     {
@@ -29,7 +30,15 @@ const routes: Array<RouteConfig> = [
             icon: "mdi-account-multiple",
             public: true,
             auth: true
-        }
+        },
+        children: [
+            {
+                props: true,
+                name: "User",
+                path: ':uid',
+                component: () => import('@/views/User.vue')
+            }
+        ]
     },
     {
         path: '/profile',

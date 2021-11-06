@@ -62,7 +62,7 @@
               v-for="item in $router.getRoutes().filter(i=>i.meta.public)"
               :to="item"
               :key="item.name"
-              exact
+              :exact="item.meta.exact"
               link>
             <v-list-item-icon>
               <v-icon>{{ item.meta.icon }}</v-icon>

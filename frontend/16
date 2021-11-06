@@ -1,8 +1,0 @@
-+ @types/react@17.0.33
-added 4 packages from 29 contributors and audited 1649 packages in 8.767s
-
-177 packages are looking for funding
-  run `npm fund` for details
-
-found 25 vulnerabilities (12 moderate, 13 high)
-  run `npm audit fix` to fix them, or `npm audit` for details
