@@ -21,7 +21,7 @@
           outlined
           rounded
           text
-          :to="{name:'Collection', params:{cid:value.cid}}">
+          :to="{name:'CollectionViewer.vue', params:{cid:value.cid}}">
         Open
       </v-btn>
       <CollectionPopup editing :preset="value" v-if="canEdit(value)">
@@ -38,16 +38,13 @@
 <script lang="ts">
 import {Component, Prop, Vue} from "vue-property-decorator";
 import {Collection} from "@/types/coll";
-// @ts-ignore
-import MarkdownItVueLight from 'markdown-it-vue/dist/markdown-it-vue-light.umd.min.js'
-import 'markdown-it-vue/dist/markdown-it-vue-light.css'
 import CollectionPopup from "@/components/CollectionPopup.vue";
-import '@/styles/github-dark.scss';
+import Markdown from "@/components/markdownViewer/Markdown.vue";
 
 @Component({
   components: {
     CollectionPopup,
-    markdown: MarkdownItVueLight as any
+    Markdown
   }
 })
 export default class CollectionDisplay extends Vue {

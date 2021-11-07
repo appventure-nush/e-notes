@@ -4,7 +4,7 @@ import {User} from "@/types/user";
 import {Collection} from "@/types/coll";
 import {Note} from "@/types/note";
 import {Role} from "@/types/role";
-import {MarkdownItVueOptions} from "markdown-it-vue/types/markdown-it-vue"
+import {MarkdownItVueOptions} from "@/components/markdownViewer/markdown";
 
 type RecursivePartial<T> = {
     [P in keyof T]?:

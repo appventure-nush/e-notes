@@ -35,7 +35,7 @@ export default new Vuex.Store<State>({
         markdownOptions: {
             markdownIt: {
                 html: true
-            },
+            }
         }
     },
     mutations: {

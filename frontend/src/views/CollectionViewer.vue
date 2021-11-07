@@ -1,6 +1,6 @@
 <template>
   <v-container fluid style="min-height:100%">
-    <template v-if="$route.name==='Collection'">
+    <template v-if="$route.name==='CollectionViewer.vue'">
       <v-card outlined shaped>
         <v-card-title v-text="coll.name"></v-card-title>
         <v-card-subtitle class="pb-2" v-text="coll.cid"></v-card-subtitle>
@@ -102,7 +102,7 @@
               <v-expansion-panel-content>
                 <v-list>
                   <v-list-item
-                      :to="{name:'Note',params:{cid:$route.params.cid,nid:note.nid}}"
+                      :to="{name:'NoteViewer.vue',params:{cid:$route.params.cid,nid:note.nid}}"
                       v-for="note in $store.state.currentNotes"
                       :key="note.nid">
                     {{ note.name }}
@@ -145,11 +145,8 @@ import {VUFile} from "@/shims-others";
 import VueUploadComponent from "vue-upload-component";
 import CollectionPopup from "@/components/CollectionPopup.vue";
 import Gallery from "@/components/Gallery.vue";
-//@ts-ignore
-import MarkdownItVueLight from 'markdown-it-vue/dist/markdown-it-vue-light.umd.min.js'
-import 'markdown-it-vue/dist/markdown-it-vue-light.css'
 import NotePopup from "@/components/NotePopup.vue";
-import '@/styles/github-dark.scss';
+import Markdown from "@/components/markdownViewer/Markdown.vue";
 
 @Component({
   components: {
@@ -157,13 +154,13 @@ import '@/styles/github-dark.scss';
     Gallery,
     CollectionPopup,
     UserChip,
-    markdown: MarkdownItVueLight as any
+    Markdown
   }
 })
-export default class Collection extends Vue {
+export default class CollectionViewer extends Vue {
   @Prop(String) readonly cid?: string;
   @Ref('upload') upload?: VueUploadComponent;
-  name = "Collection";
+  name = "CollectionViewer";
   files: VUFile[] = [];
   deleting: string[] = [];
   images: { url: string, name: string }[] = [];

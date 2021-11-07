@@ -103,17 +103,14 @@
 
 <script lang="ts">
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
-// @ts-ignore
-import MarkdownItVueLight from 'markdown-it-vue/dist/markdown-it-vue-light.umd.min.js'
-import 'markdown-it-vue/dist/markdown-it-vue-light.css'
 import {post} from "@/api/api";
 import {Note, NoteType} from "@/types/note";
-import '@/styles/github-dark.scss';
+import Markdown from "@/components/markdownViewer/Markdown.vue";
 
 @Component({
   name: "NotePopup",
   components: {
-    markdown: MarkdownItVueLight as any
+    Markdown
   }
 })
 export default class NotePopup extends Vue {

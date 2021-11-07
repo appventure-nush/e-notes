@@ -73,7 +73,7 @@
             </v-list-item-content>
           </v-list-item>
           <!-- if in collection/notes page, show notes list -->
-          <template v-if="$route.matched.some(({ name }) => name === 'Collection')">
+          <template v-if="$route.matched.some(({ name }) => name === 'CollectionViewer.vue')">
             <v-divider/>
             <!-- Notes of the current collection -->
             <v-list-group prepend-icon="mdi-folder" :value="true">
@@ -81,7 +81,7 @@
                 <v-list-item-title>{{ $store.state.currentCollection.name }}</v-list-item-title>
               </template>
               <v-list-item
-                  :to="{name:'Collection', params:{cid:$route.params.cid}}"
+                  :to="{name:'CollectionViewer.vue', params:{cid:$route.params.cid}}"
                   exact
                   link>
                 <v-list-item-content>
@@ -103,11 +103,11 @@
           <v-list-group prepend-icon="mdi-folder">
             <template v-slot:activator>
               <v-list-item-title
-                  v-text="$route.matched.some(({ name }) => name === 'Collection')?'Others':'Collections'"></v-list-item-title>
+                  v-text="$route.matched.some(({ name }) => name === 'CollectionViewer.vue')?'Others':'Collections'"></v-list-item-title>
             </template>
             <v-list-item
-                v-for="coll in $store.state.collections.filter(c=>c.cid!==$route.params.cid||!$route.matched.some(({ name }) => name === 'Collection'))"
-                :to="{name:'Collection',params:{cid:coll.cid}}"
+                v-for="coll in $store.state.collections.filter(c=>c.cid!==$route.params.cid||!$route.matched.some(({ name }) => name === 'CollectionViewer.vue'))"
+                :to="{name:'CollectionViewer.vue',params:{cid:coll.cid}}"
                 :key="coll.cid"
                 link>
               <v-list-item-content>

@@ -32,26 +32,30 @@
           </v-expansion-panel>
         </v-expansion-panels>
       </v-card-text>
-      <v-card-actions v-if="canEdit($store.state.currentCollection)">
-        <NotePopup editing :preset="note" :cid="cid">
+      <v-card-actions>
+        <v-btn text color="primary" @click="download">
+          Download
+        </v-btn>
+        <NotePopup editing :preset="note" :cid="cid" v-if="canEdit($store.state.currentCollection)">
           <template v-slot:activator="{on}">
-            <v-btn text color="primary" v-on="on" :disabled="loading">
+            <v-btn text color="primary" class="ml-4" v-on="on" :disabled="loading">
               Edit
             </v-btn>
           </template>
         </NotePopup>
-        <v-btn text color="primary" class="ml-4" :to="{name:'Edit Note', params:{cid,nid}}" :disabled="loading">
+        <v-btn text color="primary" class="ml-4" :to="{name:'Edit Note', params:{cid,nid}}" :disabled="loading"
+               v-if="canEdit($store.state.currentCollection)">
           Edit Source
         </v-btn>
-        <v-btn text color="error" class="ml-4" @click="deleteNote" :disabled="loading">
+        <v-btn text color="error" class="ml-4" @click="deleteNote" :disabled="loading"
+               v-if="canEdit($store.state.currentCollection)">
           Delete
         </v-btn>
       </v-card-actions>
     </v-card>
     <v-divider class="my-3" v-if="this.doc"/>
     <template v-if="this.doc">
-      <JupyterViewer v-if="note.type==='jupyter'" :rawIpynb="doc"
-                     :codeBlockStyles="{hljsStyle: this.$vuetify.theme.dark?'dracula':'idea'}"></JupyterViewer>
+      <JupyterViewer v-if="note.type==='jupyter'" :notebook="doc"></JupyterViewer>
       <markdown v-else-if="note.type==='markdown'" :content="doc" :options="$store.state.markdownOptions"></markdown>
     </template>
     <div ref="shadowRoot"></div>
@@ -65,15 +69,12 @@
 
 <script lang="ts">
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
-// @ts-ignore
-import JupyterViewer from "react-jupyter-notebook";
 import UserChip from "@/components/UserChip.vue";
-//@ts-ignore
-import MarkdownItVueLight from 'markdown-it-vue/dist/markdown-it-vue-light.umd.min.js'
-import 'markdown-it-vue/dist/markdown-it-vue-light.css'
 import NotePopup from "@/components/NotePopup.vue";
-import '@/styles/github-dark.scss';
 import {del} from "@/api/api";
+import JupyterViewer from "@/components/JupyterViewer.vue";
+import {Note} from "@/types/note";
+import Markdown from "@/components/markdownViewer/Markdown.vue";
 
 const additionalStyles = '<style>\n' +
     '.container{width:auto!important;}\n' +
@@ -86,18 +87,17 @@ const additionalStyles = '<style>\n' +
 // @ts-ignore
 @Component({
   components: {
-    NotePopup,
-    UserChip,
     JupyterViewer,
-    markdown: MarkdownItVueLight as any
+    NotePopup,
+    UserChip, Markdown
   }
 })
-export default class Note extends Vue {
+export default class NoteViewer extends Vue {
   @Ref('shadowRoot') readonly shadowRoot!: HTMLDivElement
 
   @Prop(String) readonly cid?: string;
   @Prop(String) readonly nid?: string;
-  name = "Note";
+  name = "NoteViewer";
   doc?: any = null;
   loading = false;
   shadow?: ShadowRoot;
@@ -115,7 +115,7 @@ export default class Note extends Vue {
     this.onNoteChange();
   }
 
-  get note() {
+  get note(): Note {
     return this.$store.state.currentNote;
   }
 
@@ -123,7 +123,7 @@ export default class Note extends Vue {
   onNoteChange() {
     this.doc = "";
     this.loading = true;
-    this.$store.cache.dispatch("getCollectionNotes", this.cid).then((res: Note[]) => {
+    this.$store.cache.dispatch("getCollectionNotes", this.cid).then((res: NoteViewer[]) => {
       this.$store.commit('setCurrentNotes', res);
       return res.find(n => n.nid === this.nid);
     }).then(json => {
@@ -149,9 +149,18 @@ export default class Note extends Vue {
     del(`/api/collections/${this.cid}/notes/${this.nid}`).then(res => res.json()).then(json => {
       if (json.status !== 'success') throw json.reason;
       this.loading = false;
-      this.$store.cache.dispatch("getCollectionNotes", this.cid).then((res: Note[]) => this.$store.commit('setCurrentNotes', res));
-      this.$router.push({name: 'Collection'});
+      this.$store.cache.dispatch("getCollectionNotes", this.cid).then((res: NoteViewer[]) => this.$store.commit('setCurrentNotes', res));
+      this.$router.push({name: 'CollectionViewer.vue'});
     });
+  }
+
+  download() {
+    const url = window.URL.createObjectURL(new Blob([this.note.type === "jupyter" ? JSON.stringify(this.doc) : this.doc]));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = this.note.nid + (this.note.type === "jupyter" ? '.ipynb' : this.note.type === "markdown" ? '.md' : '.html');
+    a.click();
+    window.URL.revokeObjectURL(url);
   }
 }
 </script>

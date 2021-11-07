@@ -57,7 +57,7 @@ const routes: Array<RouteConfig> = [
         path: '/collection/:cid',
         name: 'Collection',
         components: {
-            default: () => import(/* webpackChunkName: "collection" */'@/views/Collection.vue'),
+            default: () => import(/* webpackChunkName: "collection" */'@/views/CollectionViewer.vue'),
             appbar: () => import(/* webpackChunkName: "cAppbar" */'@/components/CollectionAppbar.vue')
         },
         meta: {
@@ -71,12 +71,12 @@ const routes: Array<RouteConfig> = [
         children: [
             {
                 props: true,
-                name: "Note",
+                name: "NoteViewer.vue",
                 path: ':nid/view',
                 meta: {
                     hideTitle: true
                 },
-                component: () => import(/* webpackChunkName: "note" */'@/views/Note.vue')
+                component: () => import(/* webpackChunkName: "note" */'@/views/NoteViewer.vue')
             },
             {
                 props: true,
@@ -92,7 +92,7 @@ const routes: Array<RouteConfig> = [
                 name: "Note Redirect",
                 path: ':nid',
                 redirect: to => ({
-                    name: "Note",
+                    name: "NoteViewer.vue",
                     path: `/collections/${to.params.cid}/notes/${to.params.nid}/view`
                 }),
             }
