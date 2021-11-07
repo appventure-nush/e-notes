@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-card
-        shaped
+        :loading="loading"
         outlined>
       <v-card-title>{{ note.name }}</v-card-title>
       <v-card-subtitle>{{ note.nid }}<br>
@@ -35,17 +35,23 @@
       <v-card-actions v-if="canEdit($store.state.currentCollection)">
         <NotePopup editing :preset="note" :cid="cid">
           <template v-slot:activator="{on}">
-            <v-btn text color="primary" v-on="on">
+            <v-btn text color="primary" v-on="on" :disabled="loading">
               Edit
             </v-btn>
           </template>
         </NotePopup>
+        <v-btn text color="primary" class="ml-4" :to="{name:'Edit Note', params:{cid,nid}}" :disabled="loading">
+          Edit Source
+        </v-btn>
+        <v-btn text color="error" class="ml-4" @click="deleteNote" :disabled="loading">
+          Delete
+        </v-btn>
       </v-card-actions>
     </v-card>
     <v-divider class="my-3" v-if="this.doc"/>
     <template v-if="this.doc">
       <JupyterViewer v-if="note.type==='jupyter'" :rawIpynb="doc"
-                     :codeBlockStyles="{hljsStyle: this.$vuetify.theme.dark?'dark':'idea'}"></JupyterViewer>
+                     :codeBlockStyles="{hljsStyle: this.$vuetify.theme.dark?'dracula':'idea'}"></JupyterViewer>
       <markdown v-else-if="note.type==='markdown'" :content="doc" :options="$store.state.markdownOptions"></markdown>
     </template>
     <div ref="shadowRoot"></div>
@@ -66,6 +72,8 @@ import UserChip from "@/components/UserChip.vue";
 import MarkdownItVueLight from 'markdown-it-vue/dist/markdown-it-vue-light.umd.min.js'
 import 'markdown-it-vue/dist/markdown-it-vue-light.css'
 import NotePopup from "@/components/NotePopup.vue";
+import '@/styles/github-dark.scss';
+import {del} from "@/api/api";
 
 const additionalStyles = '<style>\n' +
     '.container{width:auto!important;}\n' +
@@ -115,7 +123,10 @@ export default class Note extends Vue {
   onNoteChange() {
     this.doc = "";
     this.loading = true;
-    this.$store.cache.dispatch("getCollectionNotes", this.cid).then((res: Note[]) => res.find(n => n.nid === this.nid)).then(json => {
+    this.$store.cache.dispatch("getCollectionNotes", this.cid).then((res: Note[]) => {
+      this.$store.commit('setCurrentNotes', res);
+      return res.find(n => n.nid === this.nid);
+    }).then(json => {
       if (!json) return this.$router.push(`/collections/${this.cid}`);
       this.$store.commit("setCurrentNote", json);
       if (this.note.url) fetch(this.note.url).then(res => res.text()).then(text => {
@@ -130,6 +141,17 @@ export default class Note extends Vue {
     if (!this.shadow) return;
     let elementToFocus = this.shadow.getElementById(window.location.hash.slice(1)) || this.shadow.querySelector(`[name='${window.location.hash.slice(1)}']`);
     if (elementToFocus) elementToFocus.scrollIntoView();
+  }
+
+  deleteNote() {
+    if (prompt("Confirm Deletion?", 'Note ID') !== this.nid) return;
+    this.loading = true;
+    del(`/api/collections/${this.cid}/notes/${this.nid}`).then(res => res.json()).then(json => {
+      if (json.status !== 'success') throw json.reason;
+      this.loading = false;
+      this.$store.cache.dispatch("getCollectionNotes", this.cid).then((res: Note[]) => this.$store.commit('setCurrentNotes', res));
+      this.$router.push({name: 'Collection'});
+    });
   }
 }
 </script>

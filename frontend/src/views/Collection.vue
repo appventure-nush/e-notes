@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid style="min-height:100%">
     <template v-if="$route.name==='Collection'">
       <v-card outlined shaped>
         <v-card-title v-text="coll.name"></v-card-title>
@@ -149,6 +149,7 @@ import Gallery from "@/components/Gallery.vue";
 import MarkdownItVueLight from 'markdown-it-vue/dist/markdown-it-vue-light.umd.min.js'
 import 'markdown-it-vue/dist/markdown-it-vue-light.css'
 import NotePopup from "@/components/NotePopup.vue";
+import '@/styles/github-dark.scss';
 
 @Component({
   components: {

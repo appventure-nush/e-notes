@@ -11,7 +11,9 @@
       <excludeFolder url="file://$MODULE_DIR$/frontend/dist" />
       <excludeFolder url="file://$MODULE_DIR$/backend/public" />
       <excludeFolder url="file://$MODULE_DIR$/.idea/codeStyles" />
+      <excludeFolder url="file://$MODULE_DIR$/frontend/node_modules" />
     </content>
+    <content url="file://$MODULE_DIR$/frontend/node_modules" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="darkreader" level="application" />

@@ -98,6 +98,7 @@ import {Collection} from "@/types/coll";
 import MarkdownItVueLight from 'markdown-it-vue/dist/markdown-it-vue-light.umd.min.js'
 import 'markdown-it-vue/dist/markdown-it-vue-light.css'
 import {post} from "@/api/api";
+import '@/styles/github-dark.scss';
 
 @Component({
   name: "CollectionPopup",

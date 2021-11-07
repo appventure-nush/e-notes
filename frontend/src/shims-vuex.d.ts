@@ -37,3 +37,14 @@ declare module '@vue/runtime-core' {
         $store: Store<State>
     }
 }
+declare module "vue/types/options" {
+    interface ComponentOptions<V extends Vue> {
+        store?: Store<State>;
+    }
+}
+
+declare module "vue/types/vue" {
+    interface Vue {
+        $store: Store<State>;
+    }
+}

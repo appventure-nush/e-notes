@@ -73,7 +73,7 @@
             </v-list-item-content>
           </v-list-item>
           <!-- if in collection/notes page, show notes list -->
-          <template v-if="$route.name==='Collection'||$route.name==='Note'">
+          <template v-if="$route.matched.some(({ name }) => name === 'Collection')">
             <v-divider/>
             <!-- Notes of the current collection -->
             <v-list-group prepend-icon="mdi-folder" :value="true">
@@ -90,9 +90,8 @@
               </v-list-item>
               <v-list-item
                   v-for="item in $store.state.currentNotes"
-                  :to="{name:'Note', params:{cid:$route.params.cid,nid:item.nid}}"
+                  :to="{name:'Note Redirect', params:{cid:$route.params.cid,nid:item.nid}}"
                   :key="item.name"
-                  exact-path
                   link>
                 <v-list-item-content>
                   <v-list-item-title>{{ item.name }}</v-list-item-title>
@@ -104,10 +103,10 @@
           <v-list-group prepend-icon="mdi-folder">
             <template v-slot:activator>
               <v-list-item-title
-                  v-text="$route.name==='Collection'||$route.name==='Note'?'Others':'Collections'"></v-list-item-title>
+                  v-text="$route.matched.some(({ name }) => name === 'Collection')?'Others':'Collections'"></v-list-item-title>
             </template>
             <v-list-item
-                v-for="coll in $store.state.collections.filter(c=>c.cid!==$route.params.cid||!($route.name==='Collection'||$route.name==='Note'))"
+                v-for="coll in $store.state.collections.filter(c=>c.cid!==$route.params.cid||!$route.matched.some(({ name }) => name === 'Collection'))"
                 :to="{name:'Collection',params:{cid:coll.cid}}"
                 :key="coll.cid"
                 link>
@@ -141,7 +140,6 @@
 </template>
 
 <script lang="ts">
-import '@/styles/github-dark.css';
 import {Component, Vue} from "vue-property-decorator";
 
 @Component

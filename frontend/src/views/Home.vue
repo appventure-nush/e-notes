@@ -10,7 +10,6 @@
 
 <script lang="ts">
 import {Component, Vue} from "vue-property-decorator";
-import {get} from "@/api/api";
 import CollectionDisplay from "@/components/CollectionDisplay.vue";
 
 @Component({

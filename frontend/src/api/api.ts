@@ -24,7 +24,7 @@ export function post(path: string, body: any) {
         credentials: 'same-origin',
         headers: {
             'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        }, body: JSON.stringify(body)
+            'Content-Type': (body instanceof FormData) ? 'multipart/form-data' : 'application/json'
+        }, body: (body instanceof FormData) ? body : JSON.stringify(body)
     });
 }

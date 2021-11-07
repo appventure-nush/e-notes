@@ -1,8 +1,5 @@
 import Vue from 'vue'
 import VueRouter, {RouteConfig} from 'vue-router'
-import Home from '../views/Home.vue'
-import HomeAppbar from '../components/HomeAppbar.vue'
-import PageNotFound from "@/views/PageNotFound.vue";
 import {auth} from "@/main";
 
 Vue.use(VueRouter)
@@ -12,8 +9,8 @@ const routes: Array<RouteConfig> = [
         path: '/',
         name: 'Home',
         components: {
-            default: Home,
-            appbar: HomeAppbar
+            default: () => import(/* webpackChunkName: "home" */"@/views/Home.vue"),
+            appbar: () => import(/* webpackChunkName: "home.app" */"@/components/HomeAppbar.vue")
         },
         meta: {
             icon: "mdi-view-dashboard",
@@ -83,6 +80,15 @@ const routes: Array<RouteConfig> = [
             },
             {
                 props: true,
+                name: "Edit Note",
+                path: ':nid/edit',
+                meta: {
+                    hideTitle: true
+                },
+                component: () => import(/* webpackChunkName: "note.edit" */'@/views/NoteEditor.vue')
+            },
+            {
+                props: true,
                 name: "Note Redirect",
                 path: ':nid',
                 redirect: to => ({
@@ -92,7 +98,12 @@ const routes: Array<RouteConfig> = [
             }
         ]
     },
-    {path: "*", name: "404", component: PageNotFound, meta: {auth: true}}
+    {
+        path: "*",
+        name: "404",
+        component: () => import(/* webpackChunkName: "404" */"@/views/PageNotFound.vue"),
+        meta: {auth: true}
+    }
 ]
 
 const router = new VueRouter({
@@ -103,23 +114,13 @@ const router = new VueRouter({
 router.beforeEach((to, from, next) => {
     if (to.matched.some(record => record.meta.auth)) {
         const user = auth.currentUser;
-        if (user == null) {
-            next({
-                name: "Login",
-                params: {to: to.fullPath}
-            })
-        } else {
-            if (to.matched.some(record => record.meta.admin)) {
-                user.getIdTokenResult().then(res => {
-                    if (res.claims.admin) next();
-                    else next({path: '/'})
-                });
-            } else {
-                next()
-            }
-        }
-    } else {
-        next()
-    }
+        if (user == null) next({
+            name: "Login",
+            params: {to: to.fullPath}
+        }); else if (to.matched.some(record => record.meta.admin)) user.getIdTokenResult().then(res => {
+            if (res.claims.admin) next();
+            else next({path: '/'})
+        }); else next()
+    } else next()
 })
 export default router

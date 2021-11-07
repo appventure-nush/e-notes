@@ -71,18 +71,19 @@ export default new Vuex.Store<State>({
         async fetchUserProfile({commit}, payload: firebase.User) {
             commit("setUser", payload);
             commit("setProfile", await get("/api/auth").then(res => res.json()));
-            if (router.currentRoute.path === "/login") await router.push("/");
+            if (router.currentRoute.path === "/login") router.push("/");
         },
         async logout({commit}) {
             await auth.signOut();
             await get("/api/auth/logout");
+            this.cache.clear();
             commit("setProfile", undefined);
             commit("setUser", undefined);
-            await router.push('/login');
+            router.push('/login');
         },
-        getUsers: (_) => get("/api/users").then(res => res.json()),
-        getRoles: (_) => get("/api/roles").then(res => res.json()),
-        getCollections: (_) => get("/api/collections").then(res => res.json()),
+        getUsers: () => get("/api/users").then(res => res.json()),
+        getRoles: () => get("/api/roles").then(res => res.json()),
+        getCollections: () => get("/api/collections").then(res => res.json()),
         getUser: (_, uid: string) => get(`/api/users/${uid}`).then(res => res.json()),
         getCollection: (_, cid: string) => get(`/api/collections/${cid}`).then(res => res.json()),
         getCollectionNotes: (_, cid: string) => get(`/api/collections/${cid}/notes`).then(res => res.json()),

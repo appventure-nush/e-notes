@@ -2,23 +2,11 @@ import {Router} from 'express';
 import {makeNote, Note, NoteType} from '../../types/note';
 import {firestore, storage} from "firebase-admin";
 import {checkAdmin, getNote, getNotes, updateNote} from "../../utils";
-import Markdown from 'markdown-it';
 import iconv from "iconv-lite";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 
-import katex from '@traptitech/markdown-it-katex';
-import highlight from "markdown-it-highlightjs";
 import {failed, success} from "../../response";
 
-const md = new Markdown({
-    html: true,
-    linkify: true
-});
-md.use(katex);
-md.use(highlight);
-
-// tslint:disable-next-line:no-var-requires
-const nb = require("notebookjs");
 const notes = Router();
 
 notes.get("/", async (req, res) => res.json(await getNotes(req.body.cid)));
@@ -71,13 +59,13 @@ notes.post("/:nid/upload", checkAdmin, async (req, res) => {
     if (newNoteSource && "data" in newNoteSource) {
         const ref = firestore().collection("collections").doc(req.body.cid).collection("notes").doc(req.params.nid);
         const doc = await ref.get();
-        if (!doc.exists) return res.json({
+        if (!doc.exists) return res.json(failed({
             reason: "note_not_found",
             cid: req.body.cid,
             nid: req.params.nid
-        });
+        }));
         const note = doc.data() as Note;
-        const file = storage().bucket().file(`collections/${req.body.cid}/notes/${req.params.nid}.html`);
+        const file = storage().bucket().file(`collections/${req.body.cid}/notes/${req.params.nid}`);
         let str = newNoteSource.data.toString();
         let type: NoteType = "html";
         // Jupyter notebook renderer
