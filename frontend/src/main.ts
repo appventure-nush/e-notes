@@ -2,16 +2,15 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
+import './mixins'
 import './plugins/vuera'
 import './plugins/others'
 import vuetify from './plugins/vuetify'
-import firebase from 'firebase/compat/app';
-import {getAuth} from "firebase/auth";
-
-import './mixins'
+import {getAuth} from "@firebase/auth";
+import {initializeApp} from "@firebase/app";
 
 Vue.config.productionTip = false
-export const app = firebase.initializeApp({
+export const app = initializeApp({
     apiKey: "AIzaSyARHcPTpQ09ekeN91DtgfrAl8kA3bgrcYM",
     authDomain: "e-notes-nush.firebaseapp.com",
     databaseURL: "https://e-notes-nush.firebaseio.com",

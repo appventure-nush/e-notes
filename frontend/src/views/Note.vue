@@ -44,7 +44,8 @@
     </v-card>
     <v-divider class="my-3" v-if="this.doc"/>
     <template v-if="this.doc">
-      <JupyterViewer v-if="note.type==='jupyter'" :rawIpynb="doc"></JupyterViewer>
+      <JupyterViewer v-if="note.type==='jupyter'" :rawIpynb="doc"
+                     :codeBlockStyles="{hljsStyle: this.$vuetify.theme.dark?'dark':'idea'}"></JupyterViewer>
       <markdown v-else-if="note.type==='markdown'" :content="doc" :options="$store.state.markdownOptions"></markdown>
     </template>
     <div ref="shadowRoot"></div>

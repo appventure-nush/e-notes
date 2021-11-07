@@ -144,24 +144,32 @@ export default class NotePopup extends Vue {
       type: this.type === "auto" ? null : this.type
     }).then(res => res.json()).then(json => {
       if (json.status !== "success") {
+        console.log(json);
         throw json.reason;
       } else {
         if (this.file) {
           let formData = new FormData();
           formData.append("note_source", this.file);
-          return fetch(`/api/collections/${this.cid}/notes/${this.nid}/upload`, {method: 'POST', body: formData});
+          return fetch(`/api/collections/${this.cid}/notes/${this.nid}/upload`, {
+            method: 'POST',
+            body: formData
+          }).then(res => res.json());
         } else return json;
       }
     }).then(json => {
       if (json.status !== "success") {
+        console.log(json);
         throw json.reason;
       } else {
         this.$store.cache.delete("getCollectionNotes", this.cid);
-        this.$store.cache.dispatch("getCollectionNotes", this.cid);
+        this.$store.cache.dispatch("getCollectionNotes", this.cid).then(notes => this.$store.commit('setCurrentNotes', notes));
         this.$store.commit('setCurrentNote', json.note);
         this.dialog = false;
       }
-    }).catch(alert).finally(() => this.saving = false);
+    }).catch(e => {
+      console.log(e);
+      alert(e);
+    }).finally(() => this.saving = false);
   }
 
   @Watch("dialog")

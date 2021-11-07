@@ -2,8 +2,8 @@ import Vue from 'vue'
 import VueRouter, {RouteConfig} from 'vue-router'
 import Home from '../views/Home.vue'
 import HomeAppbar from '../components/HomeAppbar.vue'
-import firebase from "firebase/compat";
 import PageNotFound from "@/views/PageNotFound.vue";
+import {auth} from "@/main";
 
 Vue.use(VueRouter)
 
@@ -25,7 +25,7 @@ const routes: Array<RouteConfig> = [
     {
         path: '/users',
         name: 'Users',
-        component: () => import("@/views/Users.vue"),
+        component: () => import(/* webpackChunkName: "users" */"@/views/Users.vue"),
         meta: {
             icon: "mdi-account-multiple",
             public: true,
@@ -36,14 +36,14 @@ const routes: Array<RouteConfig> = [
                 props: true,
                 name: "User",
                 path: ':uid',
-                component: () => import('@/views/User.vue')
+                component: () => import(/* webpackChunkName: "user" */'@/views/User.vue')
             }
         ]
     },
     {
         path: '/profile',
         name: 'Profile',
-        component: () => import('@/views/Profile.vue'),
+        component: () => import(/* webpackChunkName: "profile" */'@/views/Profile.vue'),
         meta: {
             auth: true
         }
@@ -51,7 +51,7 @@ const routes: Array<RouteConfig> = [
     {
         path: '/login',
         name: 'Login',
-        component: () => import('@/views/Login.vue'),
+        component: () => import(/* webpackChunkName: "login" */'@/views/Login.vue'),
         meta: {
             naked: true
         }
@@ -60,8 +60,8 @@ const routes: Array<RouteConfig> = [
         path: '/collection/:cid',
         name: 'Collection',
         components: {
-            default: () => import('@/views/Collection.vue'),
-            appbar: () => import('@/components/CollectionAppbar.vue')
+            default: () => import(/* webpackChunkName: "collection" */'@/views/Collection.vue'),
+            appbar: () => import(/* webpackChunkName: "cAppbar" */'@/components/CollectionAppbar.vue')
         },
         meta: {
             hideTitle: true,
@@ -79,7 +79,7 @@ const routes: Array<RouteConfig> = [
                 meta: {
                     hideTitle: true
                 },
-                component: () => import('@/views/Note.vue')
+                component: () => import(/* webpackChunkName: "note" */'@/views/Note.vue')
             },
             {
                 props: true,
@@ -102,7 +102,7 @@ const router = new VueRouter({
 })
 router.beforeEach((to, from, next) => {
     if (to.matched.some(record => record.meta.auth)) {
-        const user = firebase.auth().currentUser;
+        const user = auth.currentUser;
         if (user == null) {
             next({
                 name: "Login",

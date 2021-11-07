@@ -141,6 +141,7 @@
 </template>
 
 <script lang="ts">
+import '@/styles/github-dark.css';
 import {Component, Vue} from "vue-property-decorator";
 
 @Component
@@ -178,5 +179,9 @@ export default class App extends Vue {
 <style>
 .markdown-body {
   color: inherit !important;
+}
+
+.v-application code {
+  background-color: unset !important;
 }
 </style>
