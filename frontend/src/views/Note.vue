@@ -43,8 +43,10 @@
       </v-card-actions>
     </v-card>
     <v-divider class="my-3" v-if="this.doc"/>
-    <JupyterViewer v-if="note.type==='jupyter'" :rawIpynb="doc"></JupyterViewer>
-    <markdown v-else-if="note.type==='markdown'" :content="doc" :options="$store.state.markdownOptions"></markdown>
+    <template v-if="this.doc">
+      <JupyterViewer v-if="note.type==='jupyter'" :rawIpynb="doc"></JupyterViewer>
+      <markdown v-else-if="note.type==='markdown'" :content="doc" :options="$store.state.markdownOptions"></markdown>
+    </template>
     <div ref="shadowRoot"></div>
     <v-skeleton-loader
         v-if="loading"
