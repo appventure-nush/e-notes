@@ -3,8 +3,8 @@
     <div :class='{"block-light-selected":highlighted,"block-light":!highlighted}'/>
     <div class="block-hidden" v-if="hide"/>
     <v-row v-else no-gutters class="cell-row flex-nowrap">
-      <v-col v-if="cell.execution_count" class="flex-grow-0">
-        <pre class="cell-header source" v-text="`In [${cell.execution_count}]: `"></pre>
+      <v-col class="flex-grow-0">
+        <pre class="cell-header source" v-text="cell.execution_count?`In [${cell.execution_count}]: `:''"></pre>
       </v-col>
       <v-col>
         <v-card class="cell-content source-code" v-if="type==='code'" flat outlined>

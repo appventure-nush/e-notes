@@ -8,7 +8,7 @@
         :key="index"
         class="block"
         color="transparent"
-        @click="clickCellIndex=index">
+        @mousedown="clickCellIndex = index">
       <BlockSource
           v-if="'cell_type' in cell"
           :cell="cell"

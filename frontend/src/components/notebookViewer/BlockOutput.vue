@@ -4,8 +4,9 @@
     <div class="block-hidden" v-if="hide"/>
     <div class="block-output-content" v-else>
       <v-row v-for="(output,index) of cell.outputs" no-gutters :key="index" class="cell-row flex-nowrap">
-        <v-col v-if="output.output_type === 'execute_result'" class="flex-grow-0">
-          <pre class="cell-header output" v-text="`Out [${output.execution_count}]: `"></pre>
+        <v-col class="flex-grow-0">
+          <pre class="cell-header output"
+               v-text="output.output_type === 'execute_result'?`Out [${output.execution_count}]: `:''"></pre>
         </v-col>
         <v-col>
           <v-row no-gutters>
