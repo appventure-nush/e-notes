@@ -14,6 +14,7 @@ const routes: Array<RouteConfig> = [
         },
         meta: {
             icon: "mdi-view-dashboard",
+            title: "Home",
             public: true,
             auth: true,
             exact: true
@@ -25,11 +26,15 @@ const routes: Array<RouteConfig> = [
         component: () => import(/* webpackChunkName: "users" */"@/views/Users.vue"),
         meta: {
             icon: "mdi-account-multiple",
+            title: "Users",
             public: true,
             auth: true
         },
         children: [
             {
+                meta: {
+                    title: "{{uid}}"
+                },
                 props: true,
                 name: "User",
                 path: ':uid',
@@ -42,6 +47,7 @@ const routes: Array<RouteConfig> = [
         name: 'Profile',
         component: () => import(/* webpackChunkName: "profile" */'@/views/Profile.vue'),
         meta: {
+            title: "Profile",
             auth: true
         }
     },
@@ -50,6 +56,7 @@ const routes: Array<RouteConfig> = [
         name: 'Login',
         component: () => import(/* webpackChunkName: "login" */'@/views/Login.vue'),
         meta: {
+            title: "Login",
             naked: true
         }
     },
@@ -61,6 +68,7 @@ const routes: Array<RouteConfig> = [
             appbar: () => import(/* webpackChunkName: "cAppbar" */'@/components/CollectionAppbar.vue')
         },
         meta: {
+            title: "{{cid}}",
             hideTitle: true,
             auth: true
         },
@@ -74,6 +82,7 @@ const routes: Array<RouteConfig> = [
                 name: "Note",
                 path: ':nid/view',
                 meta: {
+                    title: "{{cid}}/{{nid}}",
                     hideTitle: true
                 },
                 component: () => import(/* webpackChunkName: "note" */'@/views/NoteViewer.vue')
@@ -83,6 +92,7 @@ const routes: Array<RouteConfig> = [
                 name: "Edit Note",
                 path: ':nid/edit',
                 meta: {
+                    title: "Edit {{nid}}",
                     hideTitle: true
                 },
                 component: () => import(/* webpackChunkName: "note.edit" */'@/views/NoteEditor.vue')
@@ -102,7 +112,7 @@ const routes: Array<RouteConfig> = [
         path: "*",
         name: "404",
         component: () => import(/* webpackChunkName: "404" */"@/views/PageNotFound.vue"),
-        meta: {auth: true}
+        meta: {auth: true, title: '404 Not Found'}
     }
 ]
 
@@ -122,5 +132,13 @@ router.beforeEach((to, from, next) => {
             else next({path: '/'})
         }); else next()
     } else next()
-})
+});
+const DEFAULT_TITLE = 'Enotes';
+router.afterEach(to => Vue.nextTick(() => {
+    let title = to.meta?.title || DEFAULT_TITLE;
+    title = title.replace(/{{uid}}/g, to.params.uid);
+    title = title.replace(/{{nid}}/g, to.params.nid);
+    title = title.replace(/{{cid}}/g, to.params.cid);
+    document.title = title;
+}));
 export default router

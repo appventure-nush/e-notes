@@ -145,15 +145,15 @@ import {Component, Vue} from "vue-property-decorator";
 @Component
 export default class App extends Vue {
   get pfp() {
-    return this.$store.state.profile.pfp || "/images/guest.png";
+    return this.$store.state.profile?.pfp || "/images/guest.png";
   }
 
   get name() {
-    return this.$store.state.profile.name;
+    return this.$store.state.profile?.name;
   }
 
   get email() {
-    return this.$store.state.profile.email;
+    return this.$store.state.profile?.email;
   }
 
   get drawer() {
