@@ -150,7 +150,7 @@ export default class NoteViewer extends Vue {
       if (json.status !== 'success') throw json.reason;
       this.loading = false;
       this.$store.cache.dispatch("getCollectionNotes", this.cid).then((res: NoteViewer[]) => this.$store.commit('setCurrentNotes', res));
-      this.$router.push({name: 'CollectionViewer.vue'});
+      this.$router.push({name: 'Collection', params:{cid:this.cid!}});
     });
   }
 

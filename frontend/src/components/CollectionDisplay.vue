@@ -21,7 +21,7 @@
           outlined
           rounded
           text
-          :to="{name:'CollectionViewer.vue', params:{cid:value.cid}}">
+          :to="{name:'Collection', params:{cid:value.cid}}">
         Open
       </v-btn>
       <CollectionPopup editing :preset="value" v-if="canEdit(value)">

@@ -71,7 +71,7 @@ const routes: Array<RouteConfig> = [
         children: [
             {
                 props: true,
-                name: "NoteViewer.vue",
+                name: "Note",
                 path: ':nid/view',
                 meta: {
                     hideTitle: true
@@ -92,7 +92,7 @@ const routes: Array<RouteConfig> = [
                 name: "Note Redirect",
                 path: ':nid',
                 redirect: to => ({
-                    name: "NoteViewer.vue",
+                    name: "Note",
                     path: `/collections/${to.params.cid}/notes/${to.params.nid}/view`
                 }),
             }

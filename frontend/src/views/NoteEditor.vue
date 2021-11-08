@@ -78,7 +78,7 @@ export default class NoteEditor extends Vue {
         this.$store.commit('setCurrentNote', json.note);
         this.$store.cache.dispatch("getCollectionNotes", this.cid).then((res: Note[]) => this.$store.commit('setCurrentNotes', res));
         if (!this.cid || !this.nid) return;
-        this.$router.push({name: 'NoteViewer.vue', params: {cid: this.cid, nid: this.nid}});
+        this.$router.push({name: 'Note', params: {cid: this.cid, nid: this.nid}});
       });
     }
   }

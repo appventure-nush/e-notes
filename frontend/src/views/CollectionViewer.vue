@@ -1,6 +1,6 @@
 <template>
   <v-container fluid style="min-height:100%">
-    <template v-if="$route.name==='CollectionViewer.vue'">
+    <template v-if="$route.name==='Collection'">
       <v-card outlined shaped>
         <v-card-title v-text="coll.name"></v-card-title>
         <v-card-subtitle class="pb-2" v-text="coll.cid"></v-card-subtitle>
@@ -102,7 +102,7 @@
               <v-expansion-panel-content>
                 <v-list>
                   <v-list-item
-                      :to="{name:'NoteViewer.vue',params:{cid:$route.params.cid,nid:note.nid}}"
+                      :to="{name:'Note',params:{cid:$route.params.cid,nid:note.nid}}"
                       v-for="note in $store.state.currentNotes"
                       :key="note.nid">
                     {{ note.name }}
