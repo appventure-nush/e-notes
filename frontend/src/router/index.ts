@@ -124,12 +124,10 @@ const router = new VueRouter({
 router.beforeEach((to, from, next) => {
     if (to.matched.some(record => record.meta.auth)) {
         const user = auth.currentUser;
-        if (user == null) next({
-            name: "Login",
-            params: {to: to.fullPath}
-        }); else if (to.matched.some(record => record.meta.admin)) user.getIdTokenResult().then(res => {
+        if (user == null) next('/login');
+        else if (to.matched.some(record => record.meta.admin)) user.getIdTokenResult().then(res => {
             if (res.claims.admin) next();
-            else next({path: '/'})
+            else next('/')
         }); else next()
     } else next()
 });

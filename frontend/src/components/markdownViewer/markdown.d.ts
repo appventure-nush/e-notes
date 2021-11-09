@@ -114,14 +114,8 @@ export interface ImageOptions {
  * https://www.npmjs.com/package/markdown-it-katex
  */
 export interface KatexOptions {
-    /**
-     * True if throw on error.
-     */
-    throwOnError: boolean
-    /**
-     * The error color default '#cc0000'
-     */
-    errorColor: string
+    katex?: typeof Katex
+    blockClass?: string
 }
 
 /**

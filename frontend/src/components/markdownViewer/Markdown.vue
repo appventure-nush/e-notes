@@ -12,7 +12,7 @@ import {HighlightOptions, KatexOptions, MarkdownItVueOptions} from "@/components
 import 'katex/dist/katex.min.css'
 import '@/styles/github-dark.scss';
 
-const DEFAULT_OPTIONS_KATEX: KatexOptions = {throwOnError: false, errorColor: '#cc0000'}
+const DEFAULT_OPTIONS_KATEX: KatexOptions = {blockClass: "test"}
 const DEFAULT_OPTIONS_HIGHLIGHT: HighlightOptions = {inline: true, auto: false}
 @Component
 export default class Markdown extends Vue {
@@ -32,6 +32,7 @@ export default class Markdown extends Vue {
   @Watch('content', {immediate: true})
   onContentChange(val: string) {
     this.$nextTick(() => {
+      if (!val) return this.container.innerHTML = "";
       this.container.innerHTML = this.md.render(val)
     })
   }
@@ -48,3 +49,11 @@ export default class Markdown extends Vue {
   }
 }
 </script>
+<style>
+blockquote {
+  padding-left: 1em;
+  color: hsla(0, 0%, 100%, .7);
+  border-left-width: 0.2em;
+  margin: 1em 0;
+}
+</style>

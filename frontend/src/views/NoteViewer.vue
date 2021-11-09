@@ -54,16 +54,18 @@
       </v-card-actions>
     </v-card>
     <v-divider class="my-3" v-if="this.doc"/>
-    <template v-if="this.doc">
-      <JupyterViewer v-if="note.type==='jupyter'" :notebook="doc"></JupyterViewer>
-      <markdown v-else-if="note.type==='markdown'" :content="doc" :options="$store.state.markdownOptions"></markdown>
-    </template>
-    <div ref="shadowRoot"></div>
-    <v-skeleton-loader
-        v-if="loading"
-        class="mx-auto"
-        type="article,image,article,card"
-    ></v-skeleton-loader>
+    <v-card class="pa-5" flat outlined>
+      <template v-if="this.doc">
+        <JupyterViewer v-if="note.type==='jupyter'" :notebook="doc"></JupyterViewer>
+        <markdown v-else-if="note.type==='markdown'" :content="doc" :options="$store.state.markdownOptions"></markdown>
+      </template>
+      <div ref="shadowRoot"></div>
+      <v-skeleton-loader
+          v-if="loading"
+          class="mx-auto"
+          type="article,image,article,card"
+      ></v-skeleton-loader>
+    </v-card>
   </v-container>
 </template>
 

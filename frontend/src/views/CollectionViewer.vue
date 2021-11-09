@@ -1,7 +1,7 @@
 <template>
   <v-container fluid style="min-height:100%">
     <template v-if="$route.name==='Collection'">
-      <v-card outlined shaped>
+      <v-card outlined shaped :loading="loading">
         <v-card-title v-text="coll.name"></v-card-title>
         <v-card-subtitle class="pb-2" v-text="coll.cid"></v-card-subtitle>
         <v-chip class="mx-4 mb-2" small label :color="coll.open?'success':'error'"
@@ -165,18 +165,24 @@ export default class CollectionViewer extends Vue {
   deleting: string[] = [];
   images: { url: string, name: string }[] = [];
   blobs: { [name: string]: string } = {};
+  loading = false;
 
   @Watch('cid')
   onCIDChange() {
     this.deleting = [];
     this.images = [];
     this.files = [];
+    this.$store.commit("setCurrentRoles", [])
+    this.$store.commit("setCurrentNotes", [])
+    this.$store.commit("setCurrentColl", {})
+    this.loading = true;
     this.$store.cache.dispatch("getCollection", this.cid).then(json => {
       if (json.status && json.status !== "success") {
         console.log(json);
         return this.$router.push("/");
       }
       this.$store.commit("setCurrentColl", json);
+      this.loading = false;
     });
     this.$store.cache.dispatch("getCollectionRoles", this.cid).then(json => this.$store.commit("setCurrentRoles", json));
     this.$store.cache.dispatch("getCollectionNotes", this.cid).then(json => this.$store.commit("setCurrentNotes", json));
