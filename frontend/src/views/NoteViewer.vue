@@ -52,7 +52,7 @@
       </v-card-actions>
     </v-card>
     <v-divider class="my-3"/>
-    <v-card class="pa-5" flat :outlined="this.doc" :loading="doc_loading">
+    <v-card class="pa-5" flat :loading="doc_loading">
       <template v-if="this.doc">
         <JupyterViewer v-if="note.type==='jupyter'" :notebook="doc"></JupyterViewer>
         <markdown v-else-if="note.type==='markdown'" :content="doc" :options="$store.state.markdownOptions"></markdown>

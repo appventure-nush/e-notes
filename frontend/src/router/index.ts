@@ -62,7 +62,6 @@ const routes: Array<RouteConfig> = [
     },
     {
         path: '/collection/:cid',
-        name: 'Collection',
         components: {
             default: () => import(/* webpackChunkName: "collection" */'@/views/CollectionViewer.vue'),
             appbar: () => import(/* webpackChunkName: "cAppbar" */'@/components/CollectionAppbar.vue')
@@ -77,6 +76,12 @@ const routes: Array<RouteConfig> = [
             appbar: true
         },
         children: [
+            {
+                props: true,
+                name: "Collection",
+                path: '',
+                component: () => import(/* webpackChunkName: "note" */'@/views/CollectionInfo.vue')
+            },
             {
                 props: true,
                 name: "Note",
@@ -105,6 +110,13 @@ const routes: Array<RouteConfig> = [
                     name: "Note",
                     path: `/collections/${to.params.cid}/notes/${to.params.nid}/view`
                 }),
+            },
+            {
+                path: '*',
+                redirect: to => ({
+                    name: "Collection Info",
+                    params: {cid: to.params.cid}
+                })
             }
         ]
     },

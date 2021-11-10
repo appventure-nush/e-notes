@@ -73,7 +73,7 @@
             </v-list-item-content>
           </v-list-item>
           <!-- if in collection/notes page, show notes list -->
-          <template v-if="$route.matched.some(({ name }) => name === 'Collection')">
+          <template v-if="isCollectionRoute($route)">
             <v-divider/>
             <!-- Notes of the current collection -->
             <v-list-group prepend-icon="mdi-folder" :value="true">
@@ -103,7 +103,7 @@
           <v-list-group prepend-icon="mdi-folder" v-if="$store.state.collections&&$store.state.collections.filter">
             <template v-slot:activator>
               <v-list-item-title
-                  v-text="$route.matched.some(({ name }) => name === 'Collection')?'Others':'Collections'"></v-list-item-title>
+                  v-text="isCollectionRoute($route)?'Others':'Collections'"></v-list-item-title>
             </template>
             <v-list-item
                 v-for="coll in $store.state.collections.filter(c=>c.cid!==$route.params.cid||!$route.matched.some(({ name }) => name === 'Collection'))"
@@ -162,10 +162,6 @@ export default class App extends Vue {
 
   set drawer(val: boolean) {
     this.$store.commit("setDrawer", val);
-  }
-
-  mounted() {
-    console.log('mounted')
   }
 
   toggleDark() {

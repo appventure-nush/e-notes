@@ -1,6 +1,6 @@
 import Vue from "vue";
 import {canCreate, canEdit, computeAccess, hasPermission} from "@/mixins/permission";
-import {humanFileSize} from "@/mixins/helpers";
+import {humanFileSize, isCollectionRoute} from "@/mixins/helpers";
 import {INPUT_ID_RULES, INPUT_NAME_RULES} from "@/mixins/inputRules";
 
 Vue.mixin({
@@ -12,6 +12,7 @@ Vue.mixin({
         canCreate,
         canEdit,
         hasPermission,
-        computeAccess
+        computeAccess,
+        isCollectionRoute
     }
 });

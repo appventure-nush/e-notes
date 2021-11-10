@@ -132,7 +132,7 @@ export default class Login extends Vue {
         .then(token => this.verifyToken(token))
         .catch(e => {
           this.attempting = false;
-          console.log(this.errorMsg = e.code);
+          this.errorMsg = e.code;
         });
   }
 
@@ -140,7 +140,6 @@ export default class Login extends Vue {
     this.errorMsg = undefined;
     this.attempting = true;
     return signInWithPopup(auth, provider).then(result => {
-      console.log("oath return", result.user.email);
       const credential = OAuthProvider.credentialFromResult(result);
       if (!(credential && credential.idToken)) throw "Credential is null";
       return result.user.getIdToken(true);
@@ -171,7 +170,7 @@ export default class Login extends Vue {
       this.now = Date.now();
       if (this.now > this.nextAllowed) clearInterval(int);
     }, 16);
-    sendPasswordResetEmail(auth, this.email).then(res => console.log(res))
+    sendPasswordResetEmail(auth, this.email);
   }
 }
 </script>

@@ -29,3 +29,9 @@ export function humanFileSize(bytes: number, si = false, dp = 1) {
 
     return bytes.toFixed(dp) + ' ' + units[u];
 }
+
+import {Route} from 'vue-router'
+
+export function isCollectionRoute(route: Route) {
+    return route.path.startsWith('/collection/');
+}

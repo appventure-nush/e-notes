@@ -58,7 +58,7 @@ export default class NoteEditor extends Vue {
     if (!this.cid || !this.nid) return;
     if (this.note.type === 'markdown' && !this.markdown) return;
     if (action === 'format') {
-      if (this.note.type === 'jupyter') console.log('jupyter not done');
+      if (this.note.type === 'jupyter') this.content = JSON.stringify(JSON.parse(this.content), null, 4);
       else if (this.note.type === 'markdown') this.markdown.invoke('setHTML', pretty(this.markdown.invoke('getHTML'), {ocd: true}));
       else this.content = pretty(this.content, {ocd: true});
     } else if (action === 'save') {

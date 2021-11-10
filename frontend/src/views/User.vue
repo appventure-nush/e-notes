@@ -18,13 +18,13 @@
             <div class="blue--text mb-2">
               {{ user.email }}
             </div>
-            <div class="red--text mb-2 align-center" v-if="user.admin||editing">
+            <div class="blue--text mb-2 subheading" v-if="user.nickname">
+              {{ user.nickname }}
+            </div>
+            <div class="red--text align-center" v-if="user.admin||editing">
               <v-checkbox v-if="editing" dense hide-details label="Admin" v-model="editedUser.admin"
                           style="margin-left:50%;transform:translateX(-50%);width:5em;"/>
               <span v-else>Admin</span>
-            </div>
-            <div class="blue--text subheading" v-if="user.nickname">
-              {{ user.nickname }}
             </div>
           </v-card-text>
           <v-divider></v-divider>
@@ -35,10 +35,10 @@
             <v-col
                 class="text-right"
                 tag="strong"
-                cols="3" md="5">
+                cols="3" md="5" lg="6">
               Type:
             </v-col>
-            <v-col cols="9" md="7">
+            <v-col cols="9" md="7" lg="6">
               <v-select class="mt-0" hide-details dense v-if="editing" v-model="editedUser.teacher"
                         :items="teacherItems" item-text="text" item-value="value"/>
               <span v-text="user.teacher ? 'Teacher' : 'Student'" v-else></span>
@@ -47,25 +47,25 @@
             <v-col
                 class="text-right"
                 tag="strong"
-                cols="3" md="5">
+                cols="3" md="5" lg="6">
               Permissions:
             </v-col>
-            <v-col cols="9" md="7" v-if="editing||perms.length>0" class="pt-1">
+            <v-col cols="9" md="7" lg="6" v-if="editing||perms.length>0" class="pt-1">
               <template v-if="editing">
                 <v-checkbox dense hide-details v-for="(v,n) in permissions" :key="v" v-model="editedAccess"
                             :label="n" :value="v"/>
               </template>
               <v-chip v-else :key="p" label small class="mr-2 mt-2" v-for="[n,p] in perms" v-text="n"/>
             </v-col>
-            <v-col cols="9" md="7" v-else><i>None</i></v-col>
+            <v-col cols="9" md="7" lg="6" v-else><i>None</i></v-col>
 
             <v-col
                 class="text-right"
                 tag="strong"
-                cols="3" md="5">
+                cols="3" md="5" lg="6">
               Roles:
             </v-col>
-            <v-col cols="9" md="7" v-if="editing||(user.roles&&user.roles.length>0)" class="pt-2">
+            <v-col cols="9" md="7" lg="6" v-if="editing||(user.roles&&user.roles.length>0)" class="pt-2">
               <template v-if="editing">
                 <v-chip-group v-model="editedUser.roles" column multiple active-class="primary--text">
                   <v-chip class="mt-0" :key="r" label small :value="r" v-for="r in allRoles" v-text="r"/>
@@ -77,11 +77,13 @@
               </template>
               <v-chip v-else :key="r" label small class="mr-2 mt-1" v-for="r in user.roles" v-text="r"/>
             </v-col>
-            <v-col cols="9" md="7" v-else><i>None</i></v-col>
+            <v-col cols="9" md="7" lg="6" v-else><i>None</i></v-col>
           </v-row>
           <v-card-actions>
+            <v-spacer/>
             <v-btn :color="editing?'success':'primary'" text @click="!editing?editing=true:save()"
                    v-text="editing?'Save':'Edit'"></v-btn>
+            <v-spacer v-if="$vuetify.breakpoint.lg"/>
           </v-card-actions>
         </template>
       </v-card>

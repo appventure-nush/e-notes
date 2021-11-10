@@ -1,6 +1,6 @@
 <template>
   <v-row style="height:calc(100vh - 64px);" no-gutters>
-    <v-col style="max-height:100%;width:300px;" class="d-flex flex-column flex-grow-0">
+    <v-col style="max-height:100%;width:300px;min-width:300px;" class="d-flex flex-column flex-grow-0">
       <v-card class="flex-grow-0 pa-2" :flat="!query" tile>
         <v-text-field v-model="query"
                       placeholder="Search..." dense flat prepend-icon="mdi-magnify" hide-details="auto"></v-text-field>
@@ -19,9 +19,20 @@
             <v-list-item-subtitle v-text="user.email"></v-list-item-subtitle>
           </v-list-item-content>
         </v-list-item>
+        <v-list-item v-if="displayedUsers.length===0" two-line>
+          <v-list-item-avatar>
+          </v-list-item-avatar>
+
+          <v-list-item-content>
+            <v-list-item-title>
+              <i>None</i>
+            </v-list-item-title>
+            <v-list-item-subtitle>No user found</v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
       </v-list-item-group>
     </v-col>
-    <v-col style="max-height:100%; overflow-y: auto">
+    <v-col style="max-height:100%;overflow-y:auto">
       <router-view></router-view>
     </v-col>
   </v-row>

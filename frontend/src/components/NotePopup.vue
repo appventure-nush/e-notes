@@ -142,7 +142,6 @@ export default class NotePopup extends Vue {
       type: this.type === "auto" ? null : this.type
     }).then(res => res.json()).then(json => {
       if (json.status !== "success") {
-        console.log(json);
         throw json.reason;
       } else {
         if (this.file) {
@@ -153,7 +152,6 @@ export default class NotePopup extends Vue {
       }
     }).then(json => {
       if (json.status !== "success") {
-        console.log(json);
         throw json.reason;
       } else {
         this.$router.push({name: "Note", params: {cid: this.cid, nid: this.nid}})
@@ -163,7 +161,6 @@ export default class NotePopup extends Vue {
         this.dialog = false;
       }
     }).catch(e => {
-      console.log(e);
       alert(e);
     }).finally(() => this.saving = false);
   }
