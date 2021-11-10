@@ -36,15 +36,18 @@ collections.get("/:cid", checkPermissions, async (req, res) => {
 collections.post("/:cid", checkAdmin, async (req, res) => {
     let collection = getCollection(req.params.cid);
     let old = {...collection};
-    if (collection) {
-        if (req.body.action && req.body.action === "add") return res.json(failed("collection_already_exist"));
+    if (req.body.action === "edit") {
+        if (!collection) return res.json(failed("collection_does_not_exist"));
         if (req.body.hasOwnProperty("name")) collection.name = req.body.name;
         if (req.body.hasOwnProperty("desc")) collection.desc = req.body.desc;
         if (req.body.hasOwnProperty("open")) collection.open = Boolean(req.body.open);
         await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.EDIT, difference(old, collection)));
-    } else {
+    } else if (req.body.action === "add") {
+        if (collection) return res.json(failed("collection_already_exist"));
         collection = makeColl(req.params.cid, req.uid, req.body.name, req.body.desc, req.body.open);
         await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.CREATE, [collection]));
+    } else {
+        return res.json(failed("ZW5vdGVze04wVF80X0ZMNDl9"));
     }
     await firestore().collection("collections").doc(req.params.cid).set(collection);
     res.json(success({collection}));
