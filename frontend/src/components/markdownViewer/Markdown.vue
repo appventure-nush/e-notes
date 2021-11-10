@@ -52,7 +52,7 @@ export default class Markdown extends Vue {
 <style>
 blockquote {
   padding-left: 1em;
-  color: hsla(0, 0%, 100%, .7);
+  color: #888;
   border-left-width: 0.2em;
   margin: 1em 0;
 }

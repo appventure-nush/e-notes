@@ -11,14 +11,14 @@
         <v-col>
           <v-row no-gutters>
             <v-col v-if="output.output_type === 'stream'">
-              <pre :class="[output.name==='stdout'?'output-std' : 'output-err']">{{ output.text.join('') }}</pre>
+              <pre :class="[output.name==='stdout'?'output-std' : 'output-err']" v-text="output.text.join('')"></pre>
             </v-col>
             <template v-else-if="output.output_type === 'display_data'||output.output_type === 'execute_result'">
               <v-col cols="12" v-if="'text/plain' in output.data">
                 <pre class="cell-content output-std" v-text="output.data['text/plain'].join('')"></pre>
               </v-col>
               <v-col cols="12" class="cell-content output-display">
-                <v-img v-if="'image/png' in output.data" :src="`data:image/png;base64,${output.data['image/png']}`"/>
+                <img v-if="'image/png' in output.data" :src="`data:image/png;base64,${output.data['image/png']}`"/>
                 <div v-if="'text/html' in output.data" v-html="output.data['text/html'].join('')"></div>
               </v-col>
             </template>

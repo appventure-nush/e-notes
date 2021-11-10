@@ -32,29 +32,27 @@
           </v-expansion-panel>
         </v-expansion-panels>
       </v-card-text>
-      <v-card-actions>
+      <v-card-actions v-if="canEdit($store.state.currentCollection)">
         <v-btn text color="primary" @click="download">
           Download
         </v-btn>
-        <NotePopup editing :preset="note" :cid="cid" v-if="canEdit($store.state.currentCollection)">
+        <NotePopup editing :preset="note" :cid="cid">
           <template v-slot:activator="{on}">
             <v-btn text color="primary" class="ml-4" v-on="on" :disabled="loading">
               Edit
             </v-btn>
           </template>
         </NotePopup>
-        <v-btn text color="primary" class="ml-4" :to="{name:'Edit Note', params:{cid,nid}}" :disabled="loading"
-               v-if="canEdit($store.state.currentCollection)">
+        <v-btn text color="primary" class="ml-4" :to="{name:'Edit Note', params:{cid,nid}}" :disabled="loading">
           Edit Source
         </v-btn>
-        <v-btn text color="error" class="ml-4" @click="deleteNote" :disabled="loading"
-               v-if="canEdit($store.state.currentCollection)">
+        <v-btn text color="error" class="ml-4" @click="deleteNote" :disabled="loading">
           Delete
         </v-btn>
       </v-card-actions>
     </v-card>
-    <v-divider class="my-3" v-if="this.doc"/>
-    <v-card class="pa-5" flat outlined>
+    <v-divider class="my-3"/>
+    <v-card class="pa-5" flat :outlined="this.doc">
       <template v-if="this.doc">
         <JupyterViewer v-if="note.type==='jupyter'" :notebook="doc"></JupyterViewer>
         <markdown v-else-if="note.type==='markdown'" :content="doc" :options="$store.state.markdownOptions"></markdown>
