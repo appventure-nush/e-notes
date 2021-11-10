@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <template v-if="!$router.currentRoute.meta.naked">
+    <template v-if="!$router.currentRoute.meta.naked && $store.state.profile">
       <v-navigation-drawer app v-model="drawer">
         <template v-slot:prepend>
           <v-list-item two-line>
@@ -100,7 +100,7 @@
             </v-list-group>
             <!-- Other collections -->
           </template>
-          <v-list-group prepend-icon="mdi-folder">
+          <v-list-group prepend-icon="mdi-folder" v-if="$store.state.collections&&$store.state.collections.filter">
             <template v-slot:activator>
               <v-list-item-title
                   v-text="$route.matched.some(({ name }) => name === 'Collection')?'Others':'Collections'"></v-list-item-title>

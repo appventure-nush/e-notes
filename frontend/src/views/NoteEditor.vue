@@ -24,6 +24,7 @@ import 'vue-prism-editor/dist/prismeditor.min.css';
 import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
 import {EventBus} from "@/event";
+import {post} from "@/api/api";
 
 @Component({
   components: {
@@ -69,10 +70,7 @@ export default class NoteEditor extends Vue {
           new Blob([this.markdown.invoke('getMarkdown')], {type: 'text/markdown'}), 'note_source.md');
       else formData.append('note_source',
             new Blob([this.content], {type: 'text/html'}), 'note_source.html');
-      fetch(`/api/collections/${this.cid}/notes/${this.nid}/upload`, {
-        method: 'POST',
-        body: formData
-      }).then(res => res.json()).then(json => {
+      post(`/api/collections/${this.cid}/notes/${this.nid}/upload`, formData).then(res => res.json()).then(json => {
         this.loading = false;
         if (json.status !== 'success') throw json.reason;
         this.$store.commit('setCurrentNote', json.note);

@@ -45,7 +45,7 @@ export default new Vuex.Store<State>({
         setUser(state, user?: firebase.User) {
             state.user = user;
         },
-        setProfile(state, user?: User) {
+        setProfile(state, user?: User | any) {
             state.profile = user;
         },
         setCurrentNotes(state, notes: Note[]) {
@@ -68,10 +68,14 @@ export default new Vuex.Store<State>({
         }
     },
     actions: {
-        async fetchUserProfile({commit}, payload: firebase.User) {
+        async fetchUserProfile({commit, dispatch}, payload: firebase.User) {
             commit("setUser", payload);
-            commit("setProfile", await get("/api/auth").then(res => res.json()));
-            if (router.currentRoute.path === "/login") router.push("/");
+            const profile = await get("/api/auth").then(res => res.json());
+            if (profile.status && profile.status === 'failed') dispatch("logout");
+            else {
+                commit("setProfile", profile);
+                if (router.currentRoute.path === "/login") router.push("/");
+            }
         },
         async logout({commit}) {
             await auth.signOut();

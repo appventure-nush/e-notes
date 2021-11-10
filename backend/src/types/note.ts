@@ -1,3 +1,6 @@
+import {firestore, storage} from "firebase-admin";
+import {updateNote} from "../utils";
+
 export interface Note {
     index: number;
     cid: string;
@@ -24,4 +27,18 @@ export function makeNote(i: number, nid: string, cid: string, owner: string, nam
         lastEditBy: owner,
         lastEdit: Date.now()
     };
+}
+
+export function renameNote(cid: string, nid: string, newNid: string) {
+    return Promise.all([
+        storage().bucket().file(`collections/${cid}/notes/${nid}`).move(storage().bucket().file(`collections/${cid}/notes/${newNid}`)),
+        deleteNote(cid, nid)
+    ]);
+}
+
+export function deleteNote(cid: string, nid: string) {
+    return Promise.all([
+        updateNote(cid, nid, undefined),
+        storage().bucket().file(`collections/${cid}/notes/${nid}`).delete(),
+    ]);
 }

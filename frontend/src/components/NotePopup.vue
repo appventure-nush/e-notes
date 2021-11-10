@@ -148,10 +148,7 @@ export default class NotePopup extends Vue {
         if (this.file) {
           let formData = new FormData();
           formData.append("note_source", this.file);
-          return fetch(`/api/collections/${this.cid}/notes/${this.nid}/upload`, {
-            method: 'POST',
-            body: formData
-          }).then(res => res.json());
+          return post(`/api/collections/${this.cid}/notes/${this.nid}/upload`, formData).then(res => res.json());
         } else return json;
       }
     }).then(json => {

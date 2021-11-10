@@ -3,8 +3,7 @@ import morgan from 'morgan';
 import NodeVault from 'node-vault';
 import admin from 'firebase-admin';
 import cookieParser from 'cookie-parser';
-import fileUpload from 'express-fileupload';
-import express, {NextFunction, Request, Response} from "express";
+import express from "express";
 import {setup} from './utils';
 import apiRouter from "./routes/api"
 import collectionRouter from "./routes/collection"
@@ -22,21 +21,16 @@ app.use(csrf({cookie: true}));
 if (process.env.NODE_ENV !== 'production')
     app.use(morgan('dev'));
 
-app.use("/api",
-    express.json(),
-    express.urlencoded({extended: true}),
-    fileUpload({limits: {fileSize: 64 * 1024 * 1024}}),
-    apiRouter);
+app.use("/api", apiRouter);
 app.use("/collection", collectionRouter);
+if (process.env.NODE_ENV === 'production') app.use("/", history());
+else app.use('/', createProxyMiddleware({target: 'http://localhost:8090', changeOrigin: true})); // local testing
 
-if (process.env.NODE_ENV === 'production') app.use("/", history({
-    verbose: true
-})); else app.use('/', createProxyMiddleware({target: 'http://localhost:8090', changeOrigin: true}));
-app.use(express.static(path.join(__dirname, '..', 'public'), {maxAge: 31557600}));
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-    if (err.code !== 'EBADCSRFTOKEN') return next(err);
-    res.status(403).send("bWF5YmUgaSBzaG91bGQgZ2l2ZSB5b3UgYSBmbGFn");
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (err.code !== 'EBADCSRFTOKEN') return next();
+    res.status(403).send("CSRF ERROR: bWF5YmUgaSBzaG91bGQgZ2l2ZSB5b3UgYSBmbGFn");
 });
+app.use(express.static(path.join(__dirname, '..', 'public'), {maxAge: 31557600}));
 
 (async () => {
     try {

@@ -1,3 +1,5 @@
+let csrfToken = "";
+
 export function get(path: string) {
     return fetch(path, {
         method: "GET",
@@ -13,7 +15,8 @@ export function del(path: string) {
         method: "DELETE",
         credentials: 'same-origin',
         headers: {
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'x-xsrf-token': csrfToken
         }
     });
 }
@@ -24,7 +27,10 @@ export function post(path: string, body: any) {
         credentials: 'same-origin',
         headers: {
             'Accept': 'application/json',
-            'Content-Type': (body instanceof FormData) ? 'multipart/form-data' : 'application/json'
+            'x-xsrf-token': csrfToken,
+            ...(body instanceof FormData ? {} : {'Content-Type': 'application/json'})
         }, body: (body instanceof FormData) ? body : JSON.stringify(body)
     });
 }
+
+get('/api/csrf').then(res => res.json()).then(json => csrfToken = json.token);

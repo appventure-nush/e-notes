@@ -112,7 +112,7 @@ const routes: Array<RouteConfig> = [
         path: "*",
         name: "404",
         component: () => import(/* webpackChunkName: "404" */"@/views/PageNotFound.vue"),
-        meta: {auth: true, title: '404 Not Found'}
+        meta: {title: '404 Not Found', naked: true}
     }
 ]
 

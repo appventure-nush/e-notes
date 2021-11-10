@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-row>
+    <v-row v-if="$store.state.collections&&$store.state.collections.filter">
       <v-col cols="12" md="6" lg="4" v-for="(coll,i) in $store.state.collections" :key="coll.cid">
         <collection-display v-model="$store.state.collections[i]"/>
       </v-col>

@@ -9,7 +9,7 @@ import DocumentSnapshot = admin.firestore.DocumentSnapshot;
 import DocumentData = firestore.DocumentData;
 import QuerySnapshot = firestore.QuerySnapshot;
 import {Action, addAudit, Category, simpleAudit} from "./types/audit";
-import {failed} from "./response";
+import {error, failed} from "./response";
 
 const users: User[] = [];
 
@@ -95,8 +95,9 @@ export async function getNote(cid: string, nid: string): Promise<Note> {
 
 export async function getNotes(cid: string): Promise<Note[]> {
     let coll = noteCache[cid];
+    if (coll && Date.now() - coll.cacheDate > 3600 * 1000) coll = undefined;
     if (!coll) {
-        if (!getCollection(cid)) return null;
+        if (!getCollection(cid)) return [];
         const allNotes = await firestore().collection("collections").doc(cid).collection("notes").get();
         noteCache[cid] = coll = {
             cacheDate: Date.now(),
@@ -113,7 +114,11 @@ export function updateNote(cid: string, nid: string, note: Note) {
         const index = coll.notes.findIndex(n => n.nid === nid);
         if (index === -1) coll.notes.push(note);
         else coll.notes[index] = note;
-    } else coll.notes.splice(coll.notes.findIndex(n => n.nid === nid), 1);
+        return firestore().collection("collections").doc(cid).collection("notes").doc(nid).set(note);
+    } else {
+        coll.notes.splice(coll.notes.findIndex(n => n.nid === nid), 1);
+        return firestore().collection("collections").doc(cid).collection("notes").doc(nid).delete();
+    }
 }
 
 // permission system in order of priority
@@ -157,10 +162,10 @@ export async function checkUser(req: express.Request, res: express.Response, nex
             req.uid = uid;
             req.user = await getUser(uid);
             return next();
-        } else return res.redirect('/login');
+        } else return res.json(error('login_expired'));
     } catch (e) {
         // await error({func: 'checkUserOptional', body: req.body, path: req.path});
-        return res.redirect('/login');
+        return res.json(error('login_expired'));
     }
 }
 
@@ -187,7 +192,7 @@ export async function checkPermissions(req: express.Request, res: express.Respon
         } else return res.json(failed("not logged in"));
     } catch (e) {
         // await error({func: 'checkPermissions', body: req.body, path: req.path});
-        return res.redirect('/login');
+        return res.json(error('login_expired'));
     }
 }
 
@@ -204,7 +209,7 @@ export async function checkAdmin(req: express.Request, res: express.Response, ne
         } else return res.json(failed("not logged in"));
     } catch (e) {
         // await error({func: 'checkAdmin', body: req.body, path: req.path});
-        return res.redirect('/login');
+        return res.json(error('login_expired'));
     }
 }
 
@@ -227,10 +232,8 @@ export function genQuerySnapshotHandler<T>(getID: (el: T) => string, array: T[])
             const id = getID(t);
             const index = array.findIndex(elem => getID(elem) === id);
             if (change.type === "added") {
-                if (index !== -1)
-                    array[index] = t;
-                else
-                    array.push(t);
+                if (index !== -1) array[index] = t;
+                else array.push(t);
             } else if (change.type === "removed" && index !== -1) array.splice(index, 1);
             else if (change.type === "modified" && index !== -1) array[index] = t;
         });
