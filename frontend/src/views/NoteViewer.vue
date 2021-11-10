@@ -52,7 +52,7 @@
       </v-card-actions>
     </v-card>
     <v-divider class="my-3"/>
-    <v-card class="pa-5" flat :outlined="this.doc">
+    <v-card class="pa-5" flat :outlined="this.doc" :loading="doc_loading">
       <template v-if="this.doc">
         <JupyterViewer v-if="note.type==='jupyter'" :notebook="doc"></JupyterViewer>
         <markdown v-else-if="note.type==='markdown'" :content="doc" :options="$store.state.markdownOptions"></markdown>
@@ -71,7 +71,7 @@
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
 import UserChip from "@/components/UserChip.vue";
 import NotePopup from "@/components/NotePopup.vue";
-import {del} from "@/api/api";
+import {del} from "@/mixins/api";
 import JupyterViewer from "@/components/JupyterViewer.vue";
 import {Note} from "@/types/note";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
@@ -84,7 +84,7 @@ const additionalStyles = '<style>\n' +
     '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css">\n' +
     '<link rel="stylesheet" href="https://cdn.jsdelivr.net/github-markdown-css/2.2.1/github-markdown.css"/>\n' +
     '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/default.min.css">';
-// @ts-ignore
+
 @Component({
   components: {
     JupyterViewer,
@@ -100,6 +100,7 @@ export default class NoteViewer extends Vue {
   name = "NoteViewer";
   doc?: any = null;
   loading = false;
+  doc_loading = false;
   shadow?: ShadowRoot;
 
   @Watch('doc')
@@ -112,7 +113,7 @@ export default class NoteViewer extends Vue {
 
   mounted() {
     this.shadow = this.shadowRoot.attachShadow({mode: 'open'});
-    this.onNoteChange();
+    this.onNIDChange();
   }
 
   get note(): Note {
@@ -120,7 +121,7 @@ export default class NoteViewer extends Vue {
   }
 
   @Watch('nid')
-  onNoteChange() {
+  onNIDChange() {
     this.doc = "";
     this.loading = true;
     this.$store.cache.dispatch("getCollectionNotes", this.cid).then((res: NoteViewer[]) => {
@@ -129,11 +130,19 @@ export default class NoteViewer extends Vue {
     }).then(json => {
       if (!json) return this.$router.push({name: 'Collection', params: {cid: this.cid || ''}});
       this.$store.commit("setCurrentNote", json);
-      if (this.note.url) fetch(this.note.url).then(res => res.text()).then(text => {
-        this.doc = this.note.type === "jupyter" ? JSON.parse(text) : text;
-      }); else this.doc = "";
       this.loading = false;
     })
+  }
+
+  @Watch('note', {deep: true})
+  onNoteChanged() {
+    if (this.note.url) {
+      this.doc_loading = true;
+      fetch(this.note.url).then(res => res.text()).then(text => {
+        this.doc = this.note.type === "jupyter" ? JSON.parse(text) : text;
+        this.doc_loading = false;
+      });
+    } else this.doc = "";
   }
 
   @Watch('$route.hash')

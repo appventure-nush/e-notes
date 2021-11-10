@@ -139,7 +139,7 @@
 
 <script lang="ts">
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
-import {del} from "@/api/api";
+import {del} from "@/mixins/api";
 import UserChip from "@/components/UserChip.vue";
 import {VUFile} from "@/shims-others";
 import VueUploadComponent from "vue-upload-component";

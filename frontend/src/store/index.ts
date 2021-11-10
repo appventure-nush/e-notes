@@ -4,7 +4,7 @@ import {auth} from "@/main";
 import router from "@/router";
 import firebase from "firebase/compat";
 import {State} from "@/shims-vuex";
-import {get} from "@/api/api";
+import {get} from "@/mixins/api";
 import {User} from "@/types/user";
 import VuexPersistence from 'vuex-persist';
 import {Collection} from "@/types/coll";

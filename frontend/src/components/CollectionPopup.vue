@@ -103,7 +103,7 @@
 <script lang="ts">
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
 import {Collection} from "@/types/coll";
-import {del, post} from "@/api/api";
+import {del, post} from "@/mixins/api";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
 
 @Component({

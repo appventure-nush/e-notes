@@ -1,6 +1,6 @@
 let csrfToken = "";
 
-export function get(path: string) {
+export function get(path: string): Promise<Response> {
     return fetch(path, {
         method: "GET",
         credentials: 'same-origin',
@@ -10,7 +10,7 @@ export function get(path: string) {
     });
 }
 
-export function del(path: string) {
+export function del(path: string): Promise<Response> {
     return fetch(path, {
         method: "DELETE",
         credentials: 'same-origin',
@@ -21,7 +21,7 @@ export function del(path: string) {
     });
 }
 
-export function post(path: string, body: any) {
+export function post(path: string, body: any): Promise<Response> {
     return fetch(path, {
         method: "POST",
         credentials: 'same-origin',

@@ -17,7 +17,7 @@
             <v-chip
                 class="ma-1"
                 v-if="$store.state.profile.admin"
-                color="red"
+                color="error"
                 label
                 dark
                 small>
@@ -39,7 +39,7 @@
               </v-btn>
             </v-col>
             <v-col cols="6">
-              <v-btn color="red" outlined block small depressed @click="$store.dispatch('logout')">Logout</v-btn>
+              <v-btn color="error" outlined block small depressed @click="$store.dispatch('logout')">Logout</v-btn>
             </v-col>
           </v-row>
         </template>
@@ -181,5 +181,22 @@ export default class App extends Vue {
 
 .v-application code {
   background-color: unset !important;
+}
+</style>
+<style>
+::-webkit-scrollbar {
+  width: .5em;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--v-background-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--v-primary-darken1);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--v-primary-lighten1);
 }
 </style>

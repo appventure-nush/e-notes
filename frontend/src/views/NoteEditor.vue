@@ -24,7 +24,7 @@ import 'vue-prism-editor/dist/prismeditor.min.css';
 import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
 import {EventBus} from "@/event";
-import {post} from "@/api/api";
+import {post} from "@/mixins/api";
 
 @Component({
   components: {

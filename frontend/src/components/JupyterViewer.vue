@@ -55,10 +55,6 @@ pre {
   overflow: auto;
 }
 
-blockquote {
-  border-left: 0.5em #eee solid;
-}
-
 .jupyter-viewer {
   width: 100%;
   height: 100%;
@@ -101,10 +97,10 @@ blockquote {
     margin: 0 5px 0 0;
 
     border-radius: 2px;
-    background-color: rgba(66, 165, 245, 0);
+    background-color: rgba(var(--v-primary-base), 0);
 
     &:hover {
-      background-color: rgba(66, 165, 245, 0.75);
+      background-color: rgba(var(--v-primary-lighten1), 0.75);
     }
   }
 
@@ -113,10 +109,10 @@ blockquote {
     margin: 0 5px 0 0;
 
     border-radius: 2px;
-    background-color: rgba(66, 165, 245, 1);
+    background-color: var(--v-primary-base);
 
     &:hover {
-      background-color: darken(rgba(66, 165, 245, 1), 20%);
+      background-color: var(--v-primary-lighten1);
     }
   }
 

@@ -49,10 +49,10 @@ export default class Markdown extends Vue {
   }
 }
 </script>
-<style>
+<style lang="scss">
 blockquote {
+  border-left: 0.3em var(--v-primary-lighten1) solid;
   padding-left: 1em;
-  color: #888;
   border-left-width: 0.2em;
   margin: 1em 0;
 }

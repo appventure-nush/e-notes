@@ -8,7 +8,6 @@
         "prebuild": "tslint -c tslint.json -p tsconfig.json --fix",
         "build": "npm run build_front && tsc",
         "build_front": "cd ../frontend && npm install && npm run build && node copy.js",
-        "prestart": "npm run build",
         "start": "node dist/bin/www",
         "test": "echo \"Error: no test specified\" && exit 1",
         "docker": "npm install && npm run build"

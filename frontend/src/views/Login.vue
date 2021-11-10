@@ -78,7 +78,7 @@
 <script lang="ts">
 import {Component, Vue, Watch} from "vue-property-decorator";
 import {auth} from "@/main";
-import {post} from "@/api/api";
+import {post} from "@/mixins/api";
 import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,

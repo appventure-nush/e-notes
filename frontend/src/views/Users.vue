@@ -1,7 +1,7 @@
 <template>
   <v-row style="height:calc(100vh - 64px);" no-gutters>
-    <v-col cols="12" sm="4" md="3" style="max-height:100%;" class="d-flex flex-column">
-      <v-card class="flex-grow-0 pa-2">
+    <v-col style="max-height:100%;width:300px;" class="d-flex flex-column flex-grow-0">
+      <v-card class="flex-grow-0 pa-2" :flat="!query" tile>
         <v-text-field v-model="query"
                       placeholder="Search..." dense flat prepend-icon="mdi-magnify" hide-details="auto"></v-text-field>
       </v-card>
@@ -21,7 +21,7 @@
         </v-list-item>
       </v-list-item-group>
     </v-col>
-    <v-col cols="12" sm="8" md="9" style="max-height:100%; overflow-y: auto">
+    <v-col style="max-height:100%; overflow-y: auto">
       <router-view></router-view>
     </v-col>
   </v-row>
