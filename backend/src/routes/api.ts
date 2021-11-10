@@ -1,4 +1,4 @@
-import express, {NextFunction, Request, Response, Router} from 'express';
+import express from 'express';
 
 import roles from './api/roles';
 import users from './api/users';
@@ -9,7 +9,7 @@ import {error, success} from "../response";
 import {checkUserOptional} from "../utils";
 import fileUpload from "express-fileupload";
 
-const api = Router();
+const api = express.Router();
 api.use((req, res, next) => {
     if (req.method === 'GET') res.set('Cache-control', `public, max-age=${60 * 5}`);
     else res.set('Cache-control', `no-store`);
@@ -32,6 +32,9 @@ api.use("/roles", roles);
 api.use("/users", users);
 api.use("/audits", audits);
 api.use("/collections", collections);
-api.use((err: Error, req: Request, res: Response) => res.json(error(err.message)));
+api.get('*', (req, res) => res.json(error("404")));
+api.use((err: Error, req: express.Request, res: express.Response) => {
+    res.send(err.message);
+});
 
 export default api;

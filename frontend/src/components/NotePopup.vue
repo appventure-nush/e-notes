@@ -134,7 +134,7 @@ export default class NotePopup extends Vue {
     if (!this.form) return;
     if (!this.form.validate()) return;
     this.saving = true;
-    post(`/api/collections/${this.cid}/notes/${this.nid}`, {
+    post(`/api/collections/${this.cid}/notes/${this.editing ? this.preset.nid : this.nid}`, {
       action: this.editing ? "edit" : "add",
       nid: this.nid,
       name: this.name,
@@ -156,6 +156,7 @@ export default class NotePopup extends Vue {
         console.log(json);
         throw json.reason;
       } else {
+        this.$router.push({name: "Note", params: {cid: this.cid, nid: this.nid}})
         this.$store.cache.delete("getCollectionNotes", this.cid);
         this.$store.cache.dispatch("getCollectionNotes", this.cid).then(notes => this.$store.commit('setCurrentNotes', notes));
         this.$store.commit('setCurrentNote', json.note);

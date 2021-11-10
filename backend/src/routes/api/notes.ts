@@ -33,7 +33,13 @@ notes.post("/:nid", checkAdmin, async (req, res) => {
         note.lastEdit = Date.now();
         note.lastEditBy = req.uid;
         await addAudit(simpleAudit(req.uid, note.nid, Category.NOTE, Action.EDIT, [old], {colls: [req.body.cid]}));
-        if (old.nid !== note.nid) await renameNote(note.cid, old.nid, note.nid);
+        if (old.nid !== note.nid) {
+            await renameNote(note.cid, old.nid, note.nid);
+            note.url = (await storage().bucket().file(`collections/${note.cid}/notes/${note.nid}`).getSignedUrl({
+                action: 'read',
+                expires: '01-01-2500'
+            }))[0];
+        }
     } else {
         note = makeNote((await getNotes(req.body.cid)).length, req.params.nid, req.body.cid, req.uid, req.body.name, req.body.desc);
         await addAudit(simpleAudit(req.uid, note.nid, Category.NOTE, Action.CREATE, [], {colls: [req.body.cid]}));

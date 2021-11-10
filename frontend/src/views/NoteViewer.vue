@@ -127,7 +127,7 @@ export default class NoteViewer extends Vue {
       this.$store.commit('setCurrentNotes', res);
       return res.find(n => n.nid === this.nid);
     }).then(json => {
-      if (!json) return this.$router.push(`/collections/${this.cid}`);
+      if (!json) return this.$router.push({name: 'Collection', params: {cid: this.cid || ''}});
       this.$store.commit("setCurrentNote", json);
       if (this.note.url) fetch(this.note.url).then(res => res.text()).then(text => {
         this.doc = this.note.type === "jupyter" ? JSON.parse(text) : text;

@@ -21,6 +21,7 @@
                   md="4">
                 <v-text-field
                     v-model="cid"
+                    :disabled="editing"
                     label="Collection ID*"
                     hint="no spaces/unicode, caution changing"
                     :rules="INPUT_ID_RULES"
