@@ -80,6 +80,14 @@
             Close
           </v-btn>
           <v-btn
+              v-if="editing"
+              color="error"
+              :disabled="!valid"
+              @click="deleteCollection"
+              text>
+            Delete
+          </v-btn>
+          <v-btn
               color="primary"
               :disabled="!valid"
               type="submit"
@@ -95,7 +103,7 @@
 <script lang="ts">
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
 import {Collection} from "@/types/coll";
-import {post} from "@/api/api";
+import {del, post} from "@/api/api";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
 
 @Component({
@@ -133,8 +141,25 @@ export default class CollectionPopup extends Vue {
         throw json.reason;
       } else {
         this.$store.cache.delete('getCollection', this.cid);
-        this.$store.cache.delete("getCollections");
+        this.$store.cache.delete('getCollections');
+        this.$store.cache.dispatch("getCollections").then(json => this.$store.commit('collections', json));
         this.$store.commit('setCurrentColl', json.collection);
+        this.dialog = false;
+      }
+    }).catch(alert).finally(() => this.saving = false);
+  }
+
+  deleteCollection() {
+    if (prompt("Confirm Deletion?", 'Collection ID') !== this.cid) return;
+    this.saving = true;
+    del(`/api/collections/${this.cid}`).then(res => res.json()).then(json => {
+      if (json.status !== "success") {
+        throw json.reason;
+      } else {
+        this.$store.cache.delete('getCollection', this.cid);
+        this.$store.cache.delete('getCollections');
+        this.$store.cache.dispatch("getCollections").then(json => this.$store.commit('collections', json));
+        this.$router.push("/");
         this.dialog = false;
       }
     }).catch(alert).finally(() => this.saving = false);
