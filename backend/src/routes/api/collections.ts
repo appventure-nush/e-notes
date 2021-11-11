@@ -127,10 +127,8 @@ collections.post("/:cid/reorder", checkAdmin, async (req, res) => {
         }
     })
     await Promise.all(tasks);
-    let newMap: { [nid: string]: number } = {};
-    notes.forEach(n => newMap[n.nid] = n.index);
     res.json(success({
-        order: newMap
+        notes: notes
     }));
 });
 

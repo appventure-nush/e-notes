@@ -106,7 +106,7 @@ export default class NoteEditor extends Vue {
           this.markdown.invoke("setMarkdown", this.doc);
           this.markdown.invoke("moveCursorToStart");
         } else this.content = this.doc;
-      }); else this.doc = "";
+      }); else this.content = this.doc = "";
       this.loading = false;
     })
   }

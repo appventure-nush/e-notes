@@ -81,6 +81,7 @@ export default new Vuex.Store<State>({
             await auth.signOut();
             await get("/api/auth/logout");
             this.cache.clear();
+            commit("collections", undefined);
             commit("setProfile", undefined);
             commit("setUser", undefined);
             router.push('/login');

@@ -1,7 +1,7 @@
 <template>
   <v-row class="px-5">
     <v-col>
-      <CollectionPopup>
+      <CollectionPopup v-if="canCreate()">
         <template v-slot:activator="{on}">
           <v-btn text v-on="on">
             New

@@ -64,7 +64,7 @@ const routes: Array<RouteConfig> = [
         path: '/collection/:cid',
         components: {
             default: () => import(/* webpackChunkName: "collection" */'@/views/CollectionViewer.vue'),
-            appbar: () => import(/* webpackChunkName: "cAppbar" */'@/components/CollectionAppbar.vue')
+            appbar: () => import(/* webpackChunkName: "collection.appbar" */'@/components/CollectionAppbar.vue')
         },
         meta: {
             title: "{{cid}}",
@@ -80,7 +80,7 @@ const routes: Array<RouteConfig> = [
                 props: true,
                 name: "Collection",
                 path: '',
-                component: () => import(/* webpackChunkName: "note" */'@/views/CollectionInfo.vue')
+                component: () => import(/* webpackChunkName: "collection.info" */'@/components/CollectionInfo.vue')
             },
             {
                 props: true,

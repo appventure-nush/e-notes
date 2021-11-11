@@ -1,12 +1,12 @@
 <template>
   <v-card outlined shaped :loading="loading">
-    <v-card-title v-text="coll.name"></v-card-title>
-    <v-card-subtitle class="pb-2" v-text="coll.cid"></v-card-subtitle>
-    <v-chip class="mx-4 mb-2" small label :color="coll.open?'success':'error'"
-            v-text="coll.open?'Open':'Private'"></v-chip>
+    <v-card-title v-text="collection.name"></v-card-title>
+    <v-card-subtitle class="pb-2" v-text="collection.cid"></v-card-subtitle>
+    <v-chip class="mx-4 mb-2" small label :color="collection.open?'success':'error'"
+            v-text="collection.open?'Open':'Private'"></v-chip>
     <v-card-text>
       <v-expansion-panels :value="0" flat>
-        <v-expansion-panel>
+        <v-expansion-panel v-if="collection.desc">
           <v-expansion-panel-header expand-icon="mdi-menu-down">
                 <span>
                 <v-icon small>
@@ -16,7 +16,7 @@
                 </span>
           </v-expansion-panel-header>
           <v-expansion-panel-content>
-            <markdown :content="coll.desc" :options="$store.state.markdownOptions"></markdown>
+            <markdown :content="collection.desc" :options="$store.state.markdownOptions"></markdown>
           </v-expansion-panel-content>
         </v-expansion-panel>
         <v-expansion-panel>
@@ -34,7 +34,7 @@
                     :key="role.rid">
             </v-chip>
             <div class="mt-2"><strong>Owner</strong></div>
-            <UserChip :uid.sync="coll.owner" admin></UserChip>
+            <UserChip :uid.sync="collection.owner" admin></UserChip>
           </v-expansion-panel-content>
         </v-expansion-panel>
         <v-expansion-panel>
@@ -94,31 +94,39 @@
         </v-expansion-panel>
         <v-expansion-panel>
           <v-expansion-panel-header expand-icon="mdi-menu-down"><span>
-                <v-icon small>mdi-file-document-multiple</v-icon>
-                Notes</span>
+                <v-icon small>mdi-file-document-multiple</v-icon> Notes</span>
           </v-expansion-panel-header>
           <v-expansion-panel-content>
-            <v-list>
-              <v-list-item
-                  :to="{name:'Note',params:{cid:$route.params.cid,nid:note.nid}}"
-                  v-for="note in $store.state.currentNotes"
-                  :key="note.nid">
-                {{ note.name }}
-              </v-list-item>
-            </v-list>
+            <v-card :loading="reordering" flat :disabled="reordering">
+              <v-list dense nav>
+                <draggable v-model="notes" handle=".handle" @change="onReorder">
+                  <v-slide-y-transition group>
+                    <v-list-item
+                        :to="{name:'Note',params:{cid:$route.params.cid,nid:note.nid}}"
+                        v-for="note in notes"
+                        :key="note.nid">
+                      {{ note.name }}
+                      <v-spacer/>
+                      <v-icon v-if="canEdit(collection)" style="cursor: grab;" class="handle">mdi-swap-vertical-bold
+                      </v-icon>
+                    </v-list-item>
+                  </v-slide-y-transition>
+                </draggable>
+              </v-list>
+            </v-card>
           </v-expansion-panel-content>
         </v-expansion-panel>
       </v-expansion-panels>
     </v-card-text>
     <v-card-actions v-if="canEdit($store.state.currentCollection)">
-      <CollectionPopup editing :preset="coll">
+      <CollectionPopup editing :preset="collection">
         <template v-slot:activator="{on}">
           <v-btn text color="primary" v-on="on">
             Edit
           </v-btn>
         </template>
       </CollectionPopup>
-      <NotePopup :cid="coll.cid">
+      <NotePopup :cid="collection.cid">
         <template v-slot:activator="{on}">
           <v-btn text color="primary" v-on="on" class="ml-4">
             New Note
@@ -134,7 +142,8 @@
 
 <script lang="ts">
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
-import {del} from "@/mixins/api";
+import draggable from 'vuedraggable'
+import {del, post} from "@/mixins/api";
 import UserChip from "@/components/UserChip.vue";
 import {VUFile} from "@/shims-others";
 import VueUploadComponent from "vue-upload-component";
@@ -142,9 +151,12 @@ import CollectionPopup from "@/components/CollectionPopup.vue";
 import Gallery from "@/components/Gallery.vue";
 import NotePopup from "@/components/NotePopup.vue";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
+import {Collection} from "@/types/coll";
+import {Note} from "@/types/note";
 
 @Component({
   components: {
+    draggable,
     NotePopup,
     Gallery,
     CollectionPopup,
@@ -154,7 +166,8 @@ import Markdown from "@/components/markdownViewer/Markdown.vue";
 })
 export default class CollectionInfo extends Vue {
   @Prop(String) readonly cid?: string;
-  @Prop(Boolean) loading = false;
+  @Prop(Boolean) readonly loading!: boolean;
+  @Prop(Object) readonly collection!: Collection;
   @Ref('upload') upload?: VueUploadComponent;
   name = "CollectionInfo";
   files: VUFile[] = [];
@@ -162,13 +175,9 @@ export default class CollectionInfo extends Vue {
   images: { url: string, name: string }[] = [];
   blobs: { [name: string]: string } = {};
 
-  @Watch('cid')
-  onCIDChange() {
-    this.deleting = [];
-    this.images = [];
-    this.files = [];
-    this.$store.cache.dispatch("getCollectionImages", this.cid).then(json => this.images = json);
-  }
+  reordering = false;
+
+  notes: Note[] = [];
 
   @Watch('files')
   onFilesChange() {
@@ -185,8 +194,22 @@ export default class CollectionInfo extends Vue {
     }
   }
 
+  @Watch('cid')
+  onCIDChange() {
+    this.deleting = [];
+    this.images = [];
+    this.files = [];
+    this.notes = [...this.$store.state.currentNotes];
+    this.$store.cache.dispatch("getCollectionImages", this.cid).then(json => this.images = json);
+  }
+
   mounted() {
     this.onCIDChange();
+  }
+
+  @Watch('$store.state.currentNotes')
+  onNotesChange(val: Note[]) {
+    this.notes = [...val];
   }
 
   initUpload() {
@@ -205,13 +228,22 @@ export default class CollectionInfo extends Vue {
     });
   }
 
-  get coll() {
-    return this.$store.state.currentCollection;
-  }
-
   createObjectURL(object: File) {
     if (this.blobs[object.name]) return this.blobs[object.name];
     return this.blobs[object.name] = URL.createObjectURL(object);
+  }
+
+  onReorder() {
+    let payload: { [nid: string]: number } = {};
+    this.notes.forEach((v, i) => payload[v.nid] = i);
+    this.reordering = true;
+    post(`/api/collections/${this.cid}/reorder`, payload).then(res => res.json()).then(json => {
+      if (json.status !== 'success') throw json.reason;
+      this.$store.commit('setCurrentNotes', json.notes);
+    }).catch(e => console.error(e)).finally(() => {
+      this.notes = [...this.$store.state.currentNotes];
+      this.reordering = false;
+    })
   }
 }
 </script>

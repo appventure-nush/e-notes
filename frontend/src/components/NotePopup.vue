@@ -154,7 +154,7 @@ export default class NotePopup extends Vue {
       if (json.status !== "success") {
         throw json.reason;
       } else {
-        this.$router.push({name: "Note", params: {cid: this.cid, nid: this.nid}})
+        if (!this.editing) this.$router.push({name: "Note", params: {cid: this.cid, nid: this.nid}})
         this.$store.cache.delete("getCollectionNotes", this.cid);
         this.$store.cache.dispatch("getCollectionNotes", this.cid).then(notes => this.$store.commit('setCurrentNotes', notes));
         this.$store.commit('setCurrentNote', json.note);

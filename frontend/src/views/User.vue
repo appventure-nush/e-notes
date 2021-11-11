@@ -9,8 +9,8 @@
         </template>
         <template v-else>
           <v-card-text class="text-center">
-            <v-avatar v-if="user.pfp" size="88" class="mb-6">
-              <v-img :src="user.pfp"></v-img>
+            <v-avatar size="88" class="mb-6">
+              <v-img :src="user.pfp||'/images/guest.png'"></v-img>
             </v-avatar>
             <h3 class="text-h5 mb-2">
               {{ user.name }}
@@ -31,41 +31,40 @@
           <v-row
               class="text-left"
               tag="v-card-text">
-
             <v-col
-                class="text-right"
+                :class="[this.$vuetify.breakpoint.xs?'':'text-right']"
                 tag="strong"
-                cols="3" md="5" lg="6">
+                cols="12" sm="3" md="5" lg="6">
               Type:
             </v-col>
-            <v-col cols="9" md="7" lg="6">
+            <v-col cols="12" sm="9" md="7" lg="6">
               <v-select class="mt-0" hide-details dense v-if="editing" v-model="editedUser.teacher"
                         :items="teacherItems" item-text="text" item-value="value"/>
               <span v-text="user.teacher ? 'Teacher' : 'Student'" v-else></span>
             </v-col>
 
             <v-col
-                class="text-right"
+                :class="[this.$vuetify.breakpoint.xs?'':'text-right']"
                 tag="strong"
-                cols="3" md="5" lg="6">
+                cols="12" sm="3" md="5" lg="6">
               Permissions:
             </v-col>
-            <v-col cols="9" md="7" lg="6" v-if="editing||perms.length>0" class="pt-1">
+            <v-col cols="12" sm="9" md="7" lg="6" v-if="editing||perms.length>0" class="pt-1">
               <template v-if="editing">
                 <v-checkbox dense hide-details v-for="(v,n) in permissions" :key="v" v-model="editedAccess"
                             :label="n" :value="v"/>
               </template>
               <v-chip v-else :key="p" label small class="mr-2 mt-2" v-for="[n,p] in perms" v-text="n"/>
             </v-col>
-            <v-col cols="9" md="7" lg="6" v-else><i>None</i></v-col>
+            <v-col cols="12" sm="9" md="7" lg="6" v-else><i>None</i></v-col>
 
             <v-col
-                class="text-right"
+                :class="[this.$vuetify.breakpoint.xs?'':'text-right']"
                 tag="strong"
-                cols="3" md="5" lg="6">
+                cols="12" sm="3" md="5" lg="6">
               Roles:
             </v-col>
-            <v-col cols="9" md="7" lg="6" v-if="editing||(user.roles&&user.roles.length>0)" class="pt-2">
+            <v-col cols="12" sm="9" md="7" lg="6" v-if="editing||(user.roles&&user.roles.length>0)" class="pt-2">
               <template v-if="editing">
                 <v-chip-group v-model="editedUser.roles" column multiple active-class="primary--text">
                   <v-chip class="mt-0" :key="r" label small :value="r" v-for="r in allRoles" v-text="r"/>
@@ -77,7 +76,7 @@
               </template>
               <v-chip v-else :key="r" label small class="mr-2 mt-1" v-for="r in user.roles" v-text="r"/>
             </v-col>
-            <v-col cols="9" md="7" lg="6" v-else><i>None</i></v-col>
+            <v-col cols="12" sm="9" md="7" lg="6" v-else><i>None</i></v-col>
           </v-row>
           <v-card-actions>
             <v-spacer/>
