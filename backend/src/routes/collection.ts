@@ -12,4 +12,6 @@ async function imageHandler(req: express.Request, res: express.Response) {
 
 collection.get("/:cid/images/:file", checkUser, imageHandler);
 collection.get('/:cid/img/:file', checkUser, imageHandler);
+collection.get("/:cid/:nid/images/:file", checkUser, imageHandler);
+
 export default collection;
