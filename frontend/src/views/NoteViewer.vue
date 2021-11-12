@@ -123,6 +123,7 @@ export default class NoteViewer extends Vue {
   @Watch('nid')
   @Watch('$store.state.currentNotes')
   onNIDChange() {
+    if (this.$store.state.currentNotes.length === 0) return;
     this.doc = "";
     this.loading = true;
     let note = this.$store.state.currentNotes.find((n: Note) => n.nid === this.nid);
