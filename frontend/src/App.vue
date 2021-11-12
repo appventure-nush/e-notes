@@ -8,9 +8,9 @@
               <v-img :src="pfp" alt="profile pic" lazy-src="/images/guest.png"></v-img>
             </v-list-item-avatar>
 
-            <v-list-item-content>
-              <v-list-item-title>{{ name }}</v-list-item-title>
-              <v-list-item-subtitle>{{ email }}</v-list-item-subtitle>
+            <v-list-item-content v-if="$store.state.profile">
+              <v-list-item-title>{{ $store.state.profile.name }}</v-list-item-title>
+              <v-list-item-subtitle>{{ $store.state.profile.email }}</v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
           <div class="mx-2">
@@ -148,14 +148,6 @@ export default class App extends Vue {
     return this.$store.state.profile?.pfp || "/images/guest.png";
   }
 
-  get name() {
-    return this.$store.state.profile?.name;
-  }
-
-  get email() {
-    return this.$store.state.profile?.email;
-  }
-
   get drawer() {
     return this.$store.state.drawerOpen;
   }
@@ -179,7 +171,7 @@ export default class App extends Vue {
   background-color: unset !important;
 }
 </style>
-<style>
+<style lang="scss">
 ::-webkit-scrollbar {
   width: .5em;
 }

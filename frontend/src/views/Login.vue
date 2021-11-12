@@ -51,18 +51,16 @@
               required
           ></v-text-field>
           <v-btn
-              color="success"
+              color="primary"
               class="mr-4"
-              @click="login"
-          >
+              @click="login">
             Login
           </v-btn>
           <v-btn
               :disabled="now<nextAllowed"
               text
               class="mr-4"
-              @click="sendEmail"
-          >
+              @click="sendEmail">
             Reset Password
             <v-chip
                 v-if="now<nextAllowed"

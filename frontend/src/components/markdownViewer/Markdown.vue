@@ -56,4 +56,16 @@ blockquote {
   border-left-width: 0.2em;
   margin: 1em 0;
 }
+
+p:not(table p), ul:not(table ul), ol:not(table ol) {
+  &:not(:last-child) {
+    padding-bottom: 1em;
+  }
+}
+
+h1, h2, h3, h4, h5, h6 {
+  &:not(:last-child) {
+    padding-bottom: 0.3em;
+  }
+}
 </style>

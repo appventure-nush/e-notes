@@ -121,17 +121,14 @@ export default class NoteViewer extends Vue {
   }
 
   @Watch('nid')
+  @Watch('$store.state.currentNotes')
   onNIDChange() {
     this.doc = "";
     this.loading = true;
-    this.$store.cache.dispatch("getCollectionNotes", this.cid).then((res: NoteViewer[]) => {
-      this.$store.commit('setCurrentNotes', res);
-      return res.find(n => n.nid === this.nid);
-    }).then(json => {
-      if (!json) return this.$router.push({name: 'Collection', params: {cid: this.cid || ''}});
-      this.$store.commit("setCurrentNote", json);
-      this.loading = false;
-    })
+    let note = this.$store.state.currentNotes.find((n: Note) => n.nid === this.nid);
+    if (!note) return this.$router.push({name: 'Collection', params: {cid: this.cid || ''}});
+    this.$store.commit("setCurrentNote", note);
+    this.loading = false;
   }
 
   @Watch('note', {deep: true})

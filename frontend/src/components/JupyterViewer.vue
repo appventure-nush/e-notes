@@ -131,11 +131,11 @@ pre {
       overflow: hidden;
 
       &.source {
-        color: #307fc1;
+        color: var(--v-info-base);
       }
 
       &.output {
-        color: #bf5b3d;
+        color: var(--v-error-base);
       }
     }
 
@@ -165,7 +165,7 @@ pre {
       &.output-err {
         padding: 5px 0 0 5px;
         box-sizing: border-box;
-        background-color: #FFDDDD;
+        background-color: #ef717140;
       }
 
       &.output-display > * {
