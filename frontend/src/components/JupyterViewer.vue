@@ -124,7 +124,7 @@ pre {
     .cell-header {
       width: 64px;
       margin: 0 0 0 0;
-      padding: 5px 0 0;
+      padding: 8px 0 0;
 
       text-align: right;
       font-size: 12px;
@@ -159,25 +159,15 @@ pre {
 
       &.output-std {
         padding: 5px 0 0 5px;
-        box-sizing: border-box;
       }
 
       &.output-err {
         padding: 5px 0 0 5px;
-        box-sizing: border-box;
         background-color: #ef717140;
       }
 
       &.output-display > * {
         overflow: auto;
-
-        table {
-          border-collapse: collapse;
-        }
-
-        td, th {
-          padding: 0 2px;
-        }
       }
     }
   }

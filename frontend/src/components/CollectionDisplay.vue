@@ -38,9 +38,8 @@
 <script lang="ts">
 import {Component, Prop, Vue} from "vue-property-decorator";
 import {Collection} from "@/types/coll";
-
-const CollectionPopup = () => import(/* webpackPrefetch: true */ "@/components/CollectionPopup.vue");
-const Markdown = () => import(/* webpackPrefetch: true */ "@/components/markdownViewer/Markdown.vue");
+import CollectionPopup from "@/components/CollectionPopup.vue";
+import Markdown from "@/components/markdownViewer/Markdown.vue";
 
 @Component({
   components: {
@@ -53,7 +52,3 @@ export default class CollectionDisplay extends Vue {
   @Prop(Object) readonly value: Collection | undefined
 }
 </script>
-
-<style scoped>
-
-</style>

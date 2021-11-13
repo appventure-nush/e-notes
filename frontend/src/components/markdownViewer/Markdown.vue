@@ -49,23 +49,37 @@ export default class Markdown extends Vue {
   }
 }
 </script>
-<style lang="scss">
-blockquote {
-  border-left: 0.3em var(--v-primary-lighten1) solid;
-  padding-left: 1em;
-  border-left-width: 0.2em;
-  margin: 1em 0;
-}
-
-p:not(table p), ul:not(table ul), ol:not(table ol) {
-  &:not(:last-child) {
-    padding-bottom: 1em;
+<style lang="scss" scoped>
+::v-deep {
+  blockquote {
+    border-left: 0.3em var(--v-primary-lighten1) solid;
+    padding-left: 1em;
+    border-left-width: 0.2em;
+    margin: 1em 0;
   }
-}
 
-h1, h2, h3, h4, h5, h6 {
-  &:not(:last-child) {
-    padding-bottom: 0.3em;
+  p:not(table p), ul:not(table ul), ol:not(table ol) {
+    &:not(:last-child) {
+      padding-bottom: 1em;
+    }
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    &:not(:last-child) {
+      padding-bottom: 0.3em;
+    }
+  }
+
+  table {
+    border-collapse: collapse;
+
+    td {
+      padding: 0.5em;
+    }
+
+    tr:nth-child(odd) {
+      background: var(--v-background-darken1);
+    }
   }
 }
 </style>
