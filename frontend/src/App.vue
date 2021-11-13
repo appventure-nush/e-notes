@@ -13,25 +13,12 @@
               <v-list-item-subtitle>{{ $store.state.profile.email }}</v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
-          <div class="mx-2">
-            <v-chip
-                class="ma-1"
-                v-if="$store.state.profile.admin"
-                color="error"
-                label
-                dark
-                small>
-              admin
-            </v-chip>
-            <v-chip
-                class="ma-1"
-                v-for="role in $store.state.profile.roles"
-                :key="role"
-                outlined
-                label
-                small>
-              {{ role }}
-            </v-chip>
+          <div class="mx-2 mb-2">
+            <v-chip class="ma-1" v-if="$store.state.profile.admin" color="error" label dark small>admin</v-chip>
+            <v-chip class="ma-1" v-if="$store.state.profile.teacher" color="info" label dark small>teacher</v-chip>
+            <v-chip class="ma-1" v-else outlined label small>student</v-chip>
+            <v-chip class="ma-1" v-for="role in $store.state.profile.roles" :key="role" v-text="role" outlined label
+                    small></v-chip>
           </div>
           <v-row class="px-3 mb-2">
             <v-col cols="6">

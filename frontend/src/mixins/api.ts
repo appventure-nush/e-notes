@@ -33,4 +33,8 @@ export function post(path: string, body: any): Promise<Response> {
     });
 }
 
+export function getToken() {
+    return csrfToken; //bit unsafe but whatever, it cant do much against real attacks anyways
+}
+
 get('/api/csrf').then(res => res.json()).then(json => csrfToken = json.token);

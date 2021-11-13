@@ -17,14 +17,15 @@
               </v-text-field>
               <span v-else v-text="user.name"></span>
             </h3>
-            <div :class="['info--text', editing?'mb-5':'mb-2']">
+            <div class="info--text mb-2">
               <v-text-field label="Email" v-if="editing" v-model="editedUser.email" hide-details outlined dense flat
                             disabled>
               </v-text-field>
               <span v-else v-text="user.email"></span>
             </div>
             <div class="info--text mb-2 subheading" v-if="user.nickname">
-              <v-text-field label="Nickname" v-if="editing" v-model="editedUser.nickname" hide-details flat dense>
+              <v-text-field label="Nickname" v-if="editing" v-model="editedUser.nickname" hide-details outlined flat
+                            dense>
               </v-text-field>
               <span v-else v-text="user.nickname"></span>
             </div>
@@ -178,6 +179,7 @@ export default class UserView extends Vue {
   @Watch('user')
   onUserChange() {
     if (!this.user) return;
+    document.title = this.user.name || this.uid || 'Users';
     this.editedUser = {...this.user};
     this.editedAccess = splitAccess(this.user.access || 0);
     this.editedPermissions = this.user.permissions ? Object.keys(this.user.permissions).map(cid => ({
@@ -199,6 +201,8 @@ export default class UserView extends Vue {
     this.editedUser.access = this.editedAccess.reduce((a, b) => a | b, 0);
     this.editedUser.permissions = Object.fromEntries(this.editedPermissions.map(node => [node.cid, node.allow]));
     post(`/api/users/${this.uid}`, {
+      name: this.editedUser.name,
+      nick: this.editedUser.nickname,
       roles: this.editedUser.roles,
       admin: this.editedUser.admin,
       access: this.editedUser.access,
@@ -211,7 +215,6 @@ export default class UserView extends Vue {
       this.$store.cache.delete('getUser', this.uid);
     }).catch(err => {
       alert(err)
-      console.error(err);
     }).finally(() => this.saving = false)
   }
 

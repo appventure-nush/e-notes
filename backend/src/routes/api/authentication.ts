@@ -4,8 +4,8 @@ import {checkUser, checkUserOptional, updateUser} from "../../utils";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 import {User, fillUser} from "../../types/user";
 import imageType from "image-type";
-import Jimp from "jimp";
 import {error, failed, success} from "../../response";
+import sharp from "sharp";
 
 const authentication = Router();
 
@@ -32,32 +32,32 @@ authentication.post('/profile', checkUser, async (req, res) => {
     const {nickname, desc} = req.body;
     const user = req.user;
     if (nickname || typeof nickname === 'string') user.nickname = nickname;
-    if (desc || typeof nickname === 'string') user.desc = desc;
+    if (desc || typeof desc === 'string') user.desc = desc;
     try {
-        if (nickname || desc || typeof nickname === 'string' || typeof nickname === 'string') {
+        if (nickname || desc || typeof nickname === 'string' || typeof desc === 'string') {
             await addAudit(simpleAudit(user.uid, user.uid, Category.USER, Action.EDIT, [{nickname, desc}]));
             return res.json(success({
                 user: await updateUser(user.uid, user as User)
             }));
         } else return res.json(failed('please give a nickname or a description'));
     } catch (e) {
-        // await error("profile change error", {message: e.message, body: req.body, uid: user.uid});
+        res.json(error(e.message));
     }
     res.json(failed('not sure why, not sure where'));
 });
 authentication.post('/pfp', checkUser, async (req, res) => {
     if (!req.files) return res.json(failed('where is the file'));
-    const new_profile_pic = req.files.new_profile_pic;
-    if (new_profile_pic && "data" in new_profile_pic) {
-        const type = imageType(new_profile_pic.data);
-        if (type && type.mime.toUpperCase() === new_profile_pic.mimetype.toUpperCase()) {
+    const uploaded = req.files.file;
+    if (uploaded && "data" in uploaded) {
+        const type = imageType(uploaded.data);
+        if (type && type.mime.toUpperCase() === uploaded.mimetype.toUpperCase()) {
             if (IMAGE_FORMATS.includes(type.mime.toLowerCase())) try {
                 const file = storage().bucket().file(`users/pfp/${req.uid}.${type.ext}`);
-                await file.save(await (await Jimp.read(new_profile_pic.data)).cover(256, 256).quality(80).getBufferAsync('image/jpeg'), {
+                await file.save(await sharp(uploaded.data).resize(256, 256).toBuffer(), {
                     public: true,
                     resumable: false
                 });
-                const url = file.publicUrl()
+                const url = file.publicUrl() + "?" + Date.now();
                 res.json(success({
                     user: fillUser(req.user, await auth().updateUser(req.uid, {photoURL: url}))
                 }));

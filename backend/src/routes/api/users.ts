@@ -38,7 +38,8 @@ users.post("/:uid", checkAdmin, async (req, res) => {
         if (typeof req.body.permissions === 'object') _setPermissions(user, req.body.permissions);
 
         if (typeof req.body.teacher === 'boolean') user.teacher = req.body.teacher;
-        if (typeof req.body.teacher === 'boolean') user.teacher = req.body.teacher;
+        if (typeof req.body.name === 'string') await auth().updateUser(req.params.uid, {displayName: user.name = req.body.name});
+        if (typeof req.body.nick === 'string') user.nickname = req.body.nick;
 
         let claims = {
             admin: user.admin,

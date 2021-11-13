@@ -68,8 +68,8 @@ export default new Vuex.Store<State>({
         }
     },
     actions: {
-        async fetchUserProfile({commit, dispatch}, payload: firebase.User) {
-            commit("setUser", payload);
+        async fetchUserProfile({commit, dispatch}, payload?: firebase.User) {
+            if (payload) commit("setUser", payload);
             const profile = await get("/api/auth").then(res => res.json());
             if (profile.status && profile.status === 'failed') dispatch("logout");
             else {

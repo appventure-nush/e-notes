@@ -5,8 +5,8 @@
  * Module dependencies.
  */
 import app from "../app";
-import debug_ = require("debug");
-import http = require("http");
+import debug_ from "debug";
+import http from "http";
 
 const debug = debug_("backend:server");
 

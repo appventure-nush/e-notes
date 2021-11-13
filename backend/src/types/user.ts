@@ -1,13 +1,15 @@
 import admin from "firebase-admin";
+import {Collection} from "./coll";
 import {MutablePermissions} from "./permissions";
 import UserRecord = admin.auth.UserRecord;
-import {Collection} from "../../../frontend/src/types/coll";
-import {ADMIN_PERMISSION, TEACHER_PERMISSION} from "../../../frontend/src/types/user";
 
 export const CREATE_COLLECTION = 0b0001;
 export const VIEW_OTHER_COLLECTION = 0b0010;
 export const EDIT_OTHER_COLLECTION = 0b0100;
-export const DELETE_OTHER_COLLECTION = 0b1000;
+
+export const TEACHER_PERMISSION = CREATE_COLLECTION;
+
+export const ADMIN_PERMISSION = CREATE_COLLECTION | VIEW_OTHER_COLLECTION | EDIT_OTHER_COLLECTION;
 
 export interface User extends MutablePermissions {
     uid: string;

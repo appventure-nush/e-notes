@@ -52,6 +52,7 @@
                   </v-icon>
                   Select Files
                   <file-upload ref="upload"
+                               :headers="{'x-xsrf-token': getToken()}"
                                v-model="files"
                                accept="image/*"
                                :thread="3"
@@ -143,7 +144,7 @@
 <script lang="ts">
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
 import draggable from 'vuedraggable'
-import {del, post} from "@/mixins/api";
+import {del, getToken, post} from "@/mixins/api";
 import UserChip from "@/components/UserChip.vue";
 import {VUFile} from "@/shims-others";
 import VueUploadComponent from "vue-upload-component";
@@ -155,10 +156,14 @@ import {Collection} from "@/types/coll";
 import {Note} from "@/types/note";
 
 @Component({
+  methods: {
+    getToken
+  },
   components: {
     draggable,
     NotePopup,
     Gallery,
+    FileUpload: VueUploadComponent,
     CollectionPopup,
     UserChip,
     Markdown
@@ -168,7 +173,7 @@ export default class CollectionInfo extends Vue {
   @Prop(String) readonly cid?: string;
   @Prop(Boolean) readonly loading!: boolean;
   @Prop(Object) readonly collection!: Collection;
-  @Ref('upload') upload?: VueUploadComponent;
+  @Ref('upload') upload!: VueUploadComponent;
   name = "CollectionInfo";
   files: VUFile[] = [];
   deleting: string[] = [];
