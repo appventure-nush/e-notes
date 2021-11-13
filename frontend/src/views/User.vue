@@ -13,15 +13,22 @@
               <v-img :src="user.pfp||'/images/guest.png'"></v-img>
             </v-avatar>
             <h3 class="text-h5 mb-2">
-              {{ user.name }}
+              <v-text-field label="Name" v-if="editing" v-model="editedUser.name" hide-details outlined flat>
+              </v-text-field>
+              <span v-else v-text="user.name"></span>
             </h3>
-            <div class="blue--text mb-2">
-              {{ user.email }}
+            <div :class="['info--text', editing?'mb-5':'mb-2']">
+              <v-text-field label="Email" v-if="editing" v-model="editedUser.email" hide-details outlined dense flat
+                            disabled>
+              </v-text-field>
+              <span v-else v-text="user.email"></span>
             </div>
-            <div class="blue--text mb-2 subheading" v-if="user.nickname">
-              {{ user.nickname }}
+            <div class="info--text mb-2 subheading" v-if="user.nickname">
+              <v-text-field label="Nickname" v-if="editing" v-model="editedUser.nickname" hide-details flat dense>
+              </v-text-field>
+              <span v-else v-text="user.nickname"></span>
             </div>
-            <div class="red--text align-center" v-if="user.admin||editing">
+            <div class="error--text align-center" v-if="user.admin||editing">
               <v-checkbox v-if="editing" dense hide-details label="Admin" v-model="editedUser.admin"
                           style="margin-left:50%;transform:translateX(-50%);width:5em;"/>
               <span v-else>Admin</span>
@@ -54,7 +61,12 @@
                 <v-checkbox dense hide-details v-for="(v,n) in permissions" :key="v" v-model="editedAccess"
                             :label="n" :value="v"/>
               </template>
-              <v-chip v-else :key="p" label small class="mr-2 mt-2" v-for="[n,p] in perms" v-text="n"/>
+              <template v-else>
+                <v-chip :key="p" label small class="mr-2 mt-2"
+                        v-for="[n,p] in perms.filter(t=>!this.permOverwrites.find(o=>t[0]===o[0]))" v-text="n"></v-chip>
+                <v-chip :key="p" label small class="mr-2 mt-2 font-italic" color="primary"
+                        v-for="[n,p] in permOverwrites" v-text="n"></v-chip>
+              </template>
             </v-col>
             <v-col cols="12" sm="9" md="7" lg="6" v-else><i>None</i></v-col>
 
@@ -77,12 +89,42 @@
               <v-chip v-else :key="r" label small class="mr-2 mt-1" v-for="r in user.roles" v-text="r"/>
             </v-col>
             <v-col cols="12" sm="9" md="7" lg="6" v-else><i>None</i></v-col>
+            <v-col cols="12">
+              <v-data-table
+                  :headers="permissionHeaders"
+                  :items="this.editedPermissions"
+                  no-data-text="No overrides set for this user"
+                  disable-pagination
+                  hide-default-footer>
+                <template v-slot:item.allow="{ item }">
+                  <v-simple-checkbox
+                      v-if="editing"
+                      :ripple="false"
+                      v-model="item.allow"
+                  ></v-simple-checkbox>
+                  <span v-else v-text="item.allow?'Allow':'Deny'"></span>
+                </template>
+                <template v-slot:item.actions="{ item }" v-if="editing">
+                  <v-icon small @click="deletePermissionDeclaration(item)">
+                    mdi-delete
+                  </v-icon>
+                </template>
+                <template v-slot:footer v-if="editing">
+                  <v-row no-gutters class="flex-nowrap">
+                    <v-col cols="1" tag="v-text-field" class="flex-grow-1 mx-2" dense label="Collection"
+                           v-model="toAddPerm.cid"></v-col>
+                    <v-col tag="v-simple-checkbox" class="flex-grow-0" v-model="toAddPerm.allow" dense
+                           :ripple="false"></v-col>
+                    <v-col tag="v-btn" class="flex-grow-0 my-auto" text @click="commitPermToAdd">Add</v-col>
+                  </v-row>
+                </template>
+              </v-data-table>
+            </v-col>
           </v-row>
-          <v-card-actions>
+          <v-card-actions v-if="isAdmin()">
             <v-spacer/>
             <v-btn :color="editing?'success':'primary'" text @click="!editing?editing=true:save()"
                    v-text="editing?'Save':'Edit'"></v-btn>
-            <v-spacer v-if="$vuetify.breakpoint.lg"/>
           </v-card-actions>
         </template>
       </v-card>
@@ -94,7 +136,8 @@
 import {Component, Prop, Vue, Watch} from "vue-property-decorator";
 import {permissions, User} from '@/types/user';
 import {Role} from "@/types/role";
-import {computeAccess, hasPermission} from "@/mixins/permission";
+import {computeAccess, hasPermission, splitAccess} from "@/mixins/permission";
+import {post} from "@/mixins/api";
 
 @Component
 export default class UserView extends Vue {
@@ -105,7 +148,9 @@ export default class UserView extends Vue {
   editing = false;
   user: User = {} as User;
   editedUser: User = {} as User;
-  editedAccess = []
+  editedAccess: number[] = []
+  editedPermissions: { cid: string, allow: boolean }[] = []
+  toAddPerm: { cid: string, allow: boolean } = {cid: '', allow: true};
 
   allRoles: string[] = [];
 
@@ -125,18 +170,61 @@ export default class UserView extends Vue {
     this.saving = false;
     this.$store.cache.dispatch('getUser', this.uid).then((user: User) => {
       this.user = user;
-      this.editedUser = {...user};
       this.loading = false;
     });
+    this.toAddPerm = {cid: '', allow: true};
+  }
+
+  @Watch('user')
+  onUserChange() {
+    if (!this.user) return;
+    this.editedUser = {...this.user};
+    this.editedAccess = splitAccess(this.user.access || 0);
+    this.editedPermissions = this.user.permissions ? Object.keys(this.user.permissions).map(cid => ({
+      cid,
+      allow: this.user.permissions[cid]
+    })) : [];
   }
 
   get perms() {
     return Object.entries(permissions).filter(([, p]) => hasPermission(computeAccess(this.user), p));
   }
 
+  get permOverwrites() {
+    return Object.entries(permissions).filter(([, p]) => hasPermission(this.user.access || 0, p));
+  }
+
   save() {
-    Object.assign(this.user, this.editedUser);
-    this.editing = false;
+    this.saving = true;
+    this.editedUser.access = this.editedAccess.reduce((a, b) => a | b, 0);
+    this.editedUser.permissions = Object.fromEntries(this.editedPermissions.map(node => [node.cid, node.allow]));
+    post(`/api/users/${this.uid}`, {
+      roles: this.editedUser.roles,
+      admin: this.editedUser.admin,
+      access: this.editedUser.access,
+      teacher: this.editedUser.teacher,
+      permissions: this.editedUser.permissions
+    }).then(res => res.json()).then(json => {
+      if (json.status !== 'success') throw json.reason;
+      this.editing = false;
+      this.user = json.user;
+      this.$store.cache.delete('getUser', this.uid);
+    }).catch(err => {
+      alert(err)
+      console.error(err);
+    }).finally(() => this.saving = false)
+  }
+
+  deletePermissionDeclaration(item: { cid: string, allow: boolean }) {
+    const i = this.editedPermissions.findIndex(p => p.cid === item.cid);
+    if (i === -1) return;
+    this.editedPermissions.splice(i, 1)
+  }
+
+  commitPermToAdd() {
+    if (!this.toAddPerm.cid) return;
+    this.editedPermissions.push(this.toAddPerm);
+    this.toAddPerm = {cid: '', allow: true};
   }
 
   addRole() {
@@ -148,9 +236,11 @@ export default class UserView extends Vue {
   }
 
   readonly teacherItems = [{text: "Teacher", value: true}, {text: "Student", value: false}]
+
+  get permissionHeaders() {
+    return [{text: 'Collection', align: 'start', value: 'cid'},
+      {text: 'Permission', value: 'allow'},
+      {text: 'Actions', value: 'actions', sortable: false, align: this.editing ? undefined : ' d-none'}]
+  }
 }
 </script>
-
-<style scoped>
-
-</style>

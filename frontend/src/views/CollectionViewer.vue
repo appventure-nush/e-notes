@@ -23,6 +23,7 @@ export default class CollectionViewer extends Vue {
     this.$store.commit("setCurrentColl", this.coll = {} as Collection)
     this.$store.cache.dispatch("getCollection", this.cid).then(json => {
       if (json.status && json.status !== "success") {
+        this.$store.cache.delete("getCollection", this.cid);
         return this.$router.push("/");
       }
       this.$store.commit("setCurrentColl", this.coll = json as Collection);

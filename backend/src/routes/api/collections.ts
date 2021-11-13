@@ -2,7 +2,7 @@ import {Router} from 'express';
 
 import notesRouter from './notes';
 import {
-    checkAdmin,
+    checkAdmin, checkCreatePermissions, checkEditPermissions,
     checkPermissions,
     checkUser,
     difference, getAllRoles,
@@ -22,9 +22,12 @@ const collections = Router();
 
 const IMAGE_FORMATS = ['image/gif', 'image/jpeg', 'image/png'];
 
-collections.get("/", checkUser, async (req, res) => res.json(await getAvailableCollections(req.uid)));
-collections.post("/", checkAdmin, (req, res) => res.json(failed("collection_id_required")));
-collections.get("/:cid", checkPermissions, async (req, res) => {
+collections.get("/", checkUser, async (req, res) => {
+    res.set('Cache-control', `no-store`);
+    return res.json(await getAvailableCollections(req.uid));
+});
+collections.post("/", checkUser, (req, res) => res.json(failed("collection_id_required")));
+collections.get("/:cid", checkUser, checkPermissions, async (req, res) => {
     const collection = getCollection(req.params.cid);
 
     if (!collection) return res.json(failed({
@@ -33,16 +36,18 @@ collections.get("/:cid", checkPermissions, async (req, res) => {
     }))
     else res.json(collection);
 });
-collections.post("/:cid", checkAdmin, async (req, res) => {
+collections.post("/:cid", checkUser, async (req, res) => {
     let collection = getCollection(req.params.cid);
     let old = {...collection};
     if (req.body.action === "edit") {
+        if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
         if (!collection) return res.json(failed("collection_does_not_exist"));
         if (req.body.hasOwnProperty("name")) collection.name = req.body.name;
         if (req.body.hasOwnProperty("desc")) collection.desc = req.body.desc;
         if (req.body.hasOwnProperty("open")) collection.open = Boolean(req.body.open);
         await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.EDIT, difference(old, collection)));
     } else if (req.body.action === "add") {
+        if (!await checkCreatePermissions(req)) return res.json(failed("not_authorised"));
         if (collection) return res.json(failed("collection_already_exist"));
         collection = makeColl(req.params.cid, req.uid, req.body.name, req.body.desc, req.body.open);
         await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.CREATE, [collection]));
@@ -52,7 +57,8 @@ collections.post("/:cid", checkAdmin, async (req, res) => {
     await firestore().collection("collections").doc(req.params.cid).set(collection);
     res.json(success({collection}));
 });
-collections.delete("/:cid", checkAdmin, async (req, res) => {
+collections.delete("/:cid", checkUser, async (req, res) => {
+    if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
     const collection = getCollection(req.params.cid);
     if (!collection) return res.json(failed({
         reason: "collection_not_found",
@@ -63,7 +69,7 @@ collections.delete("/:cid", checkAdmin, async (req, res) => {
         await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.DELETE, [collection]));
     }
 });
-collections.get('/:cid/img', checkPermissions, async (req, res) => {
+collections.get('/:cid/img', checkUser, checkPermissions, async (req, res) => {
     if (!getCollection(req.params.cid)) return res.json(failed('collection_not_found'));
     const files = (await storage().bucket().getFiles({prefix: `collections/${req.params.cid}/images`}))[0];
     res.json(files.map(f => ({
@@ -71,7 +77,8 @@ collections.get('/:cid/img', checkPermissions, async (req, res) => {
         name: f.name.substring(f.name.lastIndexOf('/') + 1)
     })).filter(i => i.name));
 });
-collections.post('/:cid/img', checkAdmin, async (req, res) => {
+collections.post('/:cid/img', checkUser, async (req, res) => {
+    if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
     if (!getCollection(req.params.cid)) return res.json(failed('collection_not_found'));
     if (!req.files) return res.json(failed('where is the file'));
     const payload = req.files.file;
@@ -94,7 +101,8 @@ collections.post('/:cid/img', checkAdmin, async (req, res) => {
         } else return res.json(failed('i like your funny words, magic man'));
     } else return res.json(failed('where is the file'));
 });
-collections.delete('/:cid/img/:img', checkAdmin, async (req, res) => {
+collections.delete('/:cid/img/:img', checkUser, async (req, res) => {
+    if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
     if (!getCollection(req.params.cid)) return res.json(failed('collection_not_found'));
     const file = storage().bucket().file(`collections/${req.params.cid}/images/${req.params.img}`);
     file.delete()
@@ -102,14 +110,15 @@ collections.delete('/:cid/img/:img', checkAdmin, async (req, res) => {
         .catch(e => res.json(error(e.message)));
     await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.DELETE_FILE, [file.name]));
 });
-collections.use("/:cid/notes", checkPermissions, (req, res, next) => {
+collections.use("/:cid/notes", checkUser, checkPermissions, (req, res, next) => {
     req.body.cid = req.params.cid;
     const collection = getCollection(req.params.cid);
     if (!collection) return res.json({reason: "collection_not_found"});
     next();
 }, notesRouter);
-collections.get("/:cid/roles", checkPermissions, (req, res) => res.json(getAllRoles().filter(role => roleAccepts(role, req.params.cid) && !_rejects(role, req.params.cid))))
-collections.post("/:cid/reorder", checkAdmin, async (req, res) => {
+collections.get("/:cid/roles", checkUser, checkPermissions, (req, res) => res.json(getAllRoles().filter(role => roleAccepts(role, req.params.cid) && !_rejects(role, req.params.cid))))
+collections.post("/:cid/reorder", checkUser, async (req, res) => {
+    if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
     let tasks: Promise<WriteResult>[] = [];
     let notes = await getNotes(req.params.cid);
     for (let nid of Object.keys(req.body)) {

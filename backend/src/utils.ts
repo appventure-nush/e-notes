@@ -1,4 +1,12 @@
-import {fillUser, makeUser, User} from './types/user';
+import {
+    CREATE_COLLECTION,
+    EDIT_OTHER_COLLECTION,
+    fillUser,
+    hasPermission,
+    makeUser,
+    User,
+    VIEW_OTHER_COLLECTION
+} from './types/user';
 import {Role, roleAccepts} from './types/role';
 import {Note} from "./types/note";
 import {Collection} from "./types/coll";
@@ -135,11 +143,30 @@ export async function hasPermissions(uid: string, cid: string): Promise<boolean>
     if (_accepts(user, cid)) return true;
     if (_rejects(user, cid)) return false;
     if (collection.open) return true;
+    if (collection.owner === uid) return true;
+    if (hasPermission(user.access, VIEW_OTHER_COLLECTION)) return true;
     const userRoles = user.roles.map(rid => getRole(rid)).filter(role => role);
 
     const reject = !userRoles.some(role => _rejects(role, cid));
     const accept = userRoles.some(role => roleAccepts(role, cid));
     return reject && accept;
+}
+
+export async function checkEditPermissions(req: express.Request, cid?: string): Promise<boolean> {
+    const user = req.user;
+    if (!user) return false;
+    const collection = getCollection(cid || req.params.cid);
+    if (!collection) return false;
+    if (user.admin) return true;
+    if (hasPermission(user.access, EDIT_OTHER_COLLECTION)) return true;
+    return collection.owner === user.uid;
+}
+
+export async function checkCreatePermissions(req: express.Request): Promise<boolean> {
+    const user = req.user;
+    if (!user) return false;
+    if (user.admin) return true;
+    return hasPermission(user.access, CREATE_COLLECTION);
 }
 
 export async function getAvailableCollections(uid: string) { // used in middleware
@@ -184,16 +211,8 @@ export async function checkUserOptional(req: express.Request, res: express.Respo
 }
 
 export async function checkPermissions(req: express.Request, res: express.Response, next: () => any) {
-    try {
-        const uid = await getUID(req);
-        if (uid) {
-            if (await hasPermissions(uid, req.params.cid)) return next();
-            else return res.json(failed("not authorized"));
-        } else return res.json(failed("not logged in"));
-    } catch (e) {
-        // await error({func: 'checkPermissions', body: req.body, path: req.path});
-        return res.json(error('login_expired'));
-    }
+    if (await hasPermissions(req.uid, req.params.cid)) return next();
+    else return res.json(failed("not authorized"));
 }
 
 export async function checkAdmin(req: express.Request, res: express.Response, next: () => any) {

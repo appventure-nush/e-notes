@@ -1,7 +1,7 @@
 import {Router} from 'express';
-import {deleteNote, makeNote, Note, NoteType, renameNote} from '../../types/note';
-import {firestore, storage} from "firebase-admin";
-import {checkAdmin, getNote, getNotes, updateNote} from "../../utils";
+import {deleteNote, makeNote, NoteType, renameNote} from '../../types/note';
+import {storage} from "firebase-admin";
+import {checkEditPermissions, checkUser, getNote, getNotes, updateNote} from "../../utils";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 import iconv from "iconv-lite";
 
@@ -21,7 +21,8 @@ notes.get("/:nid", async (req, res) => {
     else res.json(note);
 });
 
-notes.post("/:nid", checkAdmin, async (req, res) => {
+notes.post("/:nid", checkUser, async (req, res) => {
+    if (!await checkEditPermissions(req, req.body.cid)) return res.json(failed("not_authorised"));
     let note = await getNote(req.body.cid, req.params.nid);
     let old = {...note};
     if (note) {
@@ -47,7 +48,8 @@ notes.post("/:nid", checkAdmin, async (req, res) => {
     await updateNote(note.cid, note.nid, note);
     res.json(success({note}));
 });
-notes.delete("/:nid", checkAdmin, async (req, res) => {
+notes.delete("/:nid", checkUser, async (req, res) => {
+    if (!await checkEditPermissions(req, req.body.cid)) return res.json(failed("not_authorised"));
     let note = await getNote(req.body.cid, req.params.nid);
     if (note) await Promise.all([
         deleteNote(req.body.cid, req.params.nid),
@@ -55,7 +57,8 @@ notes.delete("/:nid", checkAdmin, async (req, res) => {
     ]);
     res.json(success());
 });
-notes.post("/:nid/upload", checkAdmin, async (req, res) => {
+notes.post("/:nid/upload", checkUser, async (req, res) => {
+    if (!await checkEditPermissions(req, req.body.cid)) return res.json(failed("not_authorised"));
     if (!req.files) return res.json(failed('where is the file'));
     const newNoteSource = req.files.note_source;
     if (newNoteSource && "data" in newNoteSource) {

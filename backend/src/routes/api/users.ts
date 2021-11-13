@@ -8,9 +8,12 @@ import {fillUser} from "../../types/user";
 
 const users = Router();
 
-users.get("/", checkUser, (req, res) => Promise.all(getUsers().map(async u => fillUser(u, await auth().getUser(u.uid)))).then(u => res.json(u)));
+users.get("/", checkUser, (req, res) => {
+    Promise.all(getUsers().map(async u => fillUser(u, await auth().getUser(u.uid)))).then(u => res.json(u));
+});
 
 users.get("/:uid", checkUser, async (req, res) => {
+    res.set('Cache-control', `no-store`);
     try {
         if (req.params.uid === 'me') res.json(req.user);
         else res.json(await getUser(req.params.uid));
@@ -29,33 +32,32 @@ users.post("/:uid", checkAdmin, async (req, res) => {
         if (Array.isArray(req.body.roles)) {
             await addAudit(simpleAudit(req.uid, req.params.rid, Category.ROLE, Action.EDIT_ROLES, [{
                 "old": user.roles,
-                "new": user.roles = Array.from(req.body.roles).map(el => String(el))
+                "new": user.roles = [...new Set(Array.from(req.body.roles).map(el => String(el)))]
             }], {users: [user.uid]}));
         }
         if (typeof req.body.permissions === 'object') _setPermissions(user, req.body.permissions);
-        await updateUser(user.uid, user);
-        res.json(user);
-        await addAudit(simpleAudit(req.uid, req.params.rid, Category.USER, Action.EDIT_PERMISSION, [req.body]));
-    } catch (e) {
-        res.json(error(e.message))
-    }
-});
-users.post("/:uid/admin", checkAdmin, async (req, res) => {
-    try {
-        const user = await getUser(req.params.uid);
-        if (!user) return res.json(failed({
-            reason: "user_not_found",
-            rid: req.params.uid
-        }));
+
+        if (typeof req.body.teacher === 'boolean') user.teacher = req.body.teacher;
+        if (typeof req.body.teacher === 'boolean') user.teacher = req.body.teacher;
+
         let claims = {
             admin: user.admin,
             access: user.access
         }
-        claims.admin = user.admin = req.body.admin;
-        claims.access = user.access = req.body.access;
-        await updateUser(req.params.uid, user);
-        await auth().setCustomUserClaims(req.params.uid, claims);
+        let needUpdateClaims = false;
+        if (typeof req.body.admin === 'boolean') {
+            claims.admin = user.admin = req.body.admin;
+            needUpdateClaims = true;
+        }
+        if (typeof req.body.access === 'number') {
+            claims.access = user.access = req.body.access;
+            needUpdateClaims = true;
+        }
+        if (needUpdateClaims) await auth().setCustomUserClaims(req.params.uid, claims);
+
+        await updateUser(user.uid, user);
         res.json(success({user}));
+        await addAudit(simpleAudit(req.uid, req.params.rid, Category.USER, Action.EDIT_PERMISSION, [req.body]));
     } catch (e) {
         res.json(error(e.message))
     }

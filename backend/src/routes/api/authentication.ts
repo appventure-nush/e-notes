@@ -11,6 +11,7 @@ const authentication = Router();
 
 const IMAGE_FORMATS = ['image/gif', 'image/jpeg', 'image/png'];
 authentication.get('/', checkUserOptional, (req, res) => {
+    res.set('Cache-control', `no-store`);
     if (req.user) return res.json(req.user);
     else return res.json(failed("not_logged_in"));
 });
@@ -68,6 +69,7 @@ authentication.post('/pfp', checkUser, async (req, res) => {
     } else return res.json(failed('where is the file'));
 });
 authentication.get('/logout', (req, res) => {
+    res.set('Cache-control', `no-store`);
     const sessionCookie = req.cookies.session || '';
     if (!sessionCookie) return res.redirect("/");
     res.clearCookie('session');

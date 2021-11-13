@@ -3,10 +3,12 @@ export interface MutablePermissions {
 }
 
 export function _setPermissions(obj: MutablePermissions, permissions: any) {
-    for (const permission of Object.keys(permissions)) _setPermission(obj, permission, permissions[permission]);
+    for (const permission in permissions) _setPermission(obj, permission, permissions[permission]);
+    for (const permission in obj.permissions) if (!(permission in permissions)) _setPermission(obj, permission, undefined);
 }
 
 export function _setPermission(obj: MutablePermissions, cid: string, accepts: boolean | string) {
+    if (!obj.permissions) obj.permissions = {};
     if (typeof accepts === 'undefined') delete obj.permissions[cid];
     if (typeof accepts === 'string') {
         if (accepts === "undefined" || accepts === "delete") {

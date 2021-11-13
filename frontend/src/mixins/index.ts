@@ -1,5 +1,5 @@
 import Vue from "vue";
-import {canCreate, canEdit, computeAccess, hasPermission} from "@/mixins/permission";
+import {canCreate, canEdit, computeAccess, hasPermission, isAdmin} from "@/mixins/permission";
 import {humanFileSize, isCollectionRoute} from "@/mixins/helpers";
 import {INPUT_ID_RULES, INPUT_NAME_RULES} from "@/mixins/inputRules";
 
@@ -8,6 +8,7 @@ Vue.mixin({
         INPUT_ID_RULES, INPUT_NAME_RULES
     }),
     methods: {
+        isAdmin,
         humanFileSize,
         canCreate,
         canEdit,
