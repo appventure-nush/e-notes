@@ -1,24 +1,12 @@
 {
+    "extends": "@tsconfig/recommended/tsconfig.json",
     "compilerOptions": {
-        "module": "commonjs",
-        "allowSyntheticDefaultImports": true,
-        "esModuleInterop": true,
-        "target": "es6",
-        "noImplicitAny": true,
-        "moduleResolution": "node",
-        "sourceMap": true,
-        "outDir": "dist",
-        "baseUrl": ".",
-        "paths": {
-            "*": [
-                "node_modules/*"
-            ]
-        }
+        "outDir": "dist"
     },
     "include": [
         "src/**/*"
     ],
-    "typeRoots": [
-        "src"
+    "exclude": [
+        "node_modules"
     ]
 }

@@ -32,8 +32,8 @@ notes.post("/:nid", checkUser, async (req, res) => {
         if (req.body.hasOwnProperty("desc")) note.desc = req.body.desc;
         if (req.body.hasOwnProperty("type")) note.type = req.body.type;
         note.lastEdit = Date.now();
-        note.lastEditBy = req.uid;
-        await addAudit(simpleAudit(req.uid, note.nid, Category.NOTE, Action.EDIT, [old], {colls: [req.body.cid]}));
+        note.lastEditBy = req.uid!;
+        await addAudit(simpleAudit(req.uid!, note.nid, Category.NOTE, Action.EDIT, [old], {colls: [req.body.cid]}));
         if (old.nid !== note.nid) {
             await renameNote(note.cid, old.nid, note.nid);
             note.url = (await storage().bucket().file(`collections/${note.cid}/notes/${note.nid}`).getSignedUrl({
@@ -42,8 +42,8 @@ notes.post("/:nid", checkUser, async (req, res) => {
             }))[0];
         }
     } else {
-        note = makeNote((await getNotes(req.body.cid)).length, req.params.nid, req.body.cid, req.uid, req.body.name, req.body.desc);
-        await addAudit(simpleAudit(req.uid, note.nid, Category.NOTE, Action.CREATE, [], {colls: [req.body.cid]}));
+        note = makeNote(-1, req.params.nid, req.body.cid, req.uid!, req.body.name, req.body.desc);
+        await addAudit(simpleAudit(req.uid!, note.nid, Category.NOTE, Action.CREATE, [], {colls: [req.body.cid]}));
     }
     await updateNote(note.cid, note.nid, note);
     res.json(success({note}));
@@ -53,7 +53,7 @@ notes.delete("/:nid", checkUser, async (req, res) => {
     let note = await getNote(req.body.cid, req.params.nid);
     if (note) await Promise.all([
         deleteNote(req.body.cid, req.params.nid),
-        addAudit(simpleAudit(req.uid, note.nid, Category.NOTE, Action.EDIT, [note], {colls: [req.body.cid]}))
+        addAudit(simpleAudit(req.uid!, note.nid, Category.NOTE, Action.EDIT, [note], {colls: [req.body.cid]}))
     ]);
     res.json(success());
 });
@@ -69,7 +69,7 @@ notes.post("/:nid/upload", checkUser, async (req, res) => {
             nid: req.params.nid
         }));
         const file = storage().bucket().file(`collections/${req.body.cid}/notes/${req.params.nid}`);
-        let type: NoteType = null;
+        let type!: NoteType;
         // Jupyter notebook renderer
         if (newNoteSource.name.endsWith(".ipynb")) {
             type = "jupyter";
@@ -85,10 +85,10 @@ notes.post("/:nid/upload", checkUser, async (req, res) => {
         note.url = (await file.getSignedUrl({action: 'read', expires: '01-01-2500'}))[0];
         if (!note.type) note.type = type;
         note.lastEdit = Date.now();
-        note.lastEditBy = req.uid;
+        note.lastEditBy = req.uid!;
         await updateNote(req.body.cid, req.params.nid, note);
         res.json(success({note}));
-        await addAudit(simpleAudit(req.uid, note.nid, Category.NOTE, Action.UPLOAD_FILE, [file.name], {colls: [req.body.cid]}));
+        await addAudit(simpleAudit(req.uid!, note.nid, Category.NOTE, Action.UPLOAD_FILE, [file.name], {colls: [req.body.cid]}));
     } else return res.json(failed('where is the file'));
 });
 

@@ -5,6 +5,7 @@
     ],
     "jsRules": {},
     "rules": {
+        "no-conditional-assignment": false,
         "no-trailing-whitespace": false,
         "prefer-const": false,
         "object-shorthand": false,

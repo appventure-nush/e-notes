@@ -45,14 +45,14 @@ export interface Rendered {
 export function makeAudit(uid: string, assign: AuditPartial): Audit {
     let audit: Audit = {
         actor: uid,
-        aid: null,
-        cat: null,
+        aid: assign.aid!,
+        cat: assign.cat!,
         colls: [],
         extra: [],
         notes: [],
         roles: [],
         time: Timestamp.now(),
-        type: null,
+        type: assign.type!,
         users: []
     };
     Object.assign(audit, assign);
@@ -62,10 +62,10 @@ export function makeAudit(uid: string, assign: AuditPartial): Audit {
 export function simpleAudit(uid: string, id: string, cat: Category, type: Action, extra?: any[], assign?: AuditPartial): Audit {
     let audit: Audit = {
         actor: uid,
-        aid: null,
+        aid: undefined!,
         cat: cat,
         colls: [],
-        extra,
+        extra: extra!,
         notes: [],
         roles: [],
         time: Timestamp.now(),

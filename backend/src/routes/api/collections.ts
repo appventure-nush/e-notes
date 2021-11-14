@@ -24,7 +24,7 @@ const IMAGE_FORMATS = ['image/gif', 'image/jpeg', 'image/png'];
 
 collections.get("/", checkUser, async (req, res) => {
     res.set('Cache-control', `no-store`);
-    return res.json(await getAvailableCollections(req.uid));
+    return res.json(await getAvailableCollections(req.uid!));
 });
 collections.post("/", checkUser, (req, res) => res.json(failed("collection_id_required")));
 collections.get("/:cid", checkUser, checkPermissions, async (req, res) => {
@@ -45,12 +45,12 @@ collections.post("/:cid", checkUser, async (req, res) => {
         if (req.body.hasOwnProperty("name")) collection.name = req.body.name;
         if (req.body.hasOwnProperty("desc")) collection.desc = req.body.desc;
         if (req.body.hasOwnProperty("open")) collection.open = Boolean(req.body.open);
-        await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.EDIT, difference(old, collection)));
+        await addAudit(simpleAudit(req.uid!, req.params.cid, Category.COLLECTION, Action.EDIT, difference(old, collection)));
     } else if (req.body.action === "add") {
         if (!await checkCreatePermissions(req)) return res.json(failed("not_authorised"));
         if (collection) return res.json(failed("collection_already_exist"));
-        collection = makeColl(req.params.cid, req.uid, req.body.name, req.body.desc, req.body.open);
-        await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.CREATE, [collection]));
+        collection = makeColl(req.params.cid, req.uid!, req.body.name, req.body.desc, req.body.open);
+        await addAudit(simpleAudit(req.uid!, req.params.cid, Category.COLLECTION, Action.CREATE, [collection]));
     } else {
         return res.json(failed("ZW5vdGVze04wVF80X0ZMNDl9"));
     }
@@ -66,7 +66,7 @@ collections.delete("/:cid", checkUser, async (req, res) => {
     })); else {
         await firestore().collection("collections").doc(req.params.cid).delete();
         res.json(success());
-        await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.DELETE, [collection]));
+        await addAudit(simpleAudit(req.uid!, req.params.cid, Category.COLLECTION, Action.DELETE, [collection]));
     }
 });
 collections.get('/:cid/img', checkUser, checkPermissions, async (req, res) => {
@@ -93,7 +93,7 @@ collections.post('/:cid/img', checkUser, async (req, res) => {
                         name: payload.name,
                         url: file.publicUrl()
                     }));
-                    await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.UPLOAD_FILE, [file.name]));
+                    await addAudit(simpleAudit(req.uid!, req.params.cid, Category.COLLECTION, Action.UPLOAD_FILE, [file.name]));
                 } catch (e) {
                     res.json(failed('please contact an admin'));
                 }
@@ -108,7 +108,7 @@ collections.delete('/:cid/img/:img', checkUser, async (req, res) => {
     file.delete()
         .then(() => res.json(success()))
         .catch(e => res.json(error(e.message)));
-    await addAudit(simpleAudit(req.uid, req.params.cid, Category.COLLECTION, Action.DELETE_FILE, [file.name]));
+    await addAudit(simpleAudit(req.uid!, req.params.cid, Category.COLLECTION, Action.DELETE_FILE, [file.name]));
 });
 collections.use("/:cid/notes", checkUser, checkPermissions, (req, res, next) => {
     req.body.cid = req.params.cid;
@@ -121,6 +121,7 @@ collections.post("/:cid/reorder", checkUser, async (req, res) => {
     if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
     let tasks: Promise<WriteResult>[] = [];
     let notes = await getNotes(req.params.cid);
+    if (!notes) return res.json(error("notes_not_found"));
     for (let nid of Object.keys(req.body)) {
         let note = notes.find(n => n.nid === nid);
         if (!note) continue;

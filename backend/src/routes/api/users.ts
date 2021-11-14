@@ -30,7 +30,7 @@ users.post("/:uid", checkAdmin, async (req, res) => {
             rid: req.params.uid
         }));
         if (Array.isArray(req.body.roles)) {
-            await addAudit(simpleAudit(req.uid, req.params.rid, Category.ROLE, Action.EDIT_ROLES, [{
+            await addAudit(simpleAudit(req.uid!, req.params.rid, Category.ROLE, Action.EDIT_ROLES, [{
                 "old": user.roles,
                 "new": user.roles = [...new Set(Array.from(req.body.roles).map(el => String(el)))]
             }], {users: [user.uid]}));
@@ -58,7 +58,7 @@ users.post("/:uid", checkAdmin, async (req, res) => {
 
         await updateUser(user.uid, user);
         res.json(success({user}));
-        await addAudit(simpleAudit(req.uid, req.params.rid, Category.USER, Action.EDIT_PERMISSION, [req.body]));
+        await addAudit(simpleAudit(req.uid!, req.params.rid, Category.USER, Action.EDIT_PERMISSION, [req.body]));
     } catch (e) {
         res.json(error(e.message))
     }

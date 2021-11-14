@@ -20,30 +20,28 @@ import QuerySnapshot = firestore.QuerySnapshot;
 import {Action, addAudit, Category, simpleAudit} from "./types/audit";
 import {error, failed} from "./response";
 
-const users: User[] = [];
+import LRU from "lru-cache";
 
-export const getUsers = (): User[] => users;
+const users: User[] = [];
 const roles: Role[] = [];
 const collections: Collection[] = [];
-const noteCache: {
-    [key: string]: {
-        notes: Note[],
-        cacheDate: number
-    }
-} = {};
 
-export async function getUser(uid: string): Promise<User> { // heavy call function
-    if (!uid) return null;
-    const fbUser = await auth().getUser(uid);
-    if (!fbUser) return null;
+export const getUsers = (): User[] => users;
+
+export const noteCache = new LRU<string, Note[]>(1000);
+export const idTokenCache = new LRU<string, auth.DecodedIdToken>({max: 1000, maxAge: 60 * 1000});
+export const userCache = new LRU<string, auth.UserRecord>({max: 1000, maxAge: 60 * 1000});
+
+export async function getUser(uid: string): Promise<User | undefined> { // heavy call function
+    if (!uid) return undefined;
+    let fbUser = userCache.get(uid);
+    if (!fbUser) userCache.set(uid, fbUser = await auth().getUser(uid));
+    if (!fbUser) return undefined;
     let user = users.find(user => user.uid === uid);
     if (!user) {
         let ref = firestore().collection("users").doc(fbUser.uid);
         let get = await ref.get();
-        if (get.exists) { // double checking
-            updateUserCache(fbUser.uid, user = get.data() as User);
-            // very weird but may happen
-        } else {
+        if (get.exists) updateUserCache(fbUser.uid, user = get.data() as User); else {
             user = makeUser(fbUser.uid);
             await Promise.all([ref.set(user), addAudit(simpleAudit("root", user.uid, Category.USER, Action.CREATE))]);
         }
@@ -51,26 +49,25 @@ export async function getUser(uid: string): Promise<User> { // heavy call functi
     return fillUser(user, fbUser);
 }
 
-export function findUserWithRole(rid: string): Promise<User[]> {
-    return Promise.all(users.filter(u => u.roles.includes(rid)).map(u => getUser(u.uid)));
+export function findUserWithRole(rid: string): User[] {
+    return users.filter(u => u.roles.includes(rid));
 }
 
-export function getRole(rid: string): Role { // heavy call function
-    if (!rid) return null;
-    return roles.find(role => role.rid === rid);
+export function getRole(rid: string): Role | undefined { // heavy call function
+    return rid ? roles.find(role => role.rid === rid) : undefined;
 }
 
 export async function updateUser(uid: string, value: User): Promise<User> {
     value.roles = [...new Set(value.roles)];
     updateUserCache(uid, value);
-    if (value) await firestore().collection("users").doc(uid).set(value);
+    if (value) await firestore().collection("users").doc(uid).update(value);
     else await firestore().collection("users").doc(uid).delete();
     return value;
 }
 
-export async function updateRole(rid: string, value: Role): Promise<Role> {
+export async function updateRole(rid: string, value?: Role): Promise<Role | undefined> {
     updateRoleCache(rid, value);
-    if (value) await firestore().collection("roles").doc(rid).set(value);
+    if (value) await firestore().collection("roles").doc(rid).update(value);
     else await firestore().collection("roles").doc(rid).delete();
     return value;
 }
@@ -83,10 +80,9 @@ export function updateUserCache(uid: string, value: User) {
     } else users.splice(users.findIndex(user => user.uid === uid), 1);
 }
 
-export function updateRoleCache(rid: string, value: Role) {
+export function updateRoleCache(rid: string, value?: Role) {
     if (value) {
         const index = roles.findIndex(role => role.rid === rid);
-        roles[index] = value;
         if (index === -1) roles.push(value);
         else roles[index] = value;
     } else roles.splice(roles.findIndex(role => role.rid === rid), 1);
@@ -96,37 +92,35 @@ export function getAllRoles(): Role[] {
     return roles;
 }
 
-export async function getNote(cid: string, nid: string): Promise<Note> {
+export async function getNote(cid: string, nid: string): Promise<Note | undefined> {
     let notes = await getNotes(cid);
-    if (!notes) return null;
-    return notes.find(note => note.nid === nid);
+    if (notes) return notes.find(note => note.nid === nid);
 }
 
-export async function getNotes(cid: string): Promise<Note[]> {
-    let coll = noteCache[cid];
-    if (coll && Date.now() - coll.cacheDate > 3600 * 1000) coll = undefined;
-    if (!coll) {
+export async function getNotes(cid: string): Promise<Note[] | undefined> {
+    if (noteCache.has(cid)) return noteCache.get(cid);
+    else {
         if (!getCollection(cid)) return [];
         const allNotes = await firestore().collection("collections").doc(cid).collection("notes").get();
-        noteCache[cid] = coll = {
-            cacheDate: Date.now(),
-            notes: allNotes.docs.map((doc: DocumentSnapshot) => doc.data() as Note)
-        }
+        const notes = allNotes.docs.map((doc: DocumentSnapshot) => doc.data() as Note);
+        noteCache.set(cid, notes);
+        return notes;
     }
-    return coll.notes;
 }
 
-export function updateNote(cid: string, nid: string, note: Note) {
-    const coll = noteCache[cid];
-    if (!coll) return;
+export async function updateNote(cid: string, nid: string, note?: Note) {
+    const notes = await getNotes(cid);
+    if (!notes) throw new Error('notes_not_found');
     if (note) {
-        const index = coll.notes.findIndex(n => n.nid === nid);
-        if (index === -1) coll.notes.push(note);
-        else coll.notes[index] = note;
-        return firestore().collection("collections").doc(cid).collection("notes").doc(nid).set(note);
+        const index = notes.findIndex(n => n.nid === nid);
+        if (index === -1) {
+            if (note.index === -1) note.index = notes.length;
+            notes.push(note);
+        } else notes[index] = note;
+        return await firestore().collection("collections").doc(cid).collection("notes").doc(nid).update(note);
     } else {
-        coll.notes.splice(coll.notes.findIndex(n => n.nid === nid), 1);
-        return firestore().collection("collections").doc(cid).collection("notes").doc(nid).delete();
+        notes.splice(notes.findIndex(n => n.nid === nid), 1);
+        return await firestore().collection("collections").doc(cid).collection("notes").doc(nid).delete();
     }
 }
 
@@ -164,12 +158,23 @@ export async function getAvailableCollections(uid: string) { // used in middlewa
     return collections.filter((c, i) => flags[i]);
 }
 
-async function getUID(req: express.Request) {
+async function getUID(req: express.Request): Promise<string | undefined> {
     const idToken = req.header("Authorization");
     const sessionCookie = req.cookies.session;
-    if (idToken) return (await auth().verifyIdToken(idToken)).uid;
-    else if (sessionCookie) return (await auth().verifySessionCookie(sessionCookie, true)).uid;
-    else return null;
+    let result;
+    if (idToken) {
+        if (!(result = idTokenCache.get(idToken))) {
+            result = await auth().verifyIdToken(idToken);
+            idTokenCache.set(idToken, result);
+        }
+        return result.uid;
+    } else if (sessionCookie) {
+        if (!(result = idTokenCache.get(sessionCookie))) {
+            result = await auth().verifySessionCookie(sessionCookie, true);
+            idTokenCache.set(sessionCookie, result);
+        }
+        return result.uid;
+    }
 }
 
 export async function checkUser(req: express.Request, res: express.Response, next: () => any) {
@@ -201,7 +206,7 @@ export async function checkUserOptional(req: express.Request, res: express.Respo
 }
 
 export async function checkPermissions(req: express.Request, res: express.Response, next: () => any) {
-    if (await hasPermissions(req.uid, req.params.cid)) return next();
+    if (await hasPermissions(req.uid!, req.params.cid)) return next();
     else return res.json(failed("not authorized"));
 }
 
@@ -210,7 +215,8 @@ export async function checkAdmin(req: express.Request, res: express.Response, ne
         const uid = await getUID(req);
         if (uid) {
             const user = await getUser(uid);
-            if (user.admin === true) {
+            if (!user) return false;
+            if (user.admin) {
                 req.uid = uid;
                 req.user = await getUser(uid);
                 return next();
@@ -222,8 +228,7 @@ export async function checkAdmin(req: express.Request, res: express.Response, ne
     }
 }
 
-export function getCollection(cid: string): Collection { // heavy call function
-    if (!cid) return null;
+export function getCollection(cid: string): Collection | undefined { // heavy call function
     return collections.find(coll => coll.cid === cid);
 }
 
@@ -244,7 +249,10 @@ export function genQuerySnapshotHandler<T>(getID: (el: T) => string, array: T[])
                 if (index !== -1) array[index] = t;
                 else array.push(t);
             } else if (change.type === "removed" && index !== -1) array.splice(index, 1);
-            else if (change.type === "modified" && index !== -1) array[index] = t;
+            else if (change.type === "modified") {
+                if (index !== -1) array[index] = t;
+                else array.push(t);
+            }
         });
     }
 }
@@ -255,8 +263,6 @@ function onlyUnique<T>(value: T, index: number, self: T[]) {
 
 export function difference(a: any, b: any) {
     let l: any = {};
-    for (let key of [...Object.keys(a), ...Object.keys(b)].filter(onlyUnique)) {
-        if (a[key] !== b[key]) l[key] = a[key];
-    }
+    for (let key of [...Object.keys(a), ...Object.keys(b)].filter(onlyUnique)) if (a[key] !== b[key]) l[key] = a[key];
     return l;
 }

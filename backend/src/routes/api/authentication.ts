@@ -30,11 +30,11 @@ authentication.post('/', (req, res) => {
 });
 authentication.post('/profile', checkUser, async (req, res) => {
     const {nickname, desc} = req.body;
-    const user = req.user;
-    if (nickname || typeof nickname === 'string') user.nickname = nickname;
-    if (desc || typeof desc === 'string') user.desc = desc;
+    const user = req.user!;
+    if (nickname && typeof nickname === 'string') user.nickname = nickname;
+    if (desc && typeof desc === 'string') user.desc = desc;
     try {
-        if (nickname || desc || typeof nickname === 'string' || typeof desc === 'string') {
+        if ((nickname && typeof nickname === 'string') || (desc && typeof desc === 'string')) {
             await addAudit(simpleAudit(user.uid, user.uid, Category.USER, Action.EDIT, [{nickname, desc}]));
             return res.json(success({
                 user: await updateUser(user.uid, user as User)
@@ -59,9 +59,9 @@ authentication.post('/pfp', checkUser, async (req, res) => {
                 });
                 const url = file.publicUrl() + "?" + Date.now();
                 res.json(success({
-                    user: fillUser(req.user, await auth().updateUser(req.uid, {photoURL: url}))
+                    user: fillUser(req.user!, await auth().updateUser(req.uid!, {photoURL: url}))
                 }));
-                await addAudit(simpleAudit(req.uid, req.uid, Category.USER, Action.EDIT, [{pfp: url}]));
+                await addAudit(simpleAudit(req.uid!, req.uid!, Category.USER, Action.EDIT, [{pfp: url}]));
             } catch (e) {
                 res.json(failed('please contact an admin'));
             } else return res.json(failed('only gif/jpg/png allowed!'));

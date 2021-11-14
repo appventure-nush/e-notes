@@ -37,15 +37,15 @@ roles.get("/:rid/users", checkUser, cache('1 min'), async (req, res) => {
 });
 
 roles.post("/:rid/users", checkAdmin, async (req, res) => {
-    let foundUsers: User[];
-    if (req.body.uids) foundUsers = (req.body.uids as string[]).map(e => getUsers().find(u => u.uid === e));
-    if (req.body.emails) foundUsers = (req.body.emails as string[]).map(e => getUsers().find(u => u.email === e));
-    if (!foundUsers || foundUsers.length === 0) res.json(failed({
+    let foundUsers: User[] = [];
+    let users = getUsers();
+    if (req.body.uids) foundUsers = (req.body.uids as string[]).map(e => users.find(u => u.uid === e)).filter(u => Boolean(u)) as User[];
+    if (req.body.emails) foundUsers = (req.body.emails as string[]).map(e => users.find(u => u.email === e)).filter(u => Boolean(u)) as User[];
+    if (foundUsers.length === 0) res.json(failed({
         reason: "no users specified",
         rid: req.params.rid
     })); else {
         let updated = 0;
-        foundUsers = foundUsers.filter(u => Boolean(u));
         const result = await Promise.all(foundUsers.map(user => {
             if (req.body.action === "add") {
                 if (user.roles.includes(req.params.rid)) return user;
@@ -63,7 +63,7 @@ roles.post("/:rid/users", checkAdmin, async (req, res) => {
             updated,
             users: result
         }));
-        await addAudit(simpleAudit(req.uid, req.params.rid, Category.ROLE, Action.EDIT_ROLES, ["grant_roles"], {users: foundUsers.map(u => u.uid)}));
+        await addAudit(simpleAudit(req.uid!, req.params.rid, Category.ROLE, Action.EDIT_ROLES, ["grant_roles"], {users: foundUsers.map(u => u.uid)}));
     }
 });
 
@@ -74,8 +74,8 @@ roles.delete("/:rid", checkAdmin, async (req, res) => {
         rid: req.params.rid
     }));
     else {
-        await updateRole(req.params.rid, null);
-        await addAudit(simpleAudit(req.uid, req.params.rid, Category.ROLE, Action.DELETE, [role]));
+        await updateRole(req.params.rid, undefined);
+        await addAudit(simpleAudit(req.uid!, req.params.rid, Category.ROLE, Action.DELETE, [role]));
         res.json(success());
     }
 });
@@ -98,7 +98,7 @@ roles.post("/:rid", checkAdmin, async (req, res) => {
         _setPermissions(role, req.body.permissions);
         await updateRole(role.rid, role);
         res.json(role);
-        await addAudit(simpleAudit(req.uid, req.params.rid, Category.ROLE, Action.CREATE));
+        await addAudit(simpleAudit(req.uid!, req.params.rid, Category.ROLE, Action.CREATE));
     }
 });
 
@@ -115,7 +115,7 @@ roles.post("/:rid/admin", checkAdmin, async (req, res) => {
         if (typeof req.body.desc === 'string') role.desc = req.body.desc;
         await updateRole(role.rid, role);
         res.json(role);
-        await addAudit(simpleAudit(req.uid, req.params.rid, Category.ROLE, Action.EDIT_PERMISSION, [req.body]));
+        await addAudit(simpleAudit(req.uid!, req.params.rid, Category.ROLE, Action.EDIT_PERMISSION, [req.body]));
     } catch (e) {
         res.send("failed")
     }
