@@ -113,15 +113,14 @@ export default class NoteViewer extends Vue {
 
   mounted() {
     this.shadow = this.shadowRoot.attachShadow({mode: 'open'});
-    this.onNIDChange();
   }
 
   get note(): Note {
     return this.$store.state.currentNote;
   }
 
-  @Watch('nid')
-  @Watch('$store.state.currentNotes')
+  @Watch('nid', {immediate: true})
+  @Watch('$store.state.currentNotes', {immediate: true})
   onNIDChange() {
     if (this.$store.state.currentNotes.length === 0) return;
     this.doc = "";

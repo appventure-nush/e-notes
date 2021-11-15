@@ -10,7 +10,7 @@ import {
     getCollection, getNotes
 } from '../../utils';
 import {makeColl} from "../../types/coll";
-import {firestore, storage} from "firebase-admin";
+import {auth, firestore, storage} from "firebase-admin";
 import imageType from "image-type";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 import WriteResult = firestore.WriteResult;
@@ -29,7 +29,7 @@ collections.get("/", checkUser, async (req, res) => {
 collections.post("/", checkUser, (req, res) => res.json(failed("collection_id_required")));
 collections.get("/:cid", checkUser, checkPermissions, async (req, res) => {
     const collection = getCollection(req.params.cid);
-
+    res.set('Cache-control', `no-store`);
     if (!collection) return res.json(failed({
         reason: "collection_not_found",
         cid: req.params.cid
@@ -46,15 +46,36 @@ collections.post("/:cid", checkUser, async (req, res) => {
         if (req.body.hasOwnProperty("desc")) collection.desc = req.body.desc;
         if (req.body.hasOwnProperty("open")) collection.open = Boolean(req.body.open);
         await addAudit(simpleAudit(req.uid!, req.params.cid, Category.COLLECTION, Action.EDIT, difference(old, collection)));
+        await firestore().collection("collections").doc(req.params.cid).update(collection);
     } else if (req.body.action === "add") {
         if (!await checkCreatePermissions(req)) return res.json(failed("not_authorised"));
         if (collection) return res.json(failed("collection_already_exist"));
         collection = makeColl(req.params.cid, req.uid!, req.body.name, req.body.desc, req.body.open);
         await addAudit(simpleAudit(req.uid!, req.params.cid, Category.COLLECTION, Action.CREATE, [collection]));
+        await firestore().collection("collections").doc(req.params.cid).set(collection);
     } else {
         return res.json(failed("ZW5vdGVze04wVF80X0ZMNDl9"));
     }
-    await firestore().collection("collections").doc(req.params.cid).set(collection);
+    res.json(success({collection}));
+});
+collections.post("/:cid/access", checkUser, async (req, res) => {
+    let collection = getCollection(req.params.cid);
+    if (!collection) return res.json(failed("collection_does_not_exist"));
+    if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
+    collection.hasReadAccess = collection?.hasReadAccess || [];
+    if (Array.isArray(req.body.emails)) {
+        let users: (auth.UserRecord | undefined)[] = await Promise.all(req.body.emails.map((email: string) => auth().getUserByEmail(email)));
+        collection.hasReadAccess.push(...(users.filter(u => u && !collection?.hasReadAccess.includes(u.uid)) as auth.UserRecord[]).map(u => u.uid));
+    }
+    await firestore().collection("collections").doc(req.params.cid).update(collection);
+    res.json(success({collection}));
+});
+collections.delete("/:cid/access", checkUser, async (req, res) => {
+    let collection = getCollection(req.params.cid);
+    if (!collection) return res.json(failed("collection_does_not_exist"));
+    if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
+    collection.hasReadAccess = [];
+    await firestore().collection("collections").doc(req.params.cid).update(collection);
     res.json(success({collection}));
 });
 collections.delete("/:cid", checkUser, async (req, res) => {

@@ -6,7 +6,7 @@
             v-text="collection.open?'Open':'Private'"></v-chip>
     <v-card-text>
       <v-expansion-panels :value="0" flat>
-        <v-expansion-panel v-if="collection.desc">
+        <v-expansion-panel>
           <v-expansion-panel-header expand-icon="mdi-menu-down">
                 <span>
                 <v-icon small>
@@ -16,15 +16,14 @@
                 </span>
           </v-expansion-panel-header>
           <v-expansion-panel-content>
-            <markdown :content="collection.desc" :options="$store.state.markdownOptions"></markdown>
+            <markdown v-if="collection.desc" :content="collection.desc"
+                      :options="$store.state.markdownOptions"></markdown>
+            <i v-else>No description</i>
           </v-expansion-panel-content>
         </v-expansion-panel>
         <v-expansion-panel>
-          <v-expansion-panel-header expand-icon="mdi-menu-down"><span>
-                <v-icon small>
-                  mdi-lock
-                </v-icon>
-                Permissions</span>
+          <v-expansion-panel-header expand-icon="mdi-menu-down">
+            <span><v-icon small>mdi-lock</v-icon> Permissions</span>
           </v-expansion-panel-header>
           <v-expansion-panel-content>
             <div><strong>Roles with access</strong></div>
@@ -37,6 +36,23 @@
             <UserChip :uid.sync="collection.owner" admin></UserChip>
           </v-expansion-panel-content>
         </v-expansion-panel>
+        <v-expansion-panel v-if="canEdit(collection)">
+          <v-expansion-panel-header expand-icon="mdi-menu-down">
+            <span><v-icon small>mdi-account-filter</v-icon> Explicit Access</span>
+          </v-expansion-panel-header>
+          <v-expansion-panel-content>
+            <div class="pa-2 mb-2" v-if="collection.hasReadAccess&&collection.hasReadAccess.length>0">
+              <span class="ma-1" :key="uid" v-for="uid in collection.hasReadAccess||[]">
+                <UserAvatar :uid="uid" size="46"></UserAvatar>
+              </span>
+            </div>
+            <v-text-field v-model="accessInput" outlined dense label="User IDs"
+                          hint="seperated by comma, emails"></v-text-field>
+            <v-btn text color="success" @click="giveAccess" :disabled="changingAccess">Give Access</v-btn>
+            <v-btn text color="error" @click="revokeAccess" :disabled="changingAccess">Clear Access</v-btn>
+          </v-expansion-panel-content>
+        </v-expansion-panel>
+
         <v-expansion-panel>
           <v-expansion-panel-header expand-icon="mdi-menu-down"><span>
                 <v-icon small>mdi-image-multiple</v-icon>
@@ -154,12 +170,14 @@ import NotePopup from "@/components/NotePopup.vue";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
 import {Collection} from "@/types/coll";
 import {Note} from "@/types/note";
+import UserAvatar from "@/components/UserAvatar.vue";
 
 @Component({
   methods: {
     getToken
   },
   components: {
+    UserAvatar,
     draggable,
     NotePopup,
     Gallery,
@@ -180,6 +198,9 @@ export default class CollectionInfo extends Vue {
   images: { url: string, name: string }[] = [];
   blobs: { [name: string]: string } = {};
 
+  changingAccess = false;
+  accessInput = "";
+
   reordering = false;
 
   notes: Note[] = [];
@@ -199,22 +220,40 @@ export default class CollectionInfo extends Vue {
     }
   }
 
-  @Watch('cid')
+  @Watch('cid', {immediate: true})
   onCIDChange() {
     this.deleting = [];
     this.images = [];
     this.files = [];
-    this.notes = [...this.$store.state.currentNotes];
     this.$store.cache.dispatch("getCollectionImages", this.cid).then(json => this.images = json);
   }
 
-  mounted() {
-    this.onCIDChange();
-  }
-
-  @Watch('$store.state.currentNotes')
+  @Watch('$store.state.currentNotes', {immediate: true})
   onNotesChange(val: Note[]) {
     this.notes = [...val];
+  }
+
+  giveAccess() {
+    let emails = this.extractEmails(this.accessInput);
+    this.changingAccess = true;
+    post(`/api/collections/${this.cid}/access`, {emails}).then(res => res.json()).then(json => {
+      if (json.reason) alert(json.reason);
+      else {
+        this.$store.commit('setCurrentColl', json.collection);
+        this.$store.cache.delete("getCollection", this.cid);
+      }
+    }).finally(() => this.changingAccess = false)
+  }
+
+  revokeAccess() {
+    this.changingAccess = true;
+    del(`/api/collections/${this.cid}/access`).then(res => res.json()).then(json => {
+      if (json.reason) alert(json.reason);
+      else {
+        this.$store.commit('setCurrentColl', json.collection);
+        this.$store.cache.delete("getCollection", this.cid);
+      }
+    }).finally(() => this.changingAccess = false)
   }
 
   initUpload() {
@@ -236,6 +275,10 @@ export default class CollectionInfo extends Vue {
   createObjectURL(object: File) {
     if (this.blobs[object.name]) return this.blobs[object.name];
     return this.blobs[object.name] = URL.createObjectURL(object);
+  }
+
+  extractEmails(text: string) {
+    return text.match(/([a-zA-Z0-9._+-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)/gi);
   }
 
   onReorder() {

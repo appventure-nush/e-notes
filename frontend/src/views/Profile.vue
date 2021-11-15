@@ -158,18 +158,20 @@ export default class Profile extends Vue {
   }
 
   link() {
+    if (!auth.currentUser) return;
     this.linking = true;
     const provider = new OAuthProvider('microsoft.com');
     provider.setCustomParameters({prompt: 'consent'});
-    linkWithPopup(auth.currentUser!, provider).then(result => {
+    linkWithPopup(auth.currentUser, provider).then(result => {
       console.log(auth.currentUser, result);
       this.$store.commit('setUser', auth.currentUser);
     }).catch(error => console.error(error)).finally(() => this.linking = false);
   }
 
   verify() {
+    if (!auth.currentUser) return;
     this.verifying = true;
-    sendEmailVerification(auth.currentUser!).then(result => {
+    sendEmailVerification(auth.currentUser).then(result => {
       console.log(auth.currentUser, result);
       this.emailSnackbar = true;
     }).catch(error => console.error(error)).finally(() => this.verifying = false);

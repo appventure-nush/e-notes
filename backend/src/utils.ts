@@ -138,6 +138,7 @@ export async function hasPermissions(uid: string, cid: string): Promise<boolean>
     if (_accepts(user, cid)) return true;
     if (_rejects(user, cid)) return false;
     if (hasPermission(computeAccess(user, collection), VIEW_OTHER_COLLECTION)) return true;
+    if (collection?.hasReadAccess.includes(uid)) return true;
     const userRoles = user.roles.map(rid => getRole(rid)).filter(role => role);
 
     const reject = !userRoles.some(role => _rejects(role, cid));

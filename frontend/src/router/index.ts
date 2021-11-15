@@ -121,11 +121,18 @@ const routes: Array<RouteConfig> = [
         ]
     },
     {
+        path: "/rick",
+        name: "rick",
+        beforeEnter() {
+            window.location.href = "https://youtu.be/dQw4w9WgXcQ";
+        }
+    },
+    {
         path: "*",
         name: "404",
         component: () => import(/* webpackChunkName: "404" */"@/views/PageNotFound.vue"),
         meta: {title: '404 Not Found', naked: true}
-    }
+    },
 ]
 
 const router = new VueRouter({

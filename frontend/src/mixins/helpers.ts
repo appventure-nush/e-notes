@@ -35,3 +35,14 @@ import {Route} from 'vue-router'
 export function isCollectionRoute(route: Route) {
     return route.path.startsWith('/collection/');
 }
+
+
+const rgx = new RegExp(/([a-zA-Z])[a-zA-Z]+/, 'gu');
+
+export function initials(name: string) {
+    if (!name) return '';
+    const initials = [...name.matchAll(rgx)] || [];
+    return (
+        (initials.shift()?.[1] || '') + (initials.pop()?.[1] || '')
+    ).toUpperCase();
+}

@@ -4,4 +4,5 @@ export interface Collection {
     desc: string;
     open: boolean;
     owner: string;
+    hasReadAccess: string[];
 }
