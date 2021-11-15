@@ -76,14 +76,13 @@
 <script lang="ts">
 import {Component, Vue, Watch} from "vue-property-decorator";
 import {auth} from "@/main";
-import {post} from "@/mixins/api";
 import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   OAuthProvider,
   signInWithPopup,
   fetchSignInMethodsForEmail
-} from "firebase/auth";
+} from "@firebase/auth";
 
 const provider = new OAuthProvider('microsoft.com');
 provider.setCustomParameters({prompt: 'consent'});
@@ -127,7 +126,7 @@ export default class Login extends Vue {
     this.errorMsg = undefined;
     signInWithEmailAndPassword(auth, this.email, this.password)
         .then(firebaseData => firebaseData.user?.getIdToken(true))
-        .then(token => this.verifyToken(token))
+        .then(token => this.$store.dispatch('verifyToken', token))
         .catch(e => {
           this.attempting = false;
           this.errorMsg = e.code;
@@ -141,7 +140,7 @@ export default class Login extends Vue {
       const credential = OAuthProvider.credentialFromResult(result);
       if (!(credential && credential.idToken)) throw "Credential is null";
       return result.user.getIdToken(true);
-    }).then(token => this.verifyToken(token)).catch(error => {
+    }).then(token => this.$store.dispatch('verifyToken', token)).catch(error => {
       this.attempting = false;
       if (error.code === 'auth/account-exists-with-different-credential') {
         fetchSignInMethodsForEmail(auth, error.customData.email).then(methods => {
@@ -150,13 +149,6 @@ export default class Login extends Vue {
               "Email/password account already exist, please reset password. And link microsoft account in profile after login";
         });
       } else this.errorMsg = error.code;
-    });
-  }
-
-  verifyToken(token: string): Promise<void> {
-    return post("/api/auth", {token: token}).then(res => res.json()).then(res => {
-      if (res.status === "success") this.$store.dispatch("fetchUserProfile", auth.currentUser);
-      else throw res.reason;
     });
   }
 

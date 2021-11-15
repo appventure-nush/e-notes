@@ -5,7 +5,7 @@ import store from './store'
 import './mixins'
 import './plugins/others'
 import vuetify from './plugins/vuetify'
-import {getAuth} from "@firebase/auth";
+import {initializeAuth, browserLocalPersistence} from "@firebase/auth";
 import {initializeApp} from "@firebase/app";
 
 const ASCII_NAME =
@@ -31,13 +31,16 @@ export const app = initializeApp({
     appId: "1:1002111194265:web:24a8837e5d910ebcd11408",
     measurementId: "G-5CEEWG9PZR"
 });
-export const auth = getAuth(app);
+export const auth = initializeAuth(app, {
+    persistence: [browserLocalPersistence],
+});
+
 export let FIREBASE_INITIALIZED = false;
 
 const unsubscribe = auth.onAuthStateChanged(user => {
     FIREBASE_INITIALIZED = true;
-    store.dispatch('fetchUserProfile', user);
-    shouldAllow(router.currentRoute).then(yes => yes ? {} : router.push('/login'));
+    store.commit('setUser', user);
+    store.dispatch('fetchUserProfile');
     unsubscribe();
 });
 

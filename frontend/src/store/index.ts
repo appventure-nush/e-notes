@@ -3,7 +3,7 @@ import Vuex from 'vuex'
 import {auth} from "@/main";
 import router from "@/router";
 import {State} from "@/shims-vuex";
-import {get} from "@/mixins/api";
+import {get, post} from "@/mixins/api";
 import {User} from "@/types/user";
 import VuexPersistence from 'vuex-persist';
 import {Collection} from "@/types/coll";
@@ -68,11 +68,16 @@ export default new Vuex.Store<State>({
         }
     },
     actions: {
-        async fetchUserProfile({commit, dispatch}, payload?: FirebaseUser) {
-            if (payload) commit("setUser", payload);
+        async fetchUserProfile({commit, dispatch}) {
             const profile = await get("/api/auth").then(res => res.json());
-            if (profile.status && profile.status === 'failed') dispatch("logout");
-            else {
+            if (profile.status === 'failed') {
+                try {
+                    if (auth.currentUser) dispatch("verifyToken", await auth.currentUser.getIdToken(true));
+                    else dispatch("logout");
+                } catch (e) {
+                    dispatch("logout");
+                }
+            } else {
                 commit("setProfile", profile);
                 if (router.currentRoute.path === "/login") router.push("/");
             }
@@ -85,6 +90,13 @@ export default new Vuex.Store<State>({
             commit("setProfile", undefined);
             commit("setUser", undefined);
             router.push('/login');
+        },
+        verifyToken({commit, dispatch}, token: string) {
+            commit('setUser', auth.currentUser);
+            return post("/api/auth", {token: token}).then(res => res.json()).then(res => {
+                if (res.status === "success") dispatch("fetchUserProfile");
+                else throw res.reason;
+            });
         },
         getUsers: () => get("/api/users").then(res => res.json()),
         getRoles: () => get("/api/roles").then(res => res.json()),
