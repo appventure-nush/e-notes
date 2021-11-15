@@ -150,7 +150,7 @@
           </v-btn>
         </template>
       </NotePopup>
-      <v-btn text color="error" class="ml-4">
+      <v-btn text color="error" class="ml-4" @click="deleteCollection">
         Delete
       </v-btn>
     </v-card-actions>
@@ -189,7 +189,7 @@ import UserAvatar from "@/components/UserAvatar.vue";
 })
 export default class CollectionInfo extends Vue {
   @Prop(String) readonly cid?: string;
-  @Prop(Boolean) readonly loading!: boolean;
+  @Prop(Boolean) loading!: boolean;
   @Prop(Object) readonly collection!: Collection;
   @Ref('upload') upload!: VueUploadComponent;
   name = "CollectionInfo";
@@ -269,6 +269,18 @@ export default class CollectionInfo extends Vue {
       if (status.status !== 'success') return alert(status.reason);
       index = this.images.findIndex(i => i.name === img);
       if (index > -1) this.images.splice(index, 1);
+    });
+  }
+
+  deleteCollection() {
+    if (prompt("Confirm Deletion?", 'Collection ID') !== this.cid) return;
+    this.loading = true;
+    del(`/api/collections/${this.cid}`).then(res => res.json()).then(json => {
+      if (json.status !== 'success') throw json.reason;
+      this.loading = false;
+      this.$store.cache.delete("getCollections");
+      this.$store.cache.delete("getCollectionNotes", this.cid);
+      this.$router.push('/');
     });
   }
 
