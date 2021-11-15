@@ -1,10 +1,10 @@
 import {Store} from 'vuex'
-import firebase from "firebase/compat";
 import {User} from "@/types/user";
 import {Collection} from "@/types/coll";
 import {Note} from "@/types/note";
 import {Role} from "@/types/role";
 import {MarkdownItVueOptions} from "@/components/markdownViewer/markdown";
+import {FirebaseUser} from "@/shims-firebase-user";
 
 type RecursivePartial<T> = {
     [P in keyof T]?:
@@ -15,7 +15,7 @@ type RecursivePartial<T> = {
 
 export interface State {
     dark: boolean;
-    user?: firebase.User;
+    user?: FirebaseUser;
     profile?: User;
 
     drawerOpen: boolean;

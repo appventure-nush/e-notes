@@ -155,7 +155,7 @@ export default class Login extends Vue {
 
   verifyToken(token: string): Promise<void> {
     return post("/api/auth", {token: token}).then(res => res.json()).then(res => {
-      if (res.status === "success") this.$store.dispatch("fetchUserProfile");
+      if (res.status === "success") this.$store.dispatch("fetchUserProfile", auth.currentUser);
       else throw res.reason;
     });
   }

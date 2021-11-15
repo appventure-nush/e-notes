@@ -35,13 +35,9 @@
 
 <script lang="ts">
 import {Component, Model, Prop, Ref, Vue} from "vue-property-decorator";
-// @ts-ignore
-import LightBox from 'vue-image-lightbox'
+import LightBox from "@/components/lightbox/LightBox.vue";
 
-require('vue-image-lightbox/dist/vue-image-lightbox.min.css');
-@Component({
-  components: {LightBox}
-})
+@Component({components: {LightBox}})
 export default class Gallery extends Vue {
   @Model('change', {type: Array}) readonly images!: { name: string, url: string }[];
   @Prop(Array) readonly deleting!: string[];

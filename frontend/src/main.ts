@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import App from './App.vue'
-import router from './router'
+import router, {shouldAllow} from './router'
 import store from './store'
 import './mixins'
 import './plugins/others'
@@ -32,16 +32,19 @@ export const app = initializeApp({
     measurementId: "G-5CEEWG9PZR"
 });
 export const auth = getAuth(app);
+export let FIREBASE_INITIALIZED = false;
+
 const unsubscribe = auth.onAuthStateChanged(user => {
-    console.log(ASCII_NAME, "font-family:monospace");
-    new Vue({
-        router,
-        store,
-        vuetify,
-        render: h => h(App),
-        created: function () {
-            if (user) return store.dispatch('fetchUserProfile', user);
-        },
-    }).$mount('#app');
+    FIREBASE_INITIALIZED = true;
+    store.dispatch('fetchUserProfile', user);
+    shouldAllow(router.currentRoute).then(yes => yes ? {} : router.push('/login'));
     unsubscribe();
 });
+
+new Vue({
+    router,
+    store,
+    vuetify,
+    render: h => h(App)
+}).$mount('#app');
+console.log(ASCII_NAME, "font-family:monospace");

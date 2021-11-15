@@ -1,0 +1,1 @@
+Modified version of https://www.npmjs.com/package/markdown-it-vue

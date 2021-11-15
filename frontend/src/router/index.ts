@@ -1,6 +1,6 @@
 import Vue from 'vue'
-import VueRouter, {RouteConfig} from 'vue-router'
-import {auth} from "@/main";
+import VueRouter, {RouteConfig, Route} from 'vue-router'
+import {auth, FIREBASE_INITIALIZED} from "@/main";
 
 Vue.use(VueRouter)
 
@@ -139,17 +139,22 @@ const router = new VueRouter({
     mode: 'history',
     base: process.env.BASE_URL,
     routes
-})
-router.beforeEach((to, from, next) => {
+});
+
+export async function shouldAllow(to: Route): Promise<boolean> {
     if (to.matched.some(record => record.meta.auth)) {
         const user = auth.currentUser;
-        if (user == null) next('/login');
-        else if (to.matched.some(record => record.meta.admin)) user.getIdTokenResult().then(res => {
-            if (res.claims.admin) next();
-            else next('/')
-        }); else next()
-    } else next()
+        if (user == null) return false;
+        else if (to.matched.some(record => record.meta.admin)) return user.getIdTokenResult().then(res => !!res.claims.admin);
+        else return true;
+    } else return true;
+}
+
+router.beforeEach((to, from, next) => {
+    if (!FIREBASE_INITIALIZED) return next();
+    shouldAllow(to).then(yes => yes ? next() : next('/login'));
 });
+
 const DEFAULT_TITLE = 'Enotes';
 router.afterEach(to => Vue.nextTick(() => {
     let title = to.meta?.title || DEFAULT_TITLE;

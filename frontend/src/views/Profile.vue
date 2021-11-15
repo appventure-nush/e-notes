@@ -63,10 +63,10 @@
               <pre v-text="user.uid"></pre>
             </v-list-item-subtitle>
             <v-list-item-subtitle>
-              <v-chip class="ma-1" v-if="$store.state.profile.admin" color="error" label dark small>admin</v-chip>
-              <v-chip class="ma-1" v-if="$store.state.profile.teacher" color="info" label dark small>teacher</v-chip>
+              <v-chip class="ma-1" v-if="user.admin" color="error" label dark small>admin</v-chip>
+              <v-chip class="ma-1" v-if="user.teacher" color="info" label dark small>teacher</v-chip>
               <v-chip class="ma-1" v-else outlined label small>student</v-chip>
-              <v-chip class="ma-1" v-for="role in $store.state.profile.roles" :key="role" v-text="role" outlined label
+              <v-chip class="ma-1" v-for="role in user.roles" :key="role" v-text="role" outlined label
                       small></v-chip>
             </v-list-item-subtitle>
           </v-list-item-content>
@@ -95,7 +95,6 @@
 </template>
 
 <script lang="ts">
-import firebase from "firebase/compat";
 import {Component, Ref, Vue, Watch} from "vue-property-decorator"
 import {User} from "@/types/user";
 import VueUploadComponent from "vue-upload-component";
@@ -103,6 +102,7 @@ import {VUFile} from "@/shims-others";
 import {getToken, post} from "@/mixins/api";
 import {auth} from "@/main";
 import {linkWithPopup, OAuthProvider, sendEmailVerification} from "firebase/auth";
+import {FirebaseUser} from "@/shims-firebase-user";
 
 @Component({
   methods: {
@@ -162,19 +162,13 @@ export default class Profile extends Vue {
     this.linking = true;
     const provider = new OAuthProvider('microsoft.com');
     provider.setCustomParameters({prompt: 'consent'});
-    linkWithPopup(auth.currentUser, provider).then(result => {
-      console.log(auth.currentUser, result);
-      this.$store.commit('setUser', auth.currentUser);
-    }).catch(error => console.error(error)).finally(() => this.linking = false);
+    linkWithPopup(auth.currentUser, provider).then(() => this.$store.commit('setUser', auth.currentUser)).catch(error => console.error(error)).finally(() => this.linking = false);
   }
 
   verify() {
     if (!auth.currentUser) return;
     this.verifying = true;
-    sendEmailVerification(auth.currentUser).then(result => {
-      console.log(auth.currentUser, result);
-      this.emailSnackbar = true;
-    }).catch(error => console.error(error)).finally(() => this.verifying = false);
+    sendEmailVerification(auth.currentUser).then(() => this.emailSnackbar = true).catch(error => console.error(error)).finally(() => this.verifying = false);
   }
 
   cancel() {
@@ -186,13 +180,17 @@ export default class Profile extends Vue {
     return this.$store.state.profile;
   }
 
-  @Watch('user', {immediate: true})
+  get fbUser(): FirebaseUser {
+    return this.$store.state.user;
+  }
+
+  @Watch('user', {immediate: true, deep: true})
   onUserChange(val: User) {
     this.localCopy = {...val};
   }
 
-  @Watch('$store.state.user', {immediate: true})
-  onFirebaseUserChange(user: firebase.User) {
+  @Watch('fbUser', {immediate: true, deep: true})
+  onFirebaseUserChange(user: FirebaseUser) {
     this.linked = Boolean(user && user.providerData && user.providerData.some(p => p && p.providerId === "microsoft.com"));
     this.verified = Boolean(user && user.emailVerified);
   }

@@ -2,7 +2,6 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import {auth} from "@/main";
 import router from "@/router";
-import firebase from "firebase/compat";
 import {State} from "@/shims-vuex";
 import {get} from "@/mixins/api";
 import {User} from "@/types/user";
@@ -11,6 +10,7 @@ import {Collection} from "@/types/coll";
 import {Note} from "@/types/note";
 import {Role} from "@/types/role";
 import createCache from 'vuex-cache';
+import {FirebaseUser} from "@/shims-firebase-user";
 
 Vue.use(Vuex)
 const vuexLocal = new VuexPersistence<State>({
@@ -20,7 +20,7 @@ const vuexLocal = new VuexPersistence<State>({
 export default new Vuex.Store<State>({
     state: {
         dark: false,
-        user: <firebase.User>{},
+        user: undefined,
         profile: <User>{},
         currentNotes: <Note[]>[],
         currentRoles: <Role[]>[],
@@ -42,7 +42,7 @@ export default new Vuex.Store<State>({
         toggleDark(state) {
             state.dark = !state.dark;
         },
-        setUser(state, user?: firebase.User) {
+        setUser(state, user?: FirebaseUser) {
             state.user = user;
         },
         setProfile(state, user?: User | any) {
@@ -68,7 +68,7 @@ export default new Vuex.Store<State>({
         }
     },
     actions: {
-        async fetchUserProfile({commit, dispatch}, payload?: firebase.User) {
+        async fetchUserProfile({commit, dispatch}, payload?: FirebaseUser) {
             if (payload) commit("setUser", payload);
             const profile = await get("/api/auth").then(res => res.json());
             if (profile.status && profile.status === 'failed') dispatch("logout");
