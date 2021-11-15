@@ -9,7 +9,7 @@
                 <v-btn icon width="96" height="96" v-on="on" v-bind="attrs">
                   <v-avatar size="96">
                     <v-img :src="user.pfp||'/images/guest.png'" aspect-ratio="1">
-                      <v-list-item-content v-if="editing" class="pb-0" style="background:rgba(0,0,0,0.4)">
+                      <v-list-item-content v-if="editing" style="background:rgba(0,0,0,0.4)">
                         <v-card-text class="py-0 white--text">Select</v-card-text>
                       </v-list-item-content>
                     </v-img>
@@ -19,18 +19,26 @@
               <v-card :disabled="upload&&upload.active" :loading="upload&&upload.active">
                 <v-card-title>Upload Image</v-card-title>
                 <v-card @click="upload.$el.children[0].click()" flat tile>
-                  <v-img aspect-ratio="1" :src="files.length>0?createObjectURL(files[0].file):user.pfp"></v-img>
+                  <v-img aspect-ratio="1" :src="files.length>0?createObjectURL(files[0].file):user.pfp">
+                    <v-list-item-content v-if="files.length===0"
+                                         style="background:rgba(0,0,0,0.4);width:100%;height:100%;">
+                      <v-card-text class="white--text text-center text-h5">Select Image</v-card-text>
+                    </v-list-item-content>
+                  </v-img>
                   <file-upload ref="upload"
                                :headers="{'x-xsrf-token': getToken()}"
                                v-show="false"
                                v-model="files"
                                accept="image/*"
+                               :size="16 * 1024 * 1024"
                                :timeout="60 * 1000"
                                :multiple="false"
+                               @input-file="inputFile"
                                post-action="/api/auth/pfp">
                   </file-upload>
                 </v-card>
                 <v-card-actions>
+                  <v-btn text color="primary" @click="upload.$el.children[0].click()">Select Image</v-btn>
                   <v-btn text color="primary" :disabled="files.length===0||(upload&&upload.active)"
                          @click="upload.active=true">Upload
                   </v-btn>
@@ -121,14 +129,14 @@ export default class Profile extends Vue {
 
   emailSnackbar = false;
 
-  @Watch('upload.active')
-  onStateChange() {
-    if (this.upload.active) return;
-    if (this.files[0] && this.files[0].success) {
-      let res = this.files[0].response as any;
-      if (res.status !== 'success') alert(res.reason);
-      else this.$store.dispatch('fetchUserProfile');
-      this.upload.remove(this.files[0]);
+  inputFile(newFile: VUFile, oldFile: VUFile) {
+    if (newFile && oldFile && !newFile.active && oldFile.active) {
+      if (newFile.success) {
+        let res = newFile.response as any;
+        if (res.status !== 'success') alert(res.reason);
+        else this.$store.commit('setProfile', res.user);
+        this.upload.remove(newFile);
+      }
     }
   }
 

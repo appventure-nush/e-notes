@@ -49,11 +49,12 @@ authentication.post('/pfp', checkUser, async (req, res) => {
     if (!req.files) return res.json(failed('where is the file'));
     const uploaded = req.files.file;
     if (uploaded && "data" in uploaded) {
+        if (uploaded.data.length > 16 * 1024 * 1024) return res.json(failed('file size exceeds 16MiB'));
         const type = imageType(uploaded.data);
         if (type && type.mime.toUpperCase() === uploaded.mimetype.toUpperCase()) {
             if (IMAGE_FORMATS.includes(type.mime.toLowerCase())) try {
                 const file = storage().bucket().file(`users/pfp/${req.uid}.${type.ext}`);
-                await file.save(await sharp(uploaded.data).resize(256, 256).toBuffer(), {
+                await file.save(await sharp(uploaded.data).resize(512, 512).toBuffer(), {
                     public: true,
                     resumable: false
                 });
