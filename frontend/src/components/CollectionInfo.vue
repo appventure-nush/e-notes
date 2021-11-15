@@ -288,7 +288,7 @@ export default class CollectionInfo extends Vue {
     post(`/api/collections/${this.cid}/reorder`, payload).then(res => res.json()).then(json => {
       if (json.status !== 'success') throw json.reason;
       this.$store.commit('setCurrentNotes', json.notes);
-    }).catch(e => console.error(e)).finally(() => {
+    }).catch(e => alert(e)).finally(() => {
       this.notes = [...this.$store.state.currentNotes];
       this.reordering = false;
     })
