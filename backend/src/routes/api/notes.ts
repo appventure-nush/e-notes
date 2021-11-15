@@ -24,8 +24,8 @@ notes.get("/:nid", async (req, res) => {
 notes.post("/:nid", checkUser, async (req, res) => {
     if (!await checkEditPermissions(req, req.body.cid)) return res.json(failed("not_authorised"));
     let note = await getNote(req.body.cid, req.params.nid);
-    let old = {...note};
     if (note) {
+        let old = {...note};
         if (req.body.action && req.body.action === "add") return res.json(failed({reason: "note_already_exist"}));
         if (req.body.hasOwnProperty("nid")) note.nid = req.body.nid;
         if (req.body.hasOwnProperty("name")) note.name = req.body.name;

@@ -9,7 +9,7 @@ function parsePageData(req: Request, res: Response, next: () => any) {
     let last = req.query.last;
     let ps = req.query.pageSize;
     let dir = req.query.dir;
-    let pageSize: number;
+    let pageSize: number = 16;
     if (last === "undefined" || last === "null") last = undefined;
     if (typeof ps === "string") pageSize = parseInt(ps, 10);
     req.body.last = last;
