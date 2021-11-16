@@ -142,6 +142,7 @@ export default class Login extends Vue {
       return result.user.getIdToken(true);
     }).then(token => this.$store.dispatch('verifyToken', token)).catch(error => {
       this.attempting = false;
+      console.log(error);
       if (error.code === 'auth/account-exists-with-different-credential') {
         fetchSignInMethodsForEmail(auth, error.customData.email).then(methods => {
           this.errorMsg = methods[0] !== 'password' ?

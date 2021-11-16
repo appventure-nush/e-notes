@@ -1,11 +1,11 @@
 import Vue from 'vue'
 import App from './App.vue'
-import router, {shouldAllow} from './router'
+import router from './router'
 import store from './store'
 import './mixins'
 import './plugins/others'
 import vuetify from './plugins/vuetify'
-import {initializeAuth, browserLocalPersistence} from "@firebase/auth";
+import {initializeAuth, browserLocalPersistence, browserPopupRedirectResolver} from "@firebase/auth";
 import {initializeApp} from "@firebase/app";
 
 const ASCII_NAME =
@@ -33,6 +33,7 @@ export const app = initializeApp({
 });
 export const auth = initializeAuth(app, {
     persistence: [browserLocalPersistence],
+    popupRedirectResolver: browserPopupRedirectResolver,
 });
 
 export let FIREBASE_INITIALIZED = false;
