@@ -8,13 +8,10 @@ import authentication from "./api/authentication";
 import {error, success} from "../response";
 import {checkUserOptional} from "../utils";
 import fileUpload from "express-fileupload";
+import nocache from "nocache";
 
 const api = express.Router();
-api.use((req, res, next) => {
-    if (req.method === 'GET') res.set('Cache-control', `public, max-age=${60 * 5}`);
-    else res.set('Cache-control', `no-store`);
-    next()
-});
+api.use(nocache());
 api.use(express.json());
 api.use(express.urlencoded({extended: true}));
 api.use(fileUpload({limits: {fileSize: 64 * 1024 * 1024}}));

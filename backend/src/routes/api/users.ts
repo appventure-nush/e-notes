@@ -4,19 +4,17 @@ import {_setPermissions} from "../../types/permissions";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 import {error, failed, success} from "../../response";
 import {auth} from "firebase-admin";
-import {fillUser} from "../../types/user";
+import {middleware} from "apicache";
 
 const users = Router();
 
-users.get("/", checkUser, (req, res) => {
-    Promise.all(getUsers().map(async u => fillUser(u, await auth().getUser(u.uid)))).then(u => res.json(u));
+users.get("/", checkUser, middleware('1 min'), (req, res) => {
+    Promise.all(getUsers().map(u => getUser(u.uid))).then(u => res.json(u));
 });
 
 users.get("/:uid", checkUser, async (req, res) => {
-    res.set('Cache-control', `no-store`);
     try {
-        if (req.params.uid === 'me') res.json(req.user);
-        else res.json(await getUser(req.params.uid));
+        res.json(await getUser(req.params.uid));
     } catch (e) {
         res.send("failed_to_get_user")
     }

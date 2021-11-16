@@ -10,13 +10,12 @@ import {
     updateRole,
     updateUser
 } from '../../utils';
-import apicache from 'apicache';
+import {middleware} from 'apicache';
 import {_setPermissions} from "../../types/permissions";
 import {User} from "../../types/user";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 import {failed, success} from "../../response";
 
-const cache = apicache.middleware;
 const roles = Router();
 
 roles.get("/", checkUser, (req, res) => res.json(getAllRoles()));
@@ -30,7 +29,7 @@ roles.get("/:rid", checkUser, async (req, res) => {
     else res.json(role);
 });
 
-roles.get("/:rid/users", checkUser, cache('1 min'), async (req, res) => {
+roles.get("/:rid/users", checkUser, middleware('1 min'), async (req, res) => {
     // @ts-ignore
     req.apicacheGroup = req.params.rid;
     return res.json(await findUserWithRole(req.params.rid));
@@ -58,7 +57,6 @@ roles.post("/:rid/users", checkAdmin, async (req, res) => {
             }
             return updateUser(user.uid, user);
         }));
-        apicache.clear(req.params.rid);
         res.json(success({
             updated,
             users: result

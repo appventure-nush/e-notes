@@ -106,6 +106,7 @@ import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
 import {post} from "@/mixins/api";
 import {Note, NoteType} from "@/types/note";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
+import {cached, storeTo} from "@/store";
 
 @Component({
   name: "NotePopup",
@@ -156,7 +157,7 @@ export default class NotePopup extends Vue {
       } else {
         if (!this.editing) this.$router.push({name: "Note", params: {cid: this.cid, nid: this.nid}})
         this.$store.cache.delete("getCollectionNotes", this.cid);
-        this.$store.cache.dispatch("getCollectionNotes", this.cid).then(notes => this.$store.commit('setCurrentNotes', notes));
+        cached("getCollectionNotes", this.cid).then(notes => storeTo('setCurrentNotes', notes));
         this.$store.commit('setCurrentNote', json.note);
         this.dialog = false;
       }

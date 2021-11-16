@@ -105,6 +105,7 @@ import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
 import {Collection} from "@/types/coll";
 import {del, post} from "@/mixins/api";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
+import {cached, storeTo} from "@/store";
 
 @Component({
   name: "CollectionPopup",
@@ -142,7 +143,7 @@ export default class CollectionPopup extends Vue {
       } else {
         this.$store.cache.delete('getCollection', this.cid);
         this.$store.cache.delete('getCollections');
-        this.$store.cache.dispatch("getCollections").then(json => this.$store.commit('collections', json));
+        cached("getCollections").then(json => storeTo('collections', json));
         this.$store.commit('setCurrentColl', json.collection);
         this.dialog = false;
       }
@@ -158,7 +159,7 @@ export default class CollectionPopup extends Vue {
       } else {
         this.$store.cache.delete('getCollection', this.cid);
         this.$store.cache.delete('getCollections');
-        this.$store.cache.dispatch("getCollections").then(json => this.$store.commit('collections', json));
+        cached("getCollections").then(json => storeTo('collections', json));
         this.$router.push("/");
         this.dialog = false;
       }

@@ -139,6 +139,7 @@ import {permissions, User} from '@/types/user';
 import {Role} from "@/types/role";
 import {computeAccess, hasPermission, splitAccess} from "@/mixins/permission";
 import {post} from "@/mixins/api";
+import {cached} from "@/store";
 
 @Component
 export default class UserView extends Vue {
@@ -161,7 +162,7 @@ export default class UserView extends Vue {
 
   mounted() {
     this.onUIDChange();
-    this.$store.cache.dispatch('getRoles').then((roles: Role[]) => this.allRoles = roles.map(r => r.rid));
+    cached('getRoles').then((roles: Role[]) => this.allRoles = roles.map(r => r.rid));
   }
 
   @Watch('uid')
@@ -169,7 +170,7 @@ export default class UserView extends Vue {
     this.loading = true;
     this.editing = false;
     this.saving = false;
-    this.$store.cache.dispatch('getUser', this.uid).then((user: User) => {
+    cached('getUser', this.uid).then((user: User) => {
       this.user = user;
       this.loading = false;
     });

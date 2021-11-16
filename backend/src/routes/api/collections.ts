@@ -2,7 +2,7 @@ import {Router} from 'express';
 
 import notesRouter from './notes';
 import {
-    checkAdmin, checkCreatePermissions, checkEditPermissions,
+    checkCreatePermissions, checkEditPermissions,
     checkPermissions,
     checkUser,
     difference, getAllRoles,
@@ -23,13 +23,11 @@ const collections = Router();
 const IMAGE_FORMATS = ['image/gif', 'image/jpeg', 'image/png'];
 
 collections.get("/", checkUser, async (req, res) => {
-    res.set('Cache-control', `no-store`);
     return res.json(await getAvailableCollections(req.uid!));
 });
 collections.post("/", checkUser, (req, res) => res.json(failed("collection_id_required")));
 collections.get("/:cid", checkUser, checkPermissions, async (req, res) => {
     const collection = getCollection(req.params.cid);
-    res.set('Cache-control', `no-store`);
     if (!collection) return res.json(failed({
         reason: "collection_not_found",
         cid: req.params.cid

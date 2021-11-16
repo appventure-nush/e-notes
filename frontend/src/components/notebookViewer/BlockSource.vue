@@ -6,7 +6,7 @@
       <v-col class="flex-grow-0">
         <pre class="cell-header source" v-text="cell.execution_count?`In [${cell.execution_count}]: `:''"></pre>
       </v-col>
-      <v-col>
+      <v-col style="min-width:0;">
         <v-card class="cell-content source-code" v-if="type==='code'" flat outlined>
           <pre class="source-code-main" v-html="hljs"></pre>
         </v-card>
@@ -41,7 +41,7 @@ export default class BlockSource extends Vue {
   @Prop(Boolean) readonly display!: boolean;
   @Prop(Boolean) readonly showLineNumber!: boolean;
   @Prop(String) readonly language!: string;
-  @Prop(Boolean) highlighted = false;
+  @Prop({type: Boolean, default: false}) highlighted!: boolean;
 
   get hljs() {
     if (typeof this.cell.source === 'string') return hljs.highlight(this.cell.source, {language: this.language}).value;

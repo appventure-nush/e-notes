@@ -8,7 +8,7 @@
           <pre class="cell-header output"
                v-text="output.output_type === 'execute_result'?`Out [${output.execution_count}]: `:''"></pre>
         </v-col>
-        <v-col>
+        <v-col style="min-width: 0;">
           <v-row no-gutters>
             <v-col v-if="output.output_type === 'stream'">
               <pre :class="[output.name==='stdout'?'output-std' : 'output-err']" v-text="output.text.join('')"></pre>
@@ -42,8 +42,8 @@ const convert = new Convert();
 export default class BlockOutput extends Vue {
   name = "BlockOutput"
   @Prop(Object) readonly cell!: Cell;
-  @Prop(Boolean) readonly display!: boolean;
-  @Prop(Boolean) highlighted = false;
+  @Prop({type: Boolean, default: false}) readonly display!: boolean;
+  @Prop({type: Boolean, default: false}) highlighted!: boolean;
 
   convert(text: string) {
     return convert.toHtml(text)

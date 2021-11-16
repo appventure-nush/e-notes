@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter, {RouteConfig, Route} from 'vue-router'
 import {auth, FIREBASE_INITIALIZED} from "@/main";
+import store from "@/store";
 
 Vue.use(VueRouter)
 
@@ -80,7 +81,11 @@ const routes: Array<RouteConfig> = [
                 props: true,
                 name: "Collection",
                 path: '',
-                component: () => import(/* webpackChunkName: "collection.info" */'@/components/CollectionInfo.vue')
+                component: () => import(/* webpackChunkName: "collection.info" */'@/components/CollectionInfo.vue'),
+                beforeEnter(to, from, next) {
+                    store.commit('setCurrentNote', undefined);
+                    next();
+                }
             },
             {
                 props: true,

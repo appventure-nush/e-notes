@@ -6,6 +6,7 @@
 
 <script lang="ts">
 import {Component, Prop, Vue, Watch} from "vue-property-decorator";
+import {cached, storeTo} from "@/store";
 
 @Component
 export default class CollectionViewer extends Vue {
@@ -19,16 +20,15 @@ export default class CollectionViewer extends Vue {
     this.$store.commit("setCurrentRoles", [])
     this.$store.commit("setCurrentNotes", [])
     this.$store.commit("setCurrentColl", {})
-    this.$store.cache.dispatch("getCollection", this.cid).then(json => {
-      if (json.status && json.status !== "success") {
-        this.$store.cache.delete("getCollection", this.cid);
-        return this.$router.push("/");
-      }
+    cached("getCollection", this.cid).then(json => {
       this.$store.commit("setCurrentColl", json);
       this.loading = false;
-    });
-    this.$store.cache.dispatch("getCollectionRoles", this.cid).then(json => this.$store.commit("setCurrentRoles", json));
-    this.$store.cache.dispatch("getCollectionNotes", this.cid).then(json => this.$store.commit("setCurrentNotes", json));
+    }).catch(e => {
+      console.error(e);
+      return this.$router.push("/");
+    })
+    cached("getCollectionRoles", this.cid).then(json => storeTo("setCurrentRoles", json));
+    cached("getCollectionNotes", this.cid).then(json => storeTo("setCurrentNotes", json));
   }
 
   get coll() {

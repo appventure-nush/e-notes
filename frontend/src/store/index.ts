@@ -17,7 +17,7 @@ const vuexLocal = new VuexPersistence<State>({
     storage: window.localStorage
 })
 
-export default new Vuex.Store<State>({
+const store = new Vuex.Store<State>({
     state: {
         dark: false,
         user: undefined,
@@ -98,15 +98,31 @@ export default new Vuex.Store<State>({
                 else throw res.reason;
             });
         },
-        getUsers: () => get("/api/users").then(res => res.json()),
-        getRoles: () => get("/api/roles").then(res => res.json()),
-        getCollections: () => get("/api/collections").then(res => res.json()),
-        getUser: (_, uid: string) => get(`/api/users/${uid}`).then(res => res.json()),
-        getCollection: (_, cid: string) => get(`/api/collections/${cid}`).then(res => res.json()),
-        getCollectionNotes: (_, cid: string) => get(`/api/collections/${cid}/notes`).then(res => res.json()),
-        getCollectionRoles: (_, cid: string) => get(`/api/collections/${cid}/roles`).then(res => res.json()),
-        getCollectionImages: (_, cid: string) => get(`/api/collections/${cid}/img`).then(res => res.json()),
+        getUsers: () => get("/api/users").then(res => res.json()).then(successFilter),
+        getRoles: () => get("/api/roles").then(res => res.json()).then(successFilter),
+        getCollections: () => get("/api/collections").then(res => res.json()).then(successFilter),
+        getUser: (_, uid: string) => get(`/api/users/${uid}`).then(res => res.json()).then(successFilter),
+        getCollection: (_, cid: string) => get(`/api/collections/${cid}`).then(res => res.json()).then(successFilter),
+        getCollectionNotes: (_, cid: string) => get(`/api/collections/${cid}/notes`).then(res => res.json()).then(successFilter),
+        getCollectionRoles: (_, cid: string) => get(`/api/collections/${cid}/roles`).then(res => res.json()).then(successFilter),
+        getCollectionImages: (_, cid: string) => get(`/api/collections/${cid}/img`).then(res => res.json()).then(successFilter),
     },
     modules: {},
     plugins: [vuexLocal.plugin, createCache({timeout: 60 * 60 * 1000})]
 })
+export default store;
+
+function successFilter<T extends { status?: string, reason?: string }>(json: T) {
+    if (json.status && json.status !== 'success') throw new Error(json.reason); else return json;
+}
+
+export function cached(type: string, payload?: any): Promise<any> {
+    return store.cache.dispatch(type, payload).catch(e => {
+        store.cache.delete(type, payload)
+        throw e;
+    })
+}
+
+export function storeTo(type: string, payload?: any) {
+    return store.commit(type, payload);
+}

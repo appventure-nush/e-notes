@@ -11,6 +11,7 @@
 <script lang="ts">
 import {Component, Vue} from "vue-property-decorator";
 import CollectionDisplay from "@/components/CollectionDisplay.vue";
+import {cached, storeTo} from "@/store";
 
 @Component({
   components: {
@@ -21,7 +22,7 @@ export default class Home extends Vue {
   name = 'Home'
 
   mounted() {
-    this.$store.cache.dispatch("getCollections").then(json => this.$store.commit("collections", json))
+    cached("getCollections").then(json => storeTo("collections", json))
   }
 }
 </script>

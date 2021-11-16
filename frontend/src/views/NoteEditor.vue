@@ -25,6 +25,7 @@ import '@toast-ui/editor/dist/toastui-editor.css';
 import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
 import {EventBus} from "@/event";
 import {post} from "@/mixins/api";
+import {cached, storeTo} from "@/store";
 
 @Component({
   components: {
@@ -74,7 +75,7 @@ export default class NoteEditor extends Vue {
         this.loading = false;
         if (json.status !== 'success') throw json.reason;
         this.$store.commit('setCurrentNote', json.note);
-        this.$store.cache.dispatch("getCollectionNotes", this.cid).then((res: Note[]) => this.$store.commit('setCurrentNotes', res));
+        cached("getCollectionNotes", this.cid).then((res: Note[]) => storeTo('setCurrentNotes', res));
         if (!this.cid || !this.nid) return;
         this.$router.push({name: 'Note', params: {cid: this.cid, nid: this.nid}});
       });
@@ -93,12 +94,12 @@ export default class NoteEditor extends Vue {
   onNoteChange() {
     this.doc = "";
     this.loading = true;
-    this.$store.cache.dispatch("getCollectionNotes", this.cid).then((res: Note[]) => {
-      this.$store.commit('setCurrentNotes', res);
+    cached("getCollectionNotes", this.cid).then((res: Note[]) => {
+      storeTo('setCurrentNotes', res);
       return res.find(n => n.nid === this.nid);
     }).then(json => {
       if (!json) return this.$router.push({name: 'Collection', params: {cid: this.cid || ''}});
-      this.$store.commit("setCurrentNote", json);
+      storeTo("setCurrentNote", json);
       if (this.note.url) fetch(this.note.url).then(res => res.text()).then(text => {
         this.doc = this.note.type === "jupyter" ? JSON.parse(text) : text;
         if (this.note.type === "jupyter") return;

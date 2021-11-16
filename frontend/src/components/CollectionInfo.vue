@@ -171,6 +171,7 @@ import Markdown from "@/components/markdownViewer/Markdown.vue";
 import {Collection} from "@/types/coll";
 import {Note} from "@/types/note";
 import UserAvatar from "@/components/UserAvatar.vue";
+import {cached} from "@/store";
 
 @Component({
   methods: {
@@ -225,10 +226,15 @@ export default class CollectionInfo extends Vue {
     this.deleting = [];
     this.images = [];
     this.files = [];
-    this.$store.cache.dispatch("getCollectionImages", this.cid).then(json => this.images = json);
+    cached("getCollectionImages", this.cid).then(json => this.images = json);
   }
 
-  @Watch('$store.state.currentNotes', {immediate: true})
+
+  get cNotes(): Note[] {
+    return this.$store.state.currentNotes;
+  }
+
+  @Watch('cNotes', {immediate: true})
   onNotesChange(val: Note[]) {
     this.notes = [...val];
   }

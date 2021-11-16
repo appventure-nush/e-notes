@@ -39,10 +39,10 @@ export default class CollectionAppbar extends Vue {
         params: {cid: this.$store.state.currentCollection.cid}
       }
     }, ...(this.$route.name !== 'Collection' ? [{
-      text: this.$store.state.currentNote.name,
+      text: this.$store.state.currentNote?.name,
       route: {
         name: "Note",
-        params: {cid: this.$store.state.currentNote.cid, nid: this.$store.state.currentNote.nid}
+        params: {cid: this.$store.state.currentNote?.cid, nid: this.$store.state.currentNote?.nid}
       }
     }] : [])]
   }

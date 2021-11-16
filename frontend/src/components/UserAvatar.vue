@@ -30,6 +30,7 @@
 <script lang="ts">
 import {Component, Prop, Vue, Watch} from "vue-property-decorator";
 import {User} from "@/types/user";
+import {cached} from "@/store";
 
 @Component
 export default class UserAvatar extends Vue {
@@ -40,7 +41,7 @@ export default class UserAvatar extends Vue {
 
   @Watch('uid', {immediate: true})
   onUIDChange() {
-    this.$store.cache.dispatch('getUser', this.uid).then(user => this.user = user);
+    cached('getUser', this.uid).then(user => this.user = user);
   }
 }
 </script>

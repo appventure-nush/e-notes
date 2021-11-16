@@ -199,11 +199,10 @@ export async function checkUserOptional(req: express.Request, res: express.Respo
             req.uid = uid;
             req.user = await getUser(uid);
         }
-        return next();
-    } catch (e) {
-        // await error({func: 'checkUserOptional', body: req.body, path: req.path});
-        return res.redirect("/logout");
+    } catch (_) {
+        //
     }
+    return next();
 }
 
 export async function checkPermissions(req: express.Request, res: express.Response, next: () => any) {

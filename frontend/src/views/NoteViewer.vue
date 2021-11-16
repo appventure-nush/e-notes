@@ -1,8 +1,6 @@
 <template>
   <v-container>
-    <v-card
-        :loading="loading"
-        outlined>
+    <v-card :loading="loading" outlined>
       <v-card-title>{{ note.name }}</v-card-title>
       <v-card-subtitle>{{ note.nid }}<br>
         <v-chip label color="primary" small outlined>
@@ -75,6 +73,7 @@ import {del} from "@/mixins/api";
 import JupyterViewer from "@/components/JupyterViewer.vue";
 import {Note} from "@/types/note";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
+import {cached, storeTo} from "@/store";
 
 const additionalStyles = '<style>\n' +
     '.container{width:auto!important;}\n' +
@@ -119,8 +118,13 @@ export default class NoteViewer extends Vue {
     return this.$store.state.currentNote;
   }
 
+
+  @Watch('this.$store.state.currentNotes', {immediate: true})
+  onNotesChange() {
+    this.onNIDChange();
+  }
+
   @Watch('nid', {immediate: true})
-  @Watch('$store.state.currentNotes', {immediate: true})
   onNIDChange() {
     if (this.$store.state.currentNotes.length === 0) return;
     this.doc = "";
@@ -131,7 +135,7 @@ export default class NoteViewer extends Vue {
     this.loading = false;
   }
 
-  @Watch('note', {deep: true})
+  @Watch('note', {immediate: true, deep: true})
   onNoteChanged() {
     if (this.note.url) {
       this.doc_loading = true;
@@ -155,7 +159,7 @@ export default class NoteViewer extends Vue {
     del(`/api/collections/${this.cid}/notes/${this.nid}`).then(res => res.json()).then(json => {
       if (json.status !== 'success') throw json.reason;
       this.loading = false;
-      this.$store.cache.dispatch("getCollectionNotes", this.cid).then((res: NoteViewer[]) => this.$store.commit('setCurrentNotes', res));
+      cached("getCollectionNotes", this.cid).then((res: NoteViewer[]) => storeTo('setCurrentNotes', res));
       if (!this.cid) return;
       this.$router.push({name: 'Collection', params: {cid: this.cid}});
     });

@@ -41,6 +41,7 @@
 <script lang="ts">
 import {Component, Vue} from "vue-property-decorator";
 import {User} from "@/types/user";
+import {cached} from "@/store";
 
 @Component
 export default class Users extends Vue {
@@ -56,10 +57,9 @@ export default class Users extends Vue {
 
   mounted() {
     this.loading = true;
-    this.$store.cache.dispatch('getUsers').then(res => {
+    cached('getUsers').then(res => {
       this.loading = false;
       this.users = res;
-
     });
   }
 

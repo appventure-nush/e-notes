@@ -22,6 +22,7 @@
 <script lang="ts">
 import {Component, Prop, Vue, Watch} from "vue-property-decorator";
 import {User} from "@/types/user";
+import {cached} from "@/store";
 
 @Component
 export default class UserChip extends Vue {
@@ -46,10 +47,10 @@ export default class UserChip extends Vue {
       } as User;
       return;
     }
-    this.$store.cache.dispatch("getUser", uid).then(res => {
+    cached("getUser", uid).then(res => {
       if (res.status && res.status !== "success") return;
       this.user = res;
-    });
+    })
   }
 }
 </script>

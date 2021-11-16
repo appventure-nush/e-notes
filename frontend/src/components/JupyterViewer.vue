@@ -167,7 +167,16 @@ pre {
       }
 
       &.output-display > * {
+        max-width: 100%;
         overflow: auto;
+      }
+
+      &.output-display table {
+        border-collapse: collapse;
+
+        td, th {
+          padding: 0.1em 0.2em;
+        }
       }
     }
   }
