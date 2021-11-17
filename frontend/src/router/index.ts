@@ -89,6 +89,15 @@ const routes: Array<RouteConfig> = [
             },
             {
                 props: true,
+                name: "NoteContents",
+                path: ':nid/index.html',
+                redirect: to => ({
+                    name: "Collection",
+                    params: {cid: to.params.cid}
+                })
+            },
+            {
+                props: true,
                 name: "Note",
                 path: ':nid/view',
                 meta: {

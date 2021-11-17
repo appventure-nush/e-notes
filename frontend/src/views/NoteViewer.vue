@@ -75,15 +75,6 @@ import {Note} from "@/types/note";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
 import {cached, storeTo} from "@/store";
 
-const additionalStyles = '<style>\n' +
-    '.container{width:auto!important;}\n' +
-    '#notebook-container{padding:0!important;-webkit-box-shadow:none!important;box-shadow:none!important;}\n' +
-    '.prompt{min-width:0;}\n' +
-    '</style>\n' +
-    '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.5.1/katex.min.css">\n' +
-    '<link rel="stylesheet" href="https://cdn.jsdelivr.net/github-markdown-css/2.2.1/github-markdown.css"/>\n' +
-    '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/default.min.css">';
-
 @Component({
   components: {
     JupyterViewer,
@@ -107,7 +98,7 @@ export default class NoteViewer extends Vue {
     if (!this.shadow) return;
     this.shadow.innerHTML = "";
     if (this.note.type && this.note.type !== "html") return;
-    this.shadow.innerHTML = additionalStyles + this.doc;
+    this.shadow.innerHTML = this.doc;
   }
 
   mounted() {

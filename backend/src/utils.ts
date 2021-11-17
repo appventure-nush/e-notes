@@ -28,7 +28,7 @@ const collections: Collection[] = [];
 
 export const getUsers = (): User[] => users;
 
-export const noteCache = new LRU<string, Note[]>(1000);
+export const noteCache = new LRU<string, Note[]>({max: 1000, maxAge: 1000});
 export const idTokenCache = new LRU<string, auth.DecodedIdToken>({max: 1000, maxAge: 60 * 1000});
 export const userCache = new LRU<string, auth.UserRecord>({max: 1000, maxAge: 60 * 1000});
 
@@ -116,8 +116,11 @@ export async function updateNote(cid: string, nid: string, note?: Note) {
         if (index === -1) {
             if (note.index === -1) note.index = notes.length;
             notes.push(note);
-        } else notes[index] = note;
-        return await firestore().collection("collections").doc(cid).collection("notes").doc(nid).update(note);
+            return await firestore().collection("collections").doc(cid).collection("notes").doc(nid).set(note);
+        } else {
+            notes[index] = note;
+            return await firestore().collection("collections").doc(cid).collection("notes").doc(nid).update(note);
+        }
     } else {
         notes.splice(notes.findIndex(n => n.nid === nid), 1);
         return await firestore().collection("collections").doc(cid).collection("notes").doc(nid).delete();

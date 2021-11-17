@@ -34,6 +34,7 @@ const store = new Vuex.Store<State>({
 
         markdownOptions: {
             markdownIt: {
+                linkify: true,
                 html: true
             }
         }
@@ -75,6 +76,7 @@ const store = new Vuex.Store<State>({
                     if (auth.currentUser) dispatch("verifyToken", await auth.currentUser.getIdToken(true));
                     else dispatch("logout");
                 } catch (e) {
+                    console.log(e);
                     dispatch("logout");
                 }
             } else {
@@ -89,7 +91,7 @@ const store = new Vuex.Store<State>({
             commit("collections", undefined);
             commit("setProfile", undefined);
             commit("setUser", undefined);
-            router.push('/login');
+            if (router.currentRoute.path !== '/login') router.push('/login');
         },
         verifyToken({commit, dispatch}, token: string) {
             commit('setUser', auth.currentUser);
