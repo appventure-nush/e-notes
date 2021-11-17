@@ -7,6 +7,30 @@
     <v-card-text>
       <v-expansion-panels :value="0" flat>
         <v-expansion-panel>
+          <v-expansion-panel-header expand-icon="mdi-menu-down"><span>
+                <v-icon small>mdi-file-document-multiple</v-icon> Notes</span>
+          </v-expansion-panel-header>
+          <v-expansion-panel-content>
+            <v-card :loading="reordering" flat :disabled="reordering">
+              <v-list dense nav>
+                <draggable v-model="notes" handle=".handle" @change="onReorder">
+                  <v-slide-y-transition group>
+                    <v-list-item
+                        :to="{name:'Note',params:{cid:$route.params.cid,nid:note.nid}}"
+                        v-for="note in notes"
+                        :key="note.nid">
+                      {{ note.name }}
+                      <v-spacer/>
+                      <v-icon v-if="canEdit(collection)" style="cursor: grab;" class="handle">mdi-swap-vertical-bold
+                      </v-icon>
+                    </v-list-item>
+                  </v-slide-y-transition>
+                </draggable>
+              </v-list>
+            </v-card>
+          </v-expansion-panel-content>
+        </v-expansion-panel>
+        <v-expansion-panel>
           <v-expansion-panel-header expand-icon="mdi-menu-down">
                 <span>
                 <v-icon small>
@@ -33,7 +57,7 @@
                     :key="role.rid">
             </v-chip>
             <div class="mt-2"><strong>Owner</strong></div>
-            <UserChip :uid.sync="collection.owner" admin></UserChip>
+            <UserAvatar :uid="collection.owner" admin classes="ma-1" :size="46"></UserAvatar>
           </v-expansion-panel-content>
         </v-expansion-panel>
         <v-expansion-panel v-if="canEdit(collection)">
@@ -42,11 +66,10 @@
           </v-expansion-panel-header>
           <v-expansion-panel-content>
             <div class="pa-2 mb-2" v-if="collection.hasReadAccess&&collection.hasReadAccess.length>0">
-              <span class="ma-1" :key="uid" v-for="uid in collection.hasReadAccess||[]">
-                <UserAvatar :uid="uid" size="46"></UserAvatar>
-              </span>
+              <UserAvatar :uid="uid" :size="46" classes="ma-1" :key="uid"
+                          v-for="uid in collection.hasReadAccess||[]"></UserAvatar>
             </div>
-            <v-text-field v-model="accessInput" outlined dense label="User IDs"
+            <v-text-field v-model="accessInput" outlined dense label="User Emails"
                           hint="seperated by comma, emails"></v-text-field>
             <v-btn text color="success" @click="giveAccess" :disabled="changingAccess">Give Access</v-btn>
             <v-btn text color="error" @click="revokeAccess" :disabled="changingAccess">Clear Access</v-btn>
@@ -109,30 +132,6 @@
             <Gallery v-model="images" :deleting="deleting" @delete="deleteImage($event)"></Gallery>
           </v-expansion-panel-content>
         </v-expansion-panel>
-        <v-expansion-panel>
-          <v-expansion-panel-header expand-icon="mdi-menu-down"><span>
-                <v-icon small>mdi-file-document-multiple</v-icon> Notes</span>
-          </v-expansion-panel-header>
-          <v-expansion-panel-content>
-            <v-card :loading="reordering" flat :disabled="reordering">
-              <v-list dense nav>
-                <draggable v-model="notes" handle=".handle" @change="onReorder">
-                  <v-slide-y-transition group>
-                    <v-list-item
-                        :to="{name:'Note',params:{cid:$route.params.cid,nid:note.nid}}"
-                        v-for="note in notes"
-                        :key="note.nid">
-                      {{ note.name }}
-                      <v-spacer/>
-                      <v-icon v-if="canEdit(collection)" style="cursor: grab;" class="handle">mdi-swap-vertical-bold
-                      </v-icon>
-                    </v-list-item>
-                  </v-slide-y-transition>
-                </draggable>
-              </v-list>
-            </v-card>
-          </v-expansion-panel-content>
-        </v-expansion-panel>
       </v-expansion-panels>
     </v-card-text>
     <v-card-actions v-if="canEdit($store.state.currentCollection)">
@@ -161,7 +160,6 @@
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
 import draggable from 'vuedraggable'
 import {del, getToken, post} from "@/mixins/api";
-import UserChip from "@/components/UserChip.vue";
 import {VUFile} from "@/shims-others";
 import VueUploadComponent from "vue-upload-component";
 import CollectionPopup from "@/components/CollectionPopup.vue";
@@ -184,7 +182,6 @@ import {cached} from "@/store";
     Gallery,
     FileUpload: VueUploadComponent,
     CollectionPopup,
-    UserChip,
     Markdown
   }
 })

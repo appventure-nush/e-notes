@@ -46,16 +46,12 @@ import {cached} from "@/store";
 @Component
 export default class Users extends Vue {
   name = "Users"
-  loading = true
   users: User[] = []
+  loading = true
   selected = "";
   query = "";
 
-  get hasSelected() {
-    return !!this.selected;
-  }
-
-  mounted() {
+  created() {
     this.loading = true;
     cached('getUsers').then(res => {
       this.loading = false;
@@ -63,9 +59,13 @@ export default class Users extends Vue {
     });
   }
 
+  get hasSelected() {
+    return !!this.selected;
+  }
+
   get displayedUsers() {
     let result = this.users;
-    if (this.query) result = result.filter(u => u.uid?.includes(this.query) || u.name?.toUpperCase().includes(this.query.toUpperCase()) || u.email?.includes(this.query))
+    if (this.query) result = result.filter(u => u.uid?.toUpperCase().includes(this.query.toUpperCase()) || u.name?.toUpperCase().includes(this.query.toUpperCase()) || u.email?.toUpperCase().includes(this.query.toUpperCase()))
     return result;
   }
 }

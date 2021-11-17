@@ -21,7 +21,7 @@ import {cached, storeTo} from "@/store";
 export default class Home extends Vue {
   name = 'Home'
 
-  mounted() {
+  created() {
     cached("getCollections").then(json => storeTo("collections", json))
   }
 }

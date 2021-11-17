@@ -32,7 +32,7 @@ roles.get("/:rid", checkUser, async (req, res) => {
 roles.get("/:rid/users", checkUser, middleware('1 min'), async (req, res) => {
     // @ts-ignore
     req.apicacheGroup = req.params.rid;
-    return res.json(await findUserWithRole(req.params.rid));
+    return res.json((await findUserWithRole(req.params.rid)).map(u => u.uid));
 });
 
 roles.post("/:rid/users", checkAdmin, async (req, res) => {
@@ -95,7 +95,7 @@ roles.post("/:rid", checkAdmin, async (req, res) => {
         const role = makeRole(req.body.rid, req.body.name, req.body.desc, req.body.defaultPerm);
         _setPermissions(role, req.body.permissions);
         await updateRole(role.rid, role);
-        res.json(role);
+        res.json(success({role}));
         await addAudit(simpleAudit(req.uid!, req.params.rid, Category.ROLE, Action.CREATE));
     }
 });
@@ -112,10 +112,10 @@ roles.post("/:rid/admin", checkAdmin, async (req, res) => {
         if (typeof req.body.name === 'string') role.name = req.body.name;
         if (typeof req.body.desc === 'string') role.desc = req.body.desc;
         await updateRole(role.rid, role);
-        res.json(role);
+        res.json(success({role}));
         await addAudit(simpleAudit(req.uid!, req.params.rid, Category.ROLE, Action.EDIT_PERMISSION, [req.body]));
     } catch (e) {
-        res.send("failed")
+        res.send(failed(e.message))
     }
 });
 

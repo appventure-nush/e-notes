@@ -111,9 +111,11 @@
                   </v-icon>
                 </template>
                 <template v-slot:footer v-if="editing">
-                  <v-row no-gutters class="flex-nowrap">
-                    <v-col cols="1" tag="v-text-field" class="flex-grow-1 mx-2" dense label="Collection"
-                           v-model="toAddPerm.cid"></v-col>
+                  <v-row no-gutters class="flex-nowrap mx-2">
+                    <v-col class="flex-grow-1 mx-2">
+                      <v-autocomplete item-text="name" item-value="cid" :items="$store.state.collections" hide-details
+                                      v-model="toAddPerm.cid" dense label="Collection"></v-autocomplete>
+                    </v-col>
                     <v-col tag="v-simple-checkbox" class="flex-grow-0" v-model="toAddPerm.allow" dense
                            :ripple="false"></v-col>
                     <v-col tag="v-btn" class="flex-grow-0 my-auto" text @click="commitPermToAdd">Add</v-col>
@@ -124,6 +126,7 @@
           </v-row>
           <v-card-actions v-if="isAdmin()">
             <v-spacer/>
+            <v-btn v-if="editing" text @click="editing=false">Cancel</v-btn>
             <v-btn :color="editing?'success':'primary'" text @click="!editing?editing=true:save()"
                    v-text="editing?'Save':'Edit'"></v-btn>
           </v-card-actions>

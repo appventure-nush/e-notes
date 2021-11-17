@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import {auth} from "@/main";
+import {auth, FIREBASE_INITIALIZED} from "@/main";
 import router from "@/router";
 import {State} from "@/shims-vuex";
 import {get, post} from "@/mixins/api";
@@ -74,7 +74,7 @@ const store = new Vuex.Store<State>({
             if (profile.status === 'failed') {
                 try {
                     if (auth.currentUser) dispatch("verifyToken", await auth.currentUser.getIdToken(true));
-                    else dispatch("logout");
+                    else if (FIREBASE_INITIALIZED) dispatch("logout");
                 } catch (e) {
                     console.log(e);
                     dispatch("logout");
@@ -85,8 +85,8 @@ const store = new Vuex.Store<State>({
             }
         },
         async logout({commit}) {
-            await auth.signOut();
-            await get("/api/auth/logout");
+            // await auth.signOut();
+            // await get("/api/auth/logout");
             this.cache.clear();
             commit("collections", undefined);
             commit("setProfile", undefined);
@@ -102,8 +102,9 @@ const store = new Vuex.Store<State>({
         },
         getUsers: () => get("/api/users").then(res => res.json()).then(successFilter),
         getRoles: () => get("/api/roles").then(res => res.json()).then(successFilter),
-        getCollections: () => get("/api/collections").then(res => res.json()).then(successFilter),
         getUser: (_, uid: string) => get(`/api/users/${uid}`).then(res => res.json()).then(successFilter),
+        getRole: (_, rid: string) => get(`/api/roles/${rid}`).then(res => res.json()).then(successFilter),
+        getCollections: () => get("/api/collections").then(res => res.json()).then(successFilter),
         getCollection: (_, cid: string) => get(`/api/collections/${cid}`).then(res => res.json()).then(successFilter),
         getCollectionNotes: (_, cid: string) => get(`/api/collections/${cid}/notes`).then(res => res.json()).then(successFilter),
         getCollectionRoles: (_, cid: string) => get(`/api/collections/${cid}/roles`).then(res => res.json()).then(successFilter),
@@ -115,7 +116,8 @@ const store = new Vuex.Store<State>({
 export default store;
 
 function successFilter<T extends { status?: string, reason?: string }>(json: T) {
-    if (json.status && json.status !== 'success') throw new Error(json.reason); else return json;
+    if (json.status && json.status !== 'success') throw new Error(json.reason);
+    else return json;
 }
 
 export function cached(type: string, payload?: any): Promise<any> {

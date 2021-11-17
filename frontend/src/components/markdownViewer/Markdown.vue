@@ -77,7 +77,7 @@ export default class Markdown extends Vue {
       padding: 0.5em;
     }
 
-    tr:nth-child(odd) {
+    tr:nth-child(even) {
       background: var(--v-background-darken1);
     }
   }

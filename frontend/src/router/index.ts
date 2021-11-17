@@ -44,24 +44,29 @@ const routes: Array<RouteConfig> = [
         ]
     },
     {
-        path: '/profile',
-        name: 'Profile',
-        component: () => import(/* webpackChunkName: "profile" */'@/views/Profile.vue'),
+        path: '/roles',
+        name: 'Roles',
+        component: () => import(/* webpackChunkName: "roles" */"@/views/Roles.vue"),
         meta: {
-            title: "Profile",
+            icon: "mdi-tag-multiple",
+            title: "Roles",
+            public: true,
             auth: true
-        }
+        },
+        children: [
+            {
+                meta: {
+                    title: "{{rid}}"
+                },
+                props: true,
+                name: "Role",
+                path: ':rid',
+                component: () => import(/* webpackChunkName: "role" */'@/views/RoleViewer.vue')
+            }
+        ]
     },
     {
-        path: '/login',
-        name: 'Login',
-        component: () => import(/* webpackChunkName: "login" */'@/views/Login.vue'),
-        meta: {
-            title: "Login",
-            naked: true
-        }
-    },
-    {
+        name: "Collections",
         path: '/collection/:cid',
         components: {
             default: () => import(/* webpackChunkName: "collection" */'@/views/CollectionViewer.vue'),
@@ -135,6 +140,24 @@ const routes: Array<RouteConfig> = [
         ]
     },
     {
+        path: '/profile',
+        name: 'Profile',
+        component: () => import(/* webpackChunkName: "profile" */'@/views/Profile.vue'),
+        meta: {
+            title: "Profile",
+            auth: true
+        }
+    },
+    {
+        path: '/login',
+        name: 'Login',
+        component: () => import(/* webpackChunkName: "login" */'@/views/Login.vue'),
+        meta: {
+            title: "Login",
+            naked: true
+        }
+    },
+    {
         path: "/rick",
         name: "rick",
         beforeEnter() {
@@ -173,6 +196,7 @@ const DEFAULT_TITLE = 'Enotes';
 router.afterEach(to => Vue.nextTick(() => {
     let title = to.meta?.title || DEFAULT_TITLE;
     title = title.replace(/{{uid}}/g, to.params.uid);
+    title = title.replace(/{{rid}}/g, to.params.rid);
     title = title.replace(/{{nid}}/g, to.params.nid);
     title = title.replace(/{{cid}}/g, to.params.cid);
     document.title = title;
