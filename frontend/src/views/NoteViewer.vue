@@ -41,7 +41,7 @@
             </v-btn>
           </template>
         </NotePopup>
-        <v-btn text color="primary" class="ml-4" :to="{name:'Edit Note', params:{cid,nid}}" :disabled="loading">
+        <v-btn text color="primary" class="ml-4" :to="{name:'Edit Note', params:{cid:cid,nid:nid}}" :disabled="loading">
           Edit Source
         </v-btn>
         <v-btn text color="error" class="ml-4" @click="deleteNote" :disabled="loading">
@@ -73,7 +73,6 @@ import {del} from "@/mixins/api";
 import JupyterViewer from "@/components/JupyterViewer.vue";
 import {Note} from "@/types/note";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
-import {cached, storeTo} from "@/store";
 
 @Component({
   components: {
@@ -85,10 +84,11 @@ import {cached, storeTo} from "@/store";
 export default class NoteViewer extends Vue {
   @Ref('shadowRoot') readonly shadowRoot!: HTMLDivElement
 
-  @Prop(String) readonly cid?: string;
-  @Prop(String) readonly nid?: string;
+  @Prop(String) readonly cid!: string;
+  @Prop(String) readonly nid!: string;
+  @Prop(Array) readonly notes!: Note[];
   name = "NoteViewer";
-  doc?: any = null;
+  doc: any = "";
   loading = false;
   doc_loading = false;
   shadow?: ShadowRoot;
@@ -110,17 +110,17 @@ export default class NoteViewer extends Vue {
   }
 
 
-  @Watch('this.$store.state.currentNotes', {immediate: true})
+  @Watch('notes', {immediate: true})
   onNotesChange() {
     this.onNIDChange();
   }
 
   @Watch('nid', {immediate: true})
   onNIDChange() {
-    if (this.$store.state.currentNotes.length === 0) return;
+    if (this.notes.length === 0) return;
     this.doc = "";
     this.loading = true;
-    let note = this.$store.state.currentNotes.find((n: Note) => n.nid === this.nid);
+    let note = this.notes.find((n: Note) => n.nid === this.nid);
     if (!note) return this.$router.push({name: 'Collection', params: {cid: this.cid || ''}});
     this.$store.commit("setCurrentNote", note);
     this.loading = false;
@@ -150,7 +150,6 @@ export default class NoteViewer extends Vue {
     del(`/api/collections/${this.cid}/notes/${this.nid}`).then(res => res.json()).then(json => {
       if (json.status !== 'success') throw json.reason;
       this.loading = false;
-      cached("getCollectionNotes", this.cid).then((res: NoteViewer[]) => storeTo('setCurrentNotes', res));
       if (!this.cid) return;
       this.$router.push({name: 'Collection', params: {cid: this.cid}});
     });

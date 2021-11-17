@@ -1,18 +1,21 @@
 <template>
   <v-container fluid style="min-height:100%">
-    <router-view :loading="loading" :collection="coll"></router-view>
+    <router-view :loading="loading" :collection="coll" :notes="notes"></router-view>
   </v-container>
 </template>
 
 <script lang="ts">
 import {Component, Prop, Vue, Watch} from "vue-property-decorator";
 import {cached, storeTo} from "@/store";
+import {Note} from "@/types/note";
 
 @Component
 export default class CollectionViewer extends Vue {
   @Prop(String) readonly cid?: string;
   name = "CollectionViewer";
   loading = false;
+
+  notes: Note[] = [];
 
   @Watch('cid', {immediate: true})
   onCIDChange() {
@@ -28,7 +31,7 @@ export default class CollectionViewer extends Vue {
       return this.$router.push("/");
     })
     cached("getCollectionRoles", this.cid).then(json => storeTo("setCurrentRoles", json));
-    cached("getCollectionNotes", this.cid).then(json => storeTo("setCurrentNotes", json));
+    cached("getCollectionNotes", this.cid).then(json => storeTo("setCurrentNotes", this.notes = json));
   }
 
   get coll() {
