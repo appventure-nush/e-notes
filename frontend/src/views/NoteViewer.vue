@@ -1,19 +1,19 @@
 <template>
   <v-container>
     <v-card :loading="loading" outlined>
-      <v-card-title>{{ note.name }}</v-card-title>
-      <v-card-subtitle>{{ note.nid }}<br>
+      <v-card-title>{{ note?.name }}</v-card-title>
+      <v-card-subtitle>{{ note?.nid }}<br>
         <v-chip label color="primary" small outlined>
-          {{ !note.type ? "auto" : note.type }}
+          {{ !note?.type ? "auto" : note?.type }}
         </v-chip>
       </v-card-subtitle>
       <v-card-text>
         <div><strong>Last Edited</strong></div>
-        <UserChip :uid.sync="note.lastEditBy" admin>
-          <template v-slot:additional>{{ note.lastEdit | moment("MMMM Do YYYY, hh:mm a") }}</template>
+        <UserChip :uid.sync="note?.lastEditBy" admin>
+          <template v-slot:additional>{{ note?.lastEdit | moment("MMMM Do YYYY, hh:mm a") }}</template>
         </UserChip>
       </v-card-text>
-      <v-card-text v-if="note.desc">
+      <v-card-text v-if="note?.desc">
         <v-expansion-panels flat>
           <v-expansion-panel>
             <v-expansion-panel-header expand-icon="mdi-menu-down">
@@ -25,7 +25,7 @@
                 </span>
             </v-expansion-panel-header>
             <v-expansion-panel-content>
-              <markdown :content="note.desc" :options="$store.state.markdownOptions"></markdown>
+              <markdown :content="note?.desc" :options="$store.state.markdownOptions"></markdown>
             </v-expansion-panel-content>
           </v-expansion-panel>
         </v-expansion-panels>
@@ -52,8 +52,8 @@
     <v-divider class="my-3"/>
     <v-card class="pa-5" flat :loading="doc_loading">
       <template v-if="this.doc">
-        <JupyterViewer v-if="note.type==='jupyter'" :notebook="doc"></JupyterViewer>
-        <markdown v-else-if="note.type==='markdown'" :content="doc" :options="$store.state.markdownOptions"></markdown>
+        <JupyterViewer v-if="note?.type==='jupyter'" :notebook="doc"></JupyterViewer>
+        <markdown v-else-if="note?.type==='markdown'" :content="doc" :options="$store.state.markdownOptions"></markdown>
       </template>
       <div ref="shadowRoot"></div>
       <v-skeleton-loader
@@ -97,7 +97,7 @@ export default class NoteViewer extends Vue {
   onDocChange() {
     if (!this.shadow) return;
     this.shadow.innerHTML = "";
-    if (this.note.type && this.note.type !== "html") return;
+    if (this.note && this.note.type && this.note.type !== "html") return;
     this.shadow.innerHTML = this.doc;
   }
 
@@ -105,7 +105,7 @@ export default class NoteViewer extends Vue {
     this.shadow = this.shadowRoot.attachShadow({mode: 'open'});
   }
 
-  get note(): Note {
+  get note(): Note | undefined {
     return this.$store.state.currentNote;
   }
 
@@ -128,9 +128,11 @@ export default class NoteViewer extends Vue {
 
   @Watch('note', {immediate: true, deep: true})
   onNoteChanged() {
+    if (!this.note) return;
     if (this.note.url) {
       this.doc_loading = true;
       fetch(this.note.url).then(res => res.text()).then(text => {
+        if (!this.note) return;
         this.doc = this.note.type === "jupyter" ? JSON.parse(text) : text;
         this.doc_loading = false;
       });
@@ -156,6 +158,7 @@ export default class NoteViewer extends Vue {
   }
 
   download() {
+    if (!this.note) return;
     const url = window.URL.createObjectURL(new Blob([this.note.type === "jupyter" ? JSON.stringify(this.doc) : this.doc]));
     const a = document.createElement('a');
     a.href = url;
