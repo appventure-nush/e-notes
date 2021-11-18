@@ -1,6 +1,6 @@
 import {Router} from "express";
 import {auth, storage} from "firebase-admin";
-import {checkUser, checkUserOptional, updateUser} from "../../utils";
+import {checkUser, checkUserOptional, updateUser, userCache} from "../../utils";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 import {User, fillUser} from "../../types/user";
 import imageType from "image-type";
@@ -58,8 +58,10 @@ authentication.post('/pfp', checkUser, async (req, res) => {
                     resumable: false
                 });
                 const url = file.publicUrl() + "?" + Date.now();
+                const user = await auth().updateUser(req.uid!, {photoURL: url});
+                userCache.set(user.uid, user);
                 res.json(success({
-                    user: fillUser(req.user!, await auth().updateUser(req.uid!, {photoURL: url}))
+                    user: fillUser(req.user!, user)
                 }));
                 await addAudit(simpleAudit(req.uid!, req.uid!, Category.USER, Action.EDIT, [{pfp: url}]));
             } catch (e) {

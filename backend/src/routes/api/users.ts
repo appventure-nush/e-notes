@@ -1,5 +1,5 @@
 import {Router} from 'express';
-import {checkAdmin, checkUser, getUser, getUsers, updateUser} from '../../utils';
+import {checkAdmin, checkUser, getUser, profileCache, sortHandler, updateUser} from '../../utils';
 import {_setPermissions} from "../../types/permissions";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 import {error, failed, success} from "../../response";
@@ -9,7 +9,7 @@ import {middleware} from "apicache";
 const users = Router();
 
 users.get("/", checkUser, middleware('1 min'), (req, res) => {
-    Promise.all(getUsers().map(u => getUser(u.uid))).then(u => res.json(u));
+    Promise.all(profileCache.values().sort(sortHandler('uid')).map(u => getUser(u.uid))).then(u => res.json(u));
 });
 
 users.get("/:uid", checkUser, async (req, res) => {
@@ -20,7 +20,7 @@ users.get("/:uid", checkUser, async (req, res) => {
     }
 });
 
-users.post("/:uid", checkAdmin, async (req, res) => {
+users.post("/:uid", checkUser, checkAdmin, async (req, res) => {
     try {
         const user = await getUser(req.params.uid);
         if (!user) return res.json(failed({

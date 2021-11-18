@@ -85,8 +85,8 @@ const store = new Vuex.Store<State>({
             }
         },
         async logout({commit}) {
-            // await auth.signOut();
-            // await get("/api/auth/logout");
+            await auth.signOut();
+            await get("/api/auth/logout");
             this.cache.clear();
             commit("collections", undefined);
             commit("setProfile", undefined);

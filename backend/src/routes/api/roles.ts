@@ -2,15 +2,10 @@ import {Router} from 'express';
 import {makeRole} from '../../types/role';
 import {
     checkAdmin,
-    checkUser,
-    findUserWithRole,
-    getAllRoles,
-    getRole,
-    getUsers,
+    checkUser, profileCache, roleCache, sortHandler,
     updateRole,
     updateUser
 } from '../../utils';
-import {middleware} from 'apicache';
 import {_setPermissions} from "../../types/permissions";
 import {User} from "../../types/user";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
@@ -18,10 +13,10 @@ import {failed, success} from "../../response";
 
 const roles = Router();
 
-roles.get("/", checkUser, (req, res) => res.json(getAllRoles()));
+roles.get("/", checkUser, (req, res) => res.json(roleCache.values().sort(sortHandler('rid'))));
 
-roles.get("/:rid", checkUser, async (req, res) => {
-    const role = await getRole(req.params.rid);
+roles.get("/:rid", checkUser, (req, res) => {
+    const role = roleCache.get(req.params.rid);
     if (!role) return res.json(failed({
         reason: "role_not_found",
         rid: req.params.rid
@@ -29,17 +24,14 @@ roles.get("/:rid", checkUser, async (req, res) => {
     else res.json(role);
 });
 
-roles.get("/:rid/users", checkUser, middleware('1 min'), async (req, res) => {
-    // @ts-ignore
-    req.apicacheGroup = req.params.rid;
-    return res.json((await findUserWithRole(req.params.rid)).map(u => u.uid));
+roles.get("/:rid/users", checkUser, (req, res) => {
+    return res.json(profileCache.values().filter(u => u.roles.includes(req.params.rid)).sort(sortHandler('uid')).map(u => u.uid));
 });
 
-roles.post("/:rid/users", checkAdmin, async (req, res) => {
+roles.post("/:rid/users", checkUser, checkAdmin, async (req, res) => {
     let foundUsers: User[] = [];
-    let users = getUsers();
-    if (req.body.uids) foundUsers = (req.body.uids as string[]).map(e => users.find(u => u.uid === e)).filter(u => Boolean(u)) as User[];
-    if (req.body.emails) foundUsers = (req.body.emails as string[]).map(e => users.find(u => u.email === e)).filter(u => Boolean(u)) as User[];
+    if (req.body.uids) foundUsers = (req.body.uids as string[]).map(e => profileCache.get(e)).filter(u => Boolean(u)) as User[];
+    if (req.body.emails) foundUsers = (req.body.emails as string[]).map(e => profileCache.values().find(u => u.email === e)).filter(u => Boolean(u)) as User[];
     if (foundUsers.length === 0) res.json(failed({
         reason: "no users specified",
         rid: req.params.rid
@@ -65,8 +57,8 @@ roles.post("/:rid/users", checkAdmin, async (req, res) => {
     }
 });
 
-roles.delete("/:rid", checkAdmin, async (req, res) => {
-    let role = await getRole(req.params.rid);
+roles.delete("/:rid", checkUser, checkAdmin, async (req, res) => {
+    const role = roleCache.get(req.params.rid);
     if (!role) return res.json(failed({
         reason: "role_not_found",
         rid: req.params.rid
@@ -78,12 +70,12 @@ roles.delete("/:rid", checkAdmin, async (req, res) => {
     }
 });
 
-roles.post("/:rid", checkAdmin, async (req, res) => {
+roles.post("/:rid", checkUser, checkAdmin, async (req, res) => {
     if (!req.body.name) return res.json(failed({
         reason: "name_required_for_creation",
         rid: req.params.rid
     }));
-    if (await getRole(req.params.rid)) return res.json(failed({
+    if (roleCache.has(req.params.rid)) return res.json(failed({
         reason: "role_already_exists",
         rid: req.params.rid
     }));
@@ -100,9 +92,9 @@ roles.post("/:rid", checkAdmin, async (req, res) => {
     }
 });
 
-roles.post("/:rid/admin", checkAdmin, async (req, res) => {
+roles.post("/:rid/admin", checkUser, checkAdmin, async (req, res) => {
     try {
-        const role = await getRole(req.params.rid);
+        const role = roleCache.get(req.params.rid);
         if (!role) return res.json(failed({
             reason: "role_not_found",
             rid: req.params.rid

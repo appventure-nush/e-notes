@@ -4,10 +4,9 @@ import notesRouter from './notes';
 import {
     checkCreatePermissions, checkEditPermissions,
     checkPermissions,
-    checkUser,
-    difference, getAllRoles,
-    getAvailableCollections,
-    getCollection, getNotes
+    checkUser, collectionCache,
+    difference,
+    getAvailableCollections, getNotes, roleCache, sortHandler
 } from '../../utils';
 import {makeColl} from "../../types/coll";
 import {auth, firestore, storage} from "firebase-admin";
@@ -26,8 +25,8 @@ collections.get("/", checkUser, async (req, res) => {
     return res.json(await getAvailableCollections(req.uid!));
 });
 collections.post("/", checkUser, (req, res) => res.json(failed("collection_id_required")));
-collections.get("/:cid", checkUser, checkPermissions, async (req, res) => {
-    const collection = getCollection(req.params.cid);
+collections.get("/:cid", checkUser, checkPermissions, (req, res) => {
+    const collection = collectionCache.get(req.params.cid);
     if (!collection) return res.json(failed({
         reason: "collection_not_found",
         cid: req.params.cid
@@ -35,7 +34,7 @@ collections.get("/:cid", checkUser, checkPermissions, async (req, res) => {
     else res.json(collection);
 });
 collections.post("/:cid", checkUser, async (req, res) => {
-    let collection = getCollection(req.params.cid);
+    let collection = collectionCache.get(req.params.cid);
     let old = {...collection};
     if (req.body.action === "edit") {
         if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
@@ -57,7 +56,7 @@ collections.post("/:cid", checkUser, async (req, res) => {
     res.json(success({collection}));
 });
 collections.post("/:cid/access", checkUser, async (req, res) => {
-    let collection = getCollection(req.params.cid);
+    let collection = collectionCache.get(req.params.cid);
     if (!collection) return res.json(failed("collection_does_not_exist"));
     if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
     collection.hasReadAccess = collection?.hasReadAccess || [];
@@ -69,7 +68,7 @@ collections.post("/:cid/access", checkUser, async (req, res) => {
     res.json(success({collection}));
 });
 collections.delete("/:cid/access", checkUser, async (req, res) => {
-    let collection = getCollection(req.params.cid);
+    let collection = collectionCache.get(req.params.cid);
     if (!collection) return res.json(failed("collection_does_not_exist"));
     if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
     collection.hasReadAccess = [];
@@ -78,7 +77,7 @@ collections.delete("/:cid/access", checkUser, async (req, res) => {
 });
 collections.delete("/:cid", checkUser, async (req, res) => {
     if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
-    const collection = getCollection(req.params.cid);
+    const collection = collectionCache.get(req.params.cid);
     if (!collection) return res.json(failed({
         reason: "collection_not_found",
         cid: req.params.cid
@@ -89,7 +88,7 @@ collections.delete("/:cid", checkUser, async (req, res) => {
     }
 });
 collections.get('/:cid/img', checkUser, checkPermissions, async (req, res) => {
-    if (!getCollection(req.params.cid)) return res.json(failed('collection_not_found'));
+    if (!collectionCache.has(req.params.cid)) return res.json(failed('collection_not_found'));
     const files = (await storage().bucket().getFiles({prefix: `collections/${req.params.cid}/images`}))[0];
     res.json(files.map(f => ({
         url: f.publicUrl(),
@@ -98,7 +97,7 @@ collections.get('/:cid/img', checkUser, checkPermissions, async (req, res) => {
 });
 collections.post('/:cid/img', checkUser, async (req, res) => {
     if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
-    if (!getCollection(req.params.cid)) return res.json(failed('collection_not_found'));
+    if (!collectionCache.has(req.params.cid)) return res.json(failed('collection_not_found'));
     if (!req.files) return res.json(failed('where is the file'));
     const payload = req.files.file;
     if (payload && "data" in payload) {
@@ -122,7 +121,7 @@ collections.post('/:cid/img', checkUser, async (req, res) => {
 });
 collections.delete('/:cid/img/:img', checkUser, async (req, res) => {
     if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
-    if (!getCollection(req.params.cid)) return res.json(failed('collection_not_found'));
+    if (!collectionCache.has(req.params.cid)) return res.json(failed('collection_not_found'));
     const file = storage().bucket().file(`collections/${req.params.cid}/images/${req.params.img}`);
     file.delete()
         .then(() => res.json(success()))
@@ -131,11 +130,11 @@ collections.delete('/:cid/img/:img', checkUser, async (req, res) => {
 });
 collections.use("/:cid/notes", checkUser, checkPermissions, (req, res, next) => {
     req.body.cid = req.params.cid;
-    const collection = getCollection(req.params.cid);
+    const collection = collectionCache.get(req.params.cid);
     if (!collection) return res.json({reason: "collection_not_found"});
     next();
 }, notesRouter);
-collections.get("/:cid/roles", checkUser, checkPermissions, (req, res) => res.json(getAllRoles().filter(role => roleAccepts(role, req.params.cid) && !_rejects(role, req.params.cid))))
+collections.get("/:cid/roles", checkUser, checkPermissions, (req, res) => res.json(roleCache.values().filter(role => roleAccepts(role, req.params.cid) && !_rejects(role, req.params.cid)).sort(sortHandler('rid'))))
 collections.post("/:cid/reorder", checkUser, async (req, res) => {
     if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
     let tasks: Promise<WriteResult>[] = [];

@@ -187,11 +187,6 @@ export async function shouldAllow(to: Route): Promise<boolean> {
     } else return true;
 }
 
-router.beforeEach((to, from, next) => {
-    if (!FIREBASE_INITIALIZED) return next();
-    shouldAllow(to).then(yes => yes ? next() : next('/login'));
-});
-
 const DEFAULT_TITLE = 'Enotes';
 router.afterEach(to => Vue.nextTick(() => {
     let title = to.meta?.title || DEFAULT_TITLE;
@@ -200,5 +195,6 @@ router.afterEach(to => Vue.nextTick(() => {
     title = title.replace(/{{nid}}/g, to.params.nid);
     title = title.replace(/{{cid}}/g, to.params.cid);
     document.title = title;
+    if (FIREBASE_INITIALIZED) shouldAllow(to).then(yes => yes ? null : router.push('/login'));
 }));
 export default router

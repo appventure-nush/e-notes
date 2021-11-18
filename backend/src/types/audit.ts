@@ -42,23 +42,6 @@ export interface Rendered {
     date: string; // formatted
 }
 
-export function makeAudit(uid: string, assign: AuditPartial): Audit {
-    let audit: Audit = {
-        actor: uid,
-        aid: assign.aid!,
-        cat: assign.cat!,
-        colls: [],
-        extra: [],
-        notes: [],
-        roles: [],
-        time: Timestamp.now(),
-        type: assign.type!,
-        users: []
-    };
-    Object.assign(audit, assign);
-    return audit;
-}
-
 export function simpleAudit(uid: string, id: string, cat: Category, type: Action, extra?: any[], assign?: AuditPartial): Audit {
     let audit: Audit = {
         actor: uid,
