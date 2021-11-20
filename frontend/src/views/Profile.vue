@@ -100,9 +100,9 @@ import {User} from "@/types/user";
 import VueUploadComponent from "vue-upload-component";
 import {VUFile} from "@/shims-others";
 import {getToken, post} from "@/mixins/api";
-import {auth} from "@/main";
 import {linkWithPopup, OAuthProvider, sendEmailVerification} from "firebase/auth";
 import {FirebaseUser} from "@/shims-firebase-user";
+import {auth} from "@/plugins/firebase";
 
 @Component({
   methods: {

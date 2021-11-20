@@ -1,7 +1,8 @@
 import Vue from 'vue'
 import VueRouter, {RouteConfig, Route} from 'vue-router'
-import {auth, FIREBASE_INITIALIZED} from "@/main";
+import {FIREBASE_INITIALIZED} from "@/main";
 import store from "@/store";
+import {auth} from "@/plugins/firebase";
 
 Vue.use(VueRouter)
 
@@ -46,7 +47,13 @@ const routes: Array<RouteConfig> = [
     {
         path: '/roles',
         name: 'Roles',
-        component: () => import(/* webpackChunkName: "roles" */"@/views/Roles.vue"),
+        components: {
+            default: () => import(/* webpackChunkName: "roles" */"@/views/Roles.vue"),
+            appbar: () => import(/* webpackChunkName: "roles.appbar" */'@/components/RoleAppbar.vue')
+        }, props: {
+            default: true,
+            appbar: true
+        },
         meta: {
             icon: "mdi-tag-multiple",
             title: "Roles",
@@ -54,6 +61,15 @@ const routes: Array<RouteConfig> = [
             auth: true
         },
         children: [
+            {
+                meta: {
+                    title: "New"
+                },
+                props: true,
+                name: "New Role",
+                path: '',
+                component: () => import(/* webpackChunkName: "role" */'@/views/RoleViewer.vue')
+            },
             {
                 meta: {
                     title: "{{rid}}"
@@ -71,15 +87,14 @@ const routes: Array<RouteConfig> = [
         components: {
             default: () => import(/* webpackChunkName: "collection" */'@/views/CollectionViewer.vue'),
             appbar: () => import(/* webpackChunkName: "collection.appbar" */'@/components/CollectionAppbar.vue')
+        }, props: {
+            default: true,
+            appbar: true
         },
         meta: {
             title: "{{cid}}",
             hideTitle: true,
             auth: true
-        },
-        props: {
-            default: true,
-            appbar: true
         },
         children: [
             {

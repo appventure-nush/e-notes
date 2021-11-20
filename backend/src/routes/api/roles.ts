@@ -37,7 +37,7 @@ roles.post("/:rid/users", checkUser, checkAdmin, async (req, res) => {
         rid: req.params.rid
     })); else {
         let updated = 0;
-        const result = await Promise.all(foundUsers.map(user => {
+        await Promise.all(foundUsers.map(user => {
             if (req.body.action === "add") {
                 if (user.roles.includes(req.params.rid)) return user;
                 user.roles.push(req.params.rid);
@@ -47,11 +47,11 @@ roles.post("/:rid/users", checkUser, checkAdmin, async (req, res) => {
                 user.roles = user.roles.filter(role => role !== req.params.rid);
                 updated++;
             }
-            return updateUser(user.uid, user);
+            updateUser(user.uid, user);
         }));
         res.json(success({
             updated,
-            users: result
+            users: profileCache.values().filter(u => u.roles.includes(req.params.rid)).sort(sortHandler('uid')).map(u => u.uid)
         }));
         await addAudit(simpleAudit(req.uid!, req.params.rid, Category.ROLE, Action.EDIT_ROLES, ["grant_roles"], {users: foundUsers.map(u => u.uid)}));
     }

@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import {auth, FIREBASE_INITIALIZED} from "@/main";
+import {FIREBASE_INITIALIZED} from "@/main";
 import router from "@/router";
 import {State} from "@/shims-vuex";
 import {get, post} from "@/mixins/api";
@@ -11,6 +11,7 @@ import {Note} from "@/types/note";
 import {Role} from "@/types/role";
 import createCache from 'vuex-cache';
 import {FirebaseUser} from "@/shims-firebase-user";
+import {auth} from "@/plugins/firebase";
 
 Vue.use(Vuex)
 const vuexLocal = new VuexPersistence<State>({

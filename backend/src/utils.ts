@@ -57,9 +57,11 @@ export async function updateUser(uid: string, value: User): Promise<User> {
 }
 
 export async function updateRole(rid: string, value?: Role): Promise<Role | undefined> {
+    if (value) {
+        if (roleCache.has(rid)) await firestore().collection("roles").doc(rid).update(value);
+        else await firestore().collection("roles").doc(rid).set(value);
+    } else await firestore().collection("roles").doc(rid).delete();
     updateRoleCache(rid, value);
-    if (value) await firestore().collection("roles").doc(rid).update(value);
-    else await firestore().collection("roles").doc(rid).delete();
     return value;
 }
 

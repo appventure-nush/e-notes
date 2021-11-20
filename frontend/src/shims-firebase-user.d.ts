@@ -1,5 +1,5 @@
 import {
     User
-} from "@firebase/auth"
+} from "firebase/auth"
 
 export type FirebaseUser = User;

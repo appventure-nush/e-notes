@@ -1,5 +1,6 @@
 <template>
   <v-dialog
+      :fullscreen="$vuetify.breakpoint.xsOnly"
       v-model="dialog"
       max-width="600px">
     <template v-slot:activator="bind">

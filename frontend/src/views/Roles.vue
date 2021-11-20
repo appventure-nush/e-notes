@@ -26,7 +26,7 @@
       </v-list-item-group>
     </v-col>
     <v-col style="max-height:100%;overflow-y:auto">
-      <router-view :roles="roles"></router-view>
+      <router-view :roles="roles" :creating="!$route.params.rid"></router-view>
     </v-col>
   </v-row>
 </template>
@@ -35,6 +35,7 @@
 import {Component, Vue} from "vue-property-decorator";
 import {cached, storeTo} from "@/store";
 import {Role} from "@/types/role";
+import {EventBus} from "@/event";
 
 @Component
 export default class Roles extends Vue {
@@ -43,12 +44,23 @@ export default class Roles extends Vue {
   selected = "";
   query = "";
 
+  creating = false;
+
   get roles(): Role[] {
     return this.$store.state.currentRoles;
   }
 
   created() {
     cached("getRoles").then(json => storeTo("setCurrentRoles", json))
+    EventBus.$on('needRoleUpdate', (callback?: () => void) => {
+      cached("getRoles").then(json => {
+        storeTo("setCurrentRoles", json);
+        if (callback) callback();
+      })
+    });
+    EventBus.$on('newRoleRequested', () => {
+      this.$router.push({name: 'New Role'});
+    })
   }
 
   get hasSelected() {

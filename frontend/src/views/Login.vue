@@ -75,7 +75,6 @@
 
 <script lang="ts">
 import {Component, Vue, Watch} from "vue-property-decorator";
-import {auth} from "@/main";
 import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
@@ -83,6 +82,7 @@ import {
   signInWithPopup,
   fetchSignInMethodsForEmail
 } from "@firebase/auth";
+import {auth} from "@/plugins/firebase";
 
 const provider = new OAuthProvider('microsoft.com');
 provider.setCustomParameters({prompt: 'consent'});
