@@ -50,12 +50,12 @@
       </v-card-actions>
     </v-card>
     <v-divider class="my-3"/>
-    <v-card class="pa-5" flat :loading="doc_loading">
+    <v-card class="pa-5" flat :loading="doc_loading" :disabled="doc_loading">
       <template v-if="this.doc">
         <JupyterViewer v-if="note.type==='jupyter'" :notebook="doc"></JupyterViewer>
         <markdown v-else-if="note.type==='markdown'" :content="doc"></markdown>
       </template>
-      <div ref="shadowRoot"></div>
+      <div ref="shadowRoot" v-show="note.type!=='markdown'&&note.type!=='jupyter'"></div>
       <v-skeleton-loader
           v-if="loading"
           class="mx-auto"
@@ -89,7 +89,7 @@ export default class NoteViewer extends Vue {
 
   @Prop(String) readonly cid!: string;
   @Prop(String) readonly nid!: string;
-  @Prop(Array) readonly notes!: Note[];
+  @Prop(Array) readonly notes?: Note[];
   name = "NoteViewer";
   doc: any = "";
   loading = false;
@@ -98,14 +98,13 @@ export default class NoteViewer extends Vue {
 
   @Watch('doc')
   onDocChange() {
-    if (!this.shadow) return;
+    if (!this.shadow) {
+      if (!this.shadowRoot) return;
+      this.shadow = this.shadowRoot.attachShadow({mode: 'open'});
+    }
     this.shadow.innerHTML = "";
     if (this.note && this.note.type && this.note.type !== "html") return;
     this.shadow.innerHTML = this.doc;
-  }
-
-  mounted() {
-    this.shadow = this.shadowRoot.attachShadow({mode: 'open'});
   }
 
   get note(): Note {
@@ -124,13 +123,11 @@ export default class NoteViewer extends Vue {
 
   @Watch('nid', {immediate: true})
   onNIDChange() {
+    if (!this.notes) return;
     if (this.notes.length === 0) return;
-    this.doc = "";
-    this.loading = true;
     let note = this.notes.find((n: Note) => n.nid === this.nid);
     if (!note) return this.$router.push({name: 'Collection', params: {cid: this.cid || ''}});
     Data.setCurrentNote(note);
-    this.loading = false;
   }
 
   @Watch('note', {immediate: true, deep: true})

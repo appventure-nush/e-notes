@@ -14,6 +14,7 @@ import store from "@/store/index";
 })
 class ConfigModule extends VuexModule {
     dark = false;
+    drawer = true;
 
     user: FirebaseUser | null = null;
     profile: User | null = null;
@@ -21,6 +22,11 @@ class ConfigModule extends VuexModule {
     @Mutation
     setDark(dark: boolean) {
         this.dark = dark;
+    }
+
+    @Mutation
+    setDrawer(drawer: boolean) {
+        this.drawer = drawer;
     }
 
     @Mutation

@@ -108,7 +108,6 @@
           app
           elevate-on-scroll
           hide-on-scroll
-          scroll-threshold="69"
           color="primary"
           dark>
         <v-app-bar-nav-icon @click="drawer=!drawer"></v-app-bar-nav-icon>
@@ -134,10 +133,16 @@ import Config from "@/store/config"
 
 @Component
 export default class App extends Vue {
-  drawer = false;
-
   get profile() {
     return Config.profile;
+  }
+
+  get drawer() {
+    return Config.drawer;
+  }
+
+  set drawer(drawer: boolean) {
+    Config.setDrawer(drawer);
   }
 
   get currentCollection() {
