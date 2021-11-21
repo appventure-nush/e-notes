@@ -6,6 +6,7 @@ import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 import iconv from "iconv-lite";
 
 import {failed, success} from "../../response";
+import fileUpload from "express-fileupload";
 
 const notes = Router();
 
@@ -57,7 +58,7 @@ notes.delete("/:nid", checkUser, async (req, res) => {
     ]);
     res.json(success());
 });
-notes.post("/:nid/upload", checkUser, async (req, res) => {
+notes.post("/:nid/upload", checkUser, fileUpload({limits: {fileSize: 64 * 1024 * 1024}}), async (req, res) => {
     if (!await checkEditPermissions(req, req.body.cid)) return res.json(failed("not_authorised"));
     if (!req.files) return res.json(failed('where is the file'));
     const newNoteSource = req.files.note_source;

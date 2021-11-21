@@ -32,7 +32,6 @@
         "vuedraggable": "^2.24.3",
         "vuetify": "^2.4.0",
         "vuex": "^3.4.0",
-        "vuex-cache": "^3.4.0",
         "vuex-module-decorators": "^1.0.1",
         "vuex-persist": "^3.1.3"
     },

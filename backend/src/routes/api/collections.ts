@@ -16,6 +16,7 @@ import WriteResult = firestore.WriteResult;
 import {error, failed, success} from "../../response";
 import {_rejects} from "../../types/permissions";
 import {roleAccepts} from "../../types/role";
+import fileUpload from "express-fileupload";
 
 const collections = Router();
 
@@ -95,7 +96,7 @@ collections.get('/:cid/img', checkUser, checkPermissions, async (req, res) => {
         name: f.name.substring(f.name.lastIndexOf('/') + 1)
     })).filter(i => i.name));
 });
-collections.post('/:cid/img', checkUser, async (req, res) => {
+collections.post('/:cid/img', checkUser, fileUpload({limits: {fileSize: 64 * 1024 * 1024}}), async (req, res) => {
     if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
     if (!collectionCache.has(req.params.cid)) return res.json(failed('collection_not_found'));
     if (!req.files) return res.json(failed('where is the file'));

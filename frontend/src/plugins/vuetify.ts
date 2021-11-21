@@ -3,6 +3,12 @@ import Vuetify from 'vuetify/lib'
 import Config from "@/store/config"
 
 Vue.use(Vuetify);
+try {
+    Config.dark;
+} catch (e) {
+    localStorage.clear();
+    location.reload();
+}
 
 export default new Vuetify({
     theme: {

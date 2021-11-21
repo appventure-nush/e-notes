@@ -14,7 +14,6 @@ const api = express.Router();
 api.use(nocache());
 api.use(express.json());
 api.use(express.urlencoded({extended: true}));
-api.use(fileUpload({limits: {fileSize: 64 * 1024 * 1024}}));
 
 api.get("/", checkUserOptional, (req, res) => res.json(success({
     name: "enotes api",
