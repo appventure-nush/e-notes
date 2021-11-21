@@ -11,7 +11,7 @@
           <pre class="source-code-main" v-html="hljs"></pre>
         </v-card>
         <div class="cell-content source-markdown" v-else-if="type==='markdown'">
-          <markdown :content="cell.source.join('')" :options="mdOptions"></markdown>
+          <markdown :content="cell.source.join('')"></markdown>
         </div>
         <div v-else>
           Cell Type {{ type }} not supported...
@@ -24,9 +24,8 @@
 <script lang="ts">
 import {Component, Prop, Vue} from "vue-property-decorator";
 import hljs from 'highlight.js/lib/common';
-import {Cell} from "@/shims-nbformat-v4";
+import {Cell} from "@/types/shims/shims-nbformat-v4";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
-import {MarkdownItVueOptions} from "@/components/markdownViewer/markdown";
 import 'highlight.js/styles/github.css'
 
 @Component({
@@ -37,7 +36,6 @@ import 'highlight.js/styles/github.css'
 export default class BlockSource extends Vue {
   name = "BlockSource"
   @Prop(Object) readonly cell!: Cell;
-  @Prop(Object) readonly mdOptions!: MarkdownItVueOptions
   @Prop(Boolean) readonly display!: boolean;
   @Prop(Boolean) readonly showLineNumber!: boolean;
   @Prop(String) readonly language!: string;

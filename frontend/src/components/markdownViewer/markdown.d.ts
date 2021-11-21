@@ -3,58 +3,58 @@ export interface MarkdownItOptions {
      * That's not safe! You may need external sanitizer to protect output from XSS.
      * It's better to extend features via plugins, instead of enabling HTML.
      */
-    html: boolean
+    html?: boolean
     /**
      * false.Set true to add '/' when closing single tags(<br />).
      * This is needed only for full CommonMark compatibility.
      * In real world you will need HTML output.
      */
-    xhtmlOut: boolean
+    xhtmlOut?: boolean
     /**
      * false.Set true to convert \n in paragraphs into<br>.
      */
-    breaks: boolean
+    breaks?: boolean
     /**
      * language -.CSS language class prefix for fenced blocks.Can be useful for external highlighters.
      */
-    langPrefix: string
+    langPrefix?: string
     /**
      * false.Set true to autoconvert URL - like text to links.
      */
-    linkify: boolean
+    linkify?: boolean
     /**
      * false.Set true to enable some language - neutral replacement + quotes beautification(smartquotes).
      */
-    typographer: boolean
+    typographer?: boolean
     /**
      * “”‘’, String or Array.Double + single quotes replacement pairs,
      * when typographer enabled and smartquotes on.For example, you can use '«»„“'
      * for Russian, '„“‚‘' for German, and['«\xA0', '\xA0»', '‹\xA0', '\xA0›']
      * for French(including nbsp).
      */
-    quotes: string | string[]
+    quotes?: string | string[]
     /**
      * null.Highlighter function for fenced code blocks.
      * Highlighter function (str, lang) should return escaped HTML.
      * It can also return empty string if the source was not changed and should be escaped externaly.
      * If result starts with <pre...internal wrapper is skipped.
      */
-    highlight: ((str: string, lang: string) => string)
+    highlight?: ((str: string, lang: string) => string)
 }
 
 export interface LinkAttributesOpionsAttrs {
     /**
      * The browser target like '_blank' etc.
      */
-    target: string
+    target?: string
     /**
      * Special the rel attribute like 'noopener' etc.
      */
-    rel: string
+    rel?: string
     /**
      * Special the css class.
      */
-    class: string
+    class?: string
 }
 
 export interface HighlightOptions {
@@ -209,38 +209,33 @@ export interface GithubTocOptions {
 
 
 export interface MarkdownItVueOptions {
-    highlight: HighlightOptions;
+    highlight?: HighlightOptions;
     /**
      * The options of MarkdownIt.
      */
-    markdownIt: MarkdownItOptions
+    markdownIt?: MarkdownItOptions
     /**
      * The options of markdown-it-link-attributes.
      * https://www.npmjs.com/package/markdown-it-link-attributes
      */
-    linkAttributes: LinkAttributesOpions
+    linkAttributes?: LinkAttributesOpions
     /**
      * The options of katex.
      * https://www.npmjs.com/package/markdown-it-katex
      */
-    katex: KatexOptions
+    katex?: KatexOptions
     /**
      * The options of tasklists.
      * https://www.npmjs.com/package/markdown-it-task-lists
      */
-    tasklists: TasklistsOptions
+    tasklists?: TasklistsOptions
     /**
      * The options of githubToc
      * https://www.npmjs.com/package/markdown-it-github-tocmarkdown-it-github-toc
      */
-    githubToc: GithubTocOptions
-    /**
-     * The options of mermaid.
-     * https://mermaid-js.github.io/mermaid/#/Setup?id=mermaidapi-configuration-defaults
-     */
-    mermaid: object,
+    githubToc?: GithubTocOptions
     /**
      * The options of ImageViewer.
      */
-    image: ImageOptions
+    image?: ImageOptions
 }

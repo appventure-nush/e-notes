@@ -4,7 +4,7 @@
       <v-card-title>
         Login
         <v-btn small icon @click="toggleDark" class="ml-3">
-          <v-icon v-text="$store.state.dark?'mdi-white-balance-sunny':'mdi-moon-waxing-crescent'"></v-icon>
+          <v-icon v-text="$store.state.config.dark?'mdi-white-balance-sunny':'mdi-moon-waxing-crescent'"></v-icon>
         </v-btn>
       </v-card-title>
       <v-card-text>
@@ -83,6 +83,7 @@ import {
   fetchSignInMethodsForEmail
 } from "@firebase/auth";
 import {auth} from "@/plugins/firebase";
+import Config from "@/store/config"
 
 const provider = new OAuthProvider('microsoft.com');
 provider.setCustomParameters({prompt: 'consent'});
@@ -117,8 +118,8 @@ export default class Login extends Vue {
   ];
 
   toggleDark(): boolean {
-    this.$store.commit('toggleDark');
-    return this.$vuetify.theme.dark = this.$store.state.dark;
+    Config.setDark(!Config.dark);
+    return this.$vuetify.theme.dark = Config.dark;
   }
 
   login(): void {
@@ -126,21 +127,21 @@ export default class Login extends Vue {
     this.errorMsg = undefined;
     signInWithEmailAndPassword(auth, this.email, this.password)
         .then(firebaseData => firebaseData.user?.getIdToken(true))
-        .then(token => this.$store.dispatch('verifyToken', token))
+        .then(token => Config.verifyToken(token))
         .catch(e => {
           this.attempting = false;
           this.errorMsg = e.code;
         });
   }
 
-  microsoft(): Promise<void> {
+  microsoft() {
     this.errorMsg = undefined;
     this.attempting = true;
     return signInWithPopup(auth, provider).then(result => {
       const credential = OAuthProvider.credentialFromResult(result);
       if (!(credential && credential.idToken)) throw "Credential is null";
       return result.user.getIdToken(true);
-    }).then(token => this.$store.dispatch('verifyToken', token)).catch(error => {
+    }).then(token => Config.verifyToken(token)).catch(error => {
       this.attempting = false;
       console.log(error);
       if (error.code === 'auth/account-exists-with-different-credential') {

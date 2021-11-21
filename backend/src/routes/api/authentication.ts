@@ -20,11 +20,12 @@ authentication.post('/', (req, res) => {
     auth()
         .createSessionCookie(token, {expiresIn})
         .then((sessionCookie) => {
-            const options = {maxAge: expiresIn, httpOnly: true, secure: process.env.ENVIRONMENT !== 'local'};
-            res.cookie('session', sessionCookie, options);
+            res.cookie('session', sessionCookie,
+                {maxAge: expiresIn, httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict'}
+            );
             res.json(success());
-        }, _ => {
-            res.json(failed({reason: 'NZ2XG2D3NRHTS2KOL5TDISKMGNSH2===', message: _.message}));
+        }, e => {
+            res.json(failed({reason: 'NZ2XG2D3NRHTS2KOL5TDISKMGNSH2===', message: e.message}));
         });
 });
 authentication.post('/profile', checkUser, async (req, res) => {

@@ -2,10 +2,12 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
+import {auth} from "@/plugins/firebase";
 import './mixins'
 import './plugins/others'
+
+import Config from "@/store/config"
 import vuetify from './plugins/vuetify'
-import {auth} from "@/plugins/firebase";
 
 const ASCII_NAME =
     `%c  _____             _              _   _ _   _ ____  _   _ \n` +
@@ -25,8 +27,8 @@ export let FIREBASE_INITIALIZED = false;
 
 const unsubscribe = auth.onAuthStateChanged(user => {
     FIREBASE_INITIALIZED = true;
-    store.commit('setUser', user);
-    store.dispatch('fetchUserProfile');
+    Config.setUser(user);
+    Config.fetchProfile();
     unsubscribe();
 });
 

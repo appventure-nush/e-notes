@@ -98,11 +98,12 @@
 import {Component, Ref, Vue, Watch} from "vue-property-decorator"
 import {User} from "@/types/user";
 import VueUploadComponent from "vue-upload-component";
-import {VUFile} from "@/shims-others";
+import {VUFile} from "@/types/shims/shims-others";
 import {getToken, post} from "@/mixins/api";
 import {linkWithPopup, OAuthProvider, sendEmailVerification} from "firebase/auth";
-import {FirebaseUser} from "@/shims-firebase-user";
+import {FirebaseUser} from "@/types/shims/shims-firebase-user";
 import {auth} from "@/plugins/firebase";
+import Config from "@/store/config"
 
 @Component({
   methods: {
@@ -134,7 +135,7 @@ export default class Profile extends Vue {
       if (newFile.success) {
         let res = newFile.response as any;
         if (res.status !== 'success') alert(res.reason);
-        else this.$store.commit('setProfile', res.user);
+        else Config.fetchProfile();
         this.upload.remove(newFile);
       }
     }
@@ -150,9 +151,8 @@ export default class Profile extends Vue {
     post('/api/auth/profile', {
       nickname: this.localCopy?.nickname,
       desc: this.localCopy?.desc
-    }).then(res => res.json()).then(json => {
-      if (json.status !== 'success') alert(json.reason);
-      this.$store.dispatch('fetchUserProfile');
+    }).then(() => {
+      Config.fetchProfile();
       this.editing = false;
     }).finally(() => this.saving = false);
   }
@@ -162,7 +162,7 @@ export default class Profile extends Vue {
     this.linking = true;
     const provider = new OAuthProvider('microsoft.com');
     provider.setCustomParameters({prompt: 'consent'});
-    linkWithPopup(auth.currentUser, provider).then(() => this.$store.commit('setUser', auth.currentUser)).catch(error => console.error(error)).finally(() => this.linking = false);
+    linkWithPopup(auth.currentUser, provider).then(() => Config.setUser(auth.currentUser)).catch(error => console.error(error)).finally(() => this.linking = false);
   }
 
   verify() {
@@ -173,15 +173,15 @@ export default class Profile extends Vue {
 
   cancel() {
     this.editing = false;
-    this.localCopy = {...this.user};
+    if (this.user) this.localCopy = {...this.user};
   }
 
-  get user(): User {
-    return this.$store.state.profile;
+  get user(): User | null {
+    return Config.profile;
   }
 
-  get fbUser(): FirebaseUser {
-    return this.$store.state.user;
+  get fbUser(): FirebaseUser | null {
+    return Config.user;
   }
 
   @Watch('user', {immediate: true, deep: true})

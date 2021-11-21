@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <template v-if="!$router.currentRoute.meta.naked && $store.state.profile">
+    <template v-if="!$router.currentRoute.meta.naked && profile">
       <v-navigation-drawer app v-model="drawer">
         <template v-slot:prepend>
           <v-list-item two-line>
@@ -8,16 +8,16 @@
               <v-img :src="pfp" alt="profile pic" lazy-src="/images/guest.png"></v-img>
             </v-list-item-avatar>
 
-            <v-list-item-content v-if="$store.state.profile">
-              <v-list-item-title>{{ $store.state.profile.name }}</v-list-item-title>
-              <v-list-item-subtitle>{{ $store.state.profile.email }}</v-list-item-subtitle>
+            <v-list-item-content v-if="profile">
+              <v-list-item-title>{{ profile.name }}</v-list-item-title>
+              <v-list-item-subtitle>{{ profile.email }}</v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
-          <div class="mx-2 mb-2">
-            <v-chip class="ma-1" v-if="$store.state.profile.admin" color="error" label dark small>admin</v-chip>
-            <v-chip class="ma-1" v-if="$store.state.profile.teacher" color="info" label dark small>teacher</v-chip>
+          <div class="mx-2 mb-2 hidden-sm-and-down">
+            <v-chip class="ma-1" v-if="profile.admin" color="error" label dark small>admin</v-chip>
+            <v-chip class="ma-1" v-if="profile.teacher" color="info" label dark small>teacher</v-chip>
             <v-chip class="ma-1" v-else outlined label small>student</v-chip>
-            <v-chip class="ma-1" v-for="role in $store.state.profile.roles" :key="role" v-text="role" outlined label
+            <v-chip class="ma-1" v-for="role in profile.roles" :key="role" v-text="role" outlined label
                     small></v-chip>
           </div>
           <v-row class="px-3 mb-2">
@@ -26,7 +26,7 @@
               </v-btn>
             </v-col>
             <v-col cols="6">
-              <v-btn color="error" outlined block small depressed @click="$store.dispatch('logout')">Logout</v-btn>
+              <v-btn color="error" outlined block small depressed @click="logout">Logout</v-btn>
             </v-col>
           </v-row>
         </template>
@@ -60,12 +60,12 @@
             </v-list-item-content>
           </v-list-item>
           <!-- if in collection/notes page, show notes list -->
-          <template v-if="isCollectionRoute($route)">
+          <template v-if="isCollectionRoute($route)&&currentCollection">
             <v-divider/>
             <!-- Notes of the current collection -->
             <v-list-group prepend-icon="mdi-folder" :value="true">
               <template v-slot:activator>
-                <v-list-item-title>{{ $store.state.currentCollection.name }}</v-list-item-title>
+                <v-list-item-title>{{ currentCollection.name }}</v-list-item-title>
               </template>
               <v-list-item
                   :to="{name:'Collection', params:{cid:$route.params.cid}}"
@@ -76,7 +76,7 @@
                 </v-list-item-content>
               </v-list-item>
               <v-list-item
-                  v-for="item in $store.state.currentNotes"
+                  v-for="item in currentNotes"
                   :to="{name:'Note Redirect', params:{cid:$route.params.cid,nid:item.nid}}"
                   :key="item.name"
                   link>
@@ -85,15 +85,15 @@
                 </v-list-item-content>
               </v-list-item>
             </v-list-group>
-            <!-- Other collections -->
           </template>
-          <v-list-group prepend-icon="mdi-folder" v-if="$store.state.collections&&$store.state.collections.filter">
+          <!-- Other collections -->
+          <v-list-group prepend-icon="mdi-folder" v-if="collections">
             <template v-slot:activator>
               <v-list-item-title
                   v-text="isCollectionRoute($route)?'Others':'Collections'"></v-list-item-title>
             </template>
             <v-list-item
-                v-for="coll in $store.state.collections.filter(c=>c.cid!==$route.params.cid||!$route.matched.some(({ name }) => name === 'Collection'))"
+                v-for="coll in collections.filter(c=>c && (c.cid!==$route.params.cid||!$route.matched.some(({ name }) => name === 'Collection')))"
                 :to="{name:'Collection',params:{cid:coll.cid}}"
                 :key="coll.cid"
                 link>
@@ -116,7 +116,7 @@
         <router-view name="appbar"></router-view>
         <v-spacer></v-spacer>
         <v-btn small icon @click="toggleDark" class="mr-1">
-          <v-icon v-text="$store.state.dark?'mdi-white-balance-sunny':'mdi-moon-waxing-crescent'"></v-icon>
+          <v-icon v-text="dark?'mdi-white-balance-sunny':'mdi-moon-waxing-crescent'"></v-icon>
         </v-btn>
       </v-app-bar>
     </template>
@@ -128,24 +128,45 @@
 
 <script lang="ts">
 import {Component, Vue} from "vue-property-decorator";
+import {Collection} from "@/types/coll";
+import Data from "@/store/data"
+import Config from "@/store/config"
 
 @Component
 export default class App extends Vue {
+  drawer = false;
+
+  get profile() {
+    return Config.profile;
+  }
+
+  get currentCollection() {
+    return Data.currentCollection;
+  }
+
+  get currentNotes() {
+    return Data.currentNotes;
+  }
+
   get pfp() {
-    return this.$store.state.profile?.pfp || "/images/guest.png";
+    return this.profile?.pfp || "/images/guest.png";
   }
 
-  get drawer() {
-    return this.$store.state.drawerOpen;
+  get dark() {
+    return Config.dark;
   }
 
-  set drawer(val: boolean) {
-    this.$store.commit("setDrawer", val);
+  get collections(): Collection[] {
+    return Data.collections;
   }
 
   toggleDark() {
-    this.$store.commit('toggleDark');
-    this.$vuetify.theme.dark = this.$store.state.dark;
+    Config.setDark(!Config.dark);
+    this.$vuetify.theme.dark = Config.dark;
+  }
+
+  logout() {
+    Config.logout();
   }
 }
 </script>

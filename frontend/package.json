@@ -12,6 +12,7 @@
         "@toast-ui/vue-editor": "^3.1.1",
         "@traptitech/markdown-it-katex": "^3.5.0",
         "ansi-to-html": "^0.7.2",
+        "babel-plugin-transform-decorators": "^6.24.1",
         "core-js": "^3.6.5",
         "firebase": "^9.5.0",
         "hammerjs": "^2.0.8",
@@ -32,6 +33,7 @@
         "vuetify": "^2.4.0",
         "vuex": "^3.4.0",
         "vuex-cache": "^3.4.0",
+        "vuex-module-decorators": "^1.0.1",
         "vuex-persist": "^3.1.3"
     },
     "devDependencies": {

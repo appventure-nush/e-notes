@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import Vuetify from 'vuetify/lib'
-import store from '@/store'
+import Config from "@/store/config"
 
 Vue.use(Vuetify);
 
@@ -27,6 +27,6 @@ export default new Vuetify({
                 background: '#1E1E1E'
             },
         },
-        dark: store.state.dark
+        dark: Config.dark
     },
 });

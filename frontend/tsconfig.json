@@ -17,7 +17,7 @@
             "webpack-env"
         ],
         "typeRoots": [
-            "src",
+            "./src/types/shims",
             "./node_modules/@types"
         ],
         "paths": {

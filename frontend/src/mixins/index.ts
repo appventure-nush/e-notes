@@ -15,6 +15,6 @@ Vue.mixin({
         hasPermission,
         computeAccess,
         isCollectionRoute,
-        initials,
+        initials
     }
 });

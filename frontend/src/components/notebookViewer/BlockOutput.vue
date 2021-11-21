@@ -18,7 +18,8 @@
                 <pre class="cell-content output-std" v-text="output.data['text/plain'].join('')"></pre>
               </v-col>
               <v-col cols="12" class="cell-content output-display">
-                <img v-if="'image/png' in output.data" :src="`data:image/png;base64,${output.data['image/png']}`"/>
+                <img v-if="'image/png' in output.data" :src="`data:image/png;base64,${output.data['image/png']}`"
+                     alt="Image Error"/>
                 <div v-if="'text/html' in output.data" v-html="output.data['text/html'].join('')"></div>
               </v-col>
             </template>
@@ -34,7 +35,7 @@
 
 <script lang="ts">
 import {Component, Prop, Vue} from "vue-property-decorator";
-import {Cell} from "@/shims-nbformat-v4";
+import {Cell} from "@/types/shims/shims-nbformat-v4";
 import Convert from "ansi-to-html";
 
 const convert = new Convert();

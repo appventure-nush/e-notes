@@ -12,7 +12,6 @@
       <BlockSource
           v-if="'cell_type' in cell"
           :cell="cell"
-          :md-options="mdOptions"
           :language="language"
           :highlighted="clickCellIndex === index"/>
       <BlockOutput
@@ -25,11 +24,9 @@
 
 <script lang="ts">
 import {Component, Prop, Vue} from "vue-property-decorator";
-import {Notebook} from "@/shims-nbformat-v4";
+import {Notebook} from "@/types/shims/shims-nbformat-v4";
 import BlockSource from "@/components/notebookViewer/BlockSource.vue";
 import BlockOutput from "@/components/notebookViewer/BlockOutput.vue";
-import {RecursivePartial} from "@/shims-vuex";
-import {MarkdownItVueOptions} from "@/components/markdownViewer/markdown";
 
 @Component({
   components: {BlockOutput, BlockSource}
@@ -39,14 +36,6 @@ export default class JupyterViewer extends Vue {
   @Prop(Object) readonly notebook!: Notebook;
   @Prop({default: "python"}) readonly language!: string;
   clickCellIndex = -1;
-
-  mdOptions: RecursivePartial<MarkdownItVueOptions> = {
-    markdownIt: {
-      html: true,
-      linkify: true
-    },
-    katex: {}
-  }
 }
 </script>
 

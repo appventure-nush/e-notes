@@ -36,7 +36,6 @@ export function isCollectionRoute(route: Route) {
     return route.path.startsWith('/collection/');
 }
 
-
 const rgx = new RegExp(/([a-zA-Z])[a-zA-Z]+/, 'gu');
 
 export function initials(name: string) {

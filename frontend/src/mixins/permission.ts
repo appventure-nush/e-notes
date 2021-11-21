@@ -2,24 +2,23 @@ import {
     ADMIN_PERMISSION, TEACHER_PERMISSION,
     CREATE_COLLECTION, EDIT_OTHER_COLLECTION, User
 } from "@/types/user";
-import store from "@/store";
+import Config from "@/store/config";
 import {Collection} from "@/types/coll";
 
 export function isAdmin(): boolean {
-    const user = store.state.profile;
-    if (!user) return false;
-    return user.admin;
+    if (!Config.profile) return false;
+    return Config.profile.admin;
 }
 
 export function canCreate(): boolean {
-    return hasPermission(computeAccess(store.state.profile), CREATE_COLLECTION);
+    return hasPermission(computeAccess(Config.profile), CREATE_COLLECTION);
 }
 
 export function canEdit(collection: Collection): boolean {
-    return hasPermission(computeAccess(store.state.profile, collection), EDIT_OTHER_COLLECTION);
+    return hasPermission(computeAccess(Config.profile, collection), EDIT_OTHER_COLLECTION);
 }
 
-export function computeAccess(user?: User, collection?: Collection): number {
+export function computeAccess(user?: User | null, collection?: Collection): number {
     if (!user) return 0;
     let final = user.access || 0;
     if (user.teacher) final |= TEACHER_PERMISSION;

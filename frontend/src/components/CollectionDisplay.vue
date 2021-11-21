@@ -11,7 +11,7 @@
           {{ value.name }}
         </v-list-item-title>
         <v-list-item-subtitle>
-          <markdown :content="value.desc" :options="$store.state.markdownOptions"></markdown>
+          <markdown :content="value.desc"></markdown>
         </v-list-item-subtitle>
       </v-list-item-content>
     </v-list-item>
@@ -38,7 +38,7 @@
 <script lang="ts">
 import {Component, Prop, Vue} from "vue-property-decorator";
 import {Collection} from "@/types/coll";
-import CollectionPopup from "@/components/CollectionPopup.vue";
+import CollectionPopup from "@/components/popup/CollectionPopup.vue";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
 
 @Component({

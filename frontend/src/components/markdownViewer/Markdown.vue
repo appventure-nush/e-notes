@@ -8,12 +8,10 @@ import MarkdownIt from 'markdown-it'
 import MarkdownItKatex from '@traptitech/markdown-it-katex'
 import MarkdownItTasklists from '@hedgedoc/markdown-it-task-lists'
 import markdown_it_highlightjs from "markdown-it-highlightjs";
-import {HighlightOptions, KatexOptions, MarkdownItVueOptions} from "@/components/markdownViewer/markdown";
+import {MarkdownItVueOptions} from "@/components/markdownViewer/markdown";
 import 'katex/dist/katex.min.css'
 import '@/styles/github-dark.scss';
 
-const DEFAULT_OPTIONS_KATEX: KatexOptions = {blockClass: "test"}
-const DEFAULT_OPTIONS_HIGHLIGHT: HighlightOptions = {inline: true, auto: false}
 @Component
 export default class Markdown extends Vue {
   name = 'markdown-viewer';
@@ -21,12 +19,14 @@ export default class Markdown extends Vue {
   @Ref('markdown-it-vue-container') readonly container!: Element;
   @Prop(String) readonly content!: string;
   @Prop({
-    default: {
+    type: Object,
+    default: (): MarkdownItVueOptions => ({
       markdownIt: {
+        html: true,
         linkify: true
       },
-      katex: DEFAULT_OPTIONS_KATEX
-    }
+      katex: {}
+    })
   }) readonly options!: MarkdownItVueOptions;
 
   @Watch('content', {immediate: true})
@@ -38,10 +38,10 @@ export default class Markdown extends Vue {
   }
 
   created() {
-    this.md = new MarkdownIt(this.options.markdownIt)
-        .use(MarkdownItKatex, this.options.katex || DEFAULT_OPTIONS_KATEX)
+    this.md = new MarkdownIt(this.options.markdownIt || {})
+        .use(MarkdownItKatex, this.options.katex || {})
         .use(MarkdownItTasklists, this.options.tasklists || {})
-        .use(markdown_it_highlightjs, this.options.highlight || DEFAULT_OPTIONS_HIGHLIGHT)
+        .use(markdown_it_highlightjs, this.options.highlight || {})
   }
 
   get() {

@@ -14,7 +14,7 @@
                class="white--text align-end">
           <v-list-item-content class="pb-0" style="background:rgba(0,0,0,0.4)">
             <v-card-text class="py-0">{{ image.name }}</v-card-text>
-            <v-btn v-if="canEdit($store.state.currentCollection)"
+            <v-btn v-if="canEdit(currentCollection)"
                    color="red" text @click.stop="$emit('delete',image.name)"
                    :disabled="deleting.includes(image.name)">
               Delete
@@ -36,6 +36,7 @@
 <script lang="ts">
 import {Component, Model, Prop, Ref, Vue} from "vue-property-decorator";
 import LightBox from "@/components/lightbox/LightBox.vue";
+import Data from "@/store/data"
 
 @Component({components: {LightBox}})
 export default class Gallery extends Vue {
@@ -53,6 +54,10 @@ export default class Gallery extends Vue {
       src: i.url,
       type: {}
     }));
+  }
+
+  get currentCollection() {
+    return Data.currentCollection;
   }
 }
 </script>

@@ -63,7 +63,7 @@
             <template v-slot:footer v-if="editing">
               <v-row no-gutters class="flex-nowrap mx-2">
                 <v-col class="flex-grow-1 mx-2">
-                  <v-autocomplete item-text="name" item-value="cid" :items="$store.state.collections" hide-details
+                  <v-autocomplete item-text="name" item-value="cid" :items="collections" hide-details
                                   v-model="toAddPerm.cid" dense label="Collection"></v-autocomplete>
                 </v-col>
                 <v-col tag="v-simple-checkbox" class="flex-grow-0" v-model="toAddPerm.allow" dense
@@ -91,8 +91,9 @@ import {Role} from "@/types/role";
 import {del, get, post} from "@/mixins/api";
 import UserAvatar from "@/components/UserAvatar.vue";
 import {User} from "@/types/user";
-import RoleUserPopup from "@/components/RoleUserPopup.vue";
+import RoleUserPopup from "@/components/popup/RoleUserPopup.vue";
 import {EventBus} from "@/event";
+import Data from "@/store/data"
 
 @Component({
   components: {RoleUserPopup, UserAvatar}
@@ -100,17 +101,15 @@ import {EventBus} from "@/event";
 export default class RoleViewer extends Vue {
   @Prop(String) readonly rid!: string;
   @Prop(Array) readonly roles!: Role[];
-  @Prop({type: Boolean, default: false}) readonly creating!: boolean;
 
   @Ref('users-popup') readonly usersPopup!: RoleUserPopup;
   readonly name = "RoleViewer";
   loading = false;
   saving = false;
   editing = false;
-  role: Role = {} as Role;
   editedRole: Role = {} as Role;
   usersWithRole: User[] = [];
-  editedPermissions: { cid: string, allow: boolean }[] = []
+  editedPermissions: { cid: string, allow?: boolean }[] = []
   toAddPerm: { cid: string, allow: boolean } = {cid: '', allow: true};
 
   // for creation only
@@ -120,16 +119,13 @@ export default class RoleViewer extends Vue {
     this.usersPopup.$on('emails', (emails: string[]) => {
       if (!this.creating) {
         this.saving = true;
-        post(`/api/roles/${this.rid}/users`, {
+        post<{ updated: number, users: User[] }>(`/api/roles/${this.rid}/users`, {
           action: this.usersPopup.action,
           emails: emails
-        }).then(res => res.json()).then(json => {
+        }).then(json => {
           this.saving = false;
-          if (json.status && json.status !== 'success') this.usersPopup.errorMsg = json.reason;
-          else {
-            console.log("Updated users count", json.updated);
-            this.usersWithRole = json.users;
-          }
+          console.log("Updated users count", json.updated);
+          this.usersWithRole = json.users;
         });
       } else {
         console.log(emails);
@@ -153,10 +149,8 @@ export default class RoleViewer extends Vue {
     }
     let role = this.roles.find(r => r.rid === this.rid);
     if (!role) return this.$router.push({name: "Roles"});
-    this.role = role;
-    get(`/api/roles/${this.rid}/users`).then(res => res.json()).then(json => {
-      if (!json.status) this.usersWithRole = json;
-    });
+    Data.setCurrentRole(role);
+    get<User[]>(`/api/roles/${this.rid}/users`).then(json => this.usersWithRole = json);
   }
 
   @Watch('roles', {immediate: true, deep: true})
@@ -172,48 +166,38 @@ export default class RoleViewer extends Vue {
     this.editedRole = {...this.role};
     this.editedPermissions = this.role.permissions ? Object.keys(this.role.permissions).map(cid => ({
       cid,
-      allow: this.role.permissions[cid]
+      allow: this.role?.permissions[cid]
     })) : [];
   }
 
   save() {
     this.saving = true;
     this.editedRole.permissions = Object.fromEntries(this.editedPermissions.map(node => [node.cid, node.allow]));
-    if (this.creating) {
-      post(`/api/roles/${this.editedRole.rid}`, {
-        rid: this.editedRole.rid,
+    if (this.creating) post(`/api/roles/${this.editedRole.rid}`, {
+      rid: this.editedRole.rid,
+      name: this.editedRole.name,
+      desc: this.editedRole.desc,
+      defaultPerm: this.editedRole.defaultPerm,
+      permissions: this.editedRole.permissions
+    }).then(() => post(`/api/roles/${this.editedRole.rid}/users`, {
+      action: this.usersPopup.action,
+      emails: this.emailsWithRoles
+    })).then(() => EventBus.$emit('needRoleUpdate', () => {
+      this.$router.push({name: 'Role', params: {rid: this.editedRole.rid}});
+      this.saving = false;
+    })).catch(err => {
+      this.saving = false;
+      alert(err);
+    }); else {
+      post<{ role: Role }>(`/api/roles/${this.rid}/admin`, {
         name: this.editedRole.name,
         desc: this.editedRole.desc,
         defaultPerm: this.editedRole.defaultPerm,
         permissions: this.editedRole.permissions
-      }).then(res => res.json()).then(json => {
-        if (json.status !== 'success') throw json.reason;
-        return post(`/api/roles/${this.editedRole.rid}/users`, {
-          action: this.usersPopup.action,
-          emails: this.emailsWithRoles
-        }).then(res => res.json());
       }).then(json => {
-        if (json.status !== 'success') throw json.reason;
-        this.$store.cache.delete('getRoles');
-        EventBus.$emit('needRoleUpdate', () => {
-          this.$router.push({name: 'Role', params: {rid: this.editedRole.rid}});
-          this.saving = false;
-        });
-      }).catch(err => {
-        this.saving = false;
-        alert(err);
-      })
-    } else {
-      post(`/api/roles/${this.rid}/admin`, {
-        name: this.editedRole.name,
-        desc: this.editedRole.desc,
-        defaultPerm: this.editedRole.defaultPerm,
-        permissions: this.editedRole.permissions
-      }).then(res => res.json()).then(json => {
-        if (json.status !== 'success') throw json.reason;
         this.editing = false;
-        this.role = json.role;
-        this.$store.cache.delete('getRoles');
+        Data.setRole({rid: this.rid, role: json.role});
+        Data.setCurrentRole(json.role);
         EventBus.$emit('needRoleUpdate');
       }).catch(err => {
         alert(err)
@@ -229,9 +213,7 @@ export default class RoleViewer extends Vue {
   deleteRole() {
     if (prompt('Delete role?', 'Role ID') === this.rid) {
       this.saving = true;
-      del(`/api/roles/${this.rid}`).then(res => res.json()).then(json => {
-        if (json.status !== 'success') throw json.reason;
-        this.$store.cache.delete('getRoles');
+      del(`/api/roles/${this.rid}`).then(() => {
         EventBus.$emit('needRoleUpdate');
         this.$router.push({name: "Roles"});
       })
@@ -250,6 +232,18 @@ export default class RoleViewer extends Vue {
     if (edit) edit.allow = this.toAddPerm.allow;
     else this.editedPermissions.push(this.toAddPerm);
     this.toAddPerm = {cid: '', allow: true};
+  }
+
+  get role() {
+    return Data.currentRole;
+  }
+
+  get collections() {
+    return Data.collections;
+  }
+
+  get creating() {
+    return !this.rid;
   }
 
   get permissionHeaders() {

@@ -25,12 +25,12 @@
                 </span>
             </v-expansion-panel-header>
             <v-expansion-panel-content>
-              <markdown :content="note.desc" :options="$store.state.markdownOptions"></markdown>
+              <markdown :content="note.desc"></markdown>
             </v-expansion-panel-content>
           </v-expansion-panel>
         </v-expansion-panels>
       </v-card-text>
-      <v-card-actions v-if="canEdit($store.state.currentCollection)">
+      <v-card-actions v-if="canEdit(currentCollection)">
         <v-btn text color="primary" @click="download">
           Download
         </v-btn>
@@ -53,7 +53,7 @@
     <v-card class="pa-5" flat :loading="doc_loading">
       <template v-if="this.doc">
         <JupyterViewer v-if="note.type==='jupyter'" :notebook="doc"></JupyterViewer>
-        <markdown v-else-if="note.type==='markdown'" :content="doc" :options="$store.state.markdownOptions"></markdown>
+        <markdown v-else-if="note.type==='markdown'" :content="doc"></markdown>
       </template>
       <div ref="shadowRoot"></div>
       <v-skeleton-loader
@@ -67,12 +67,14 @@
 
 <script lang="ts">
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
-import NotePopup from "@/components/NotePopup.vue";
+import NotePopup from "@/components/popup/NotePopup.vue";
 import {del} from "@/mixins/api";
-import JupyterViewer from "@/components/JupyterViewer.vue";
+import JupyterViewer from "@/components/notebookViewer/JupyterViewer.vue";
 import {Note} from "@/types/note";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
 import UserAvatar from "@/components/UserAvatar.vue";
+import Data from "@/store/data"
+import {Collection} from "@/types/coll";
 
 @Component({
   components: {
@@ -98,7 +100,7 @@ export default class NoteViewer extends Vue {
   onDocChange() {
     if (!this.shadow) return;
     this.shadow.innerHTML = "";
-    if (this.note.type && this.note.type !== "html") return;
+    if (this.note && this.note.type && this.note.type !== "html") return;
     this.shadow.innerHTML = this.doc;
   }
 
@@ -107,7 +109,11 @@ export default class NoteViewer extends Vue {
   }
 
   get note(): Note {
-    return this.$store.state.currentNote || {};
+    return Data.currentNote || {} as Note;
+  }
+
+  get currentCollection(): Collection {
+    return Data.currentCollection || {} as Collection;
   }
 
 
@@ -123,13 +129,13 @@ export default class NoteViewer extends Vue {
     this.loading = true;
     let note = this.notes.find((n: Note) => n.nid === this.nid);
     if (!note) return this.$router.push({name: 'Collection', params: {cid: this.cid || ''}});
-    this.$store.commit("setCurrentNote", note);
+    Data.setCurrentNote(note);
     this.loading = false;
   }
 
   @Watch('note', {immediate: true, deep: true})
   onNoteChanged() {
-    if (this.note.url) {
+    if (this.note && this.note.url) {
       this.doc_loading = true;
       fetch(this.note.url).then(res => res.text()).then(text => {
         if (!this.note) return;
@@ -149,8 +155,7 @@ export default class NoteViewer extends Vue {
   deleteNote() {
     if (prompt("Confirm Deletion?", 'Note ID') !== this.nid) return;
     this.loading = true;
-    del(`/api/collections/${this.cid}/notes/${this.nid}`).then(res => res.json()).then(json => {
-      if (json.status !== 'success') throw json.reason;
+    del(`/api/collections/${this.cid}/notes/${this.nid}`).then(() => {
       this.loading = false;
       if (!this.cid) return;
       this.$router.push({name: 'Collection', params: {cid: this.cid}});

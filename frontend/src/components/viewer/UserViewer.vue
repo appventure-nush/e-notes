@@ -18,6 +18,9 @@
               <span v-else v-text="user.name"></span>
             </h3>
             <div class="info--text mb-2">
+              <pre v-text="uid"></pre>
+            </div>
+            <div class="info--text mb-2">
               <v-text-field label="Email" v-if="editing" v-model="editedUser.email" hide-details outlined dense flat
                             disabled>
               </v-text-field>
@@ -82,7 +85,7 @@
                 <v-chip-group v-model="editedUser.roles" column multiple active-class="primary--text">
                   <v-chip class="mt-0" :key="r" label small :value="r" v-for="r in allRoles" v-text="r"/>
                   <v-chip class="mt-0" :key="r" label small :value="r"
-                          v-for="r in user.roles.filter(r=>!allRoles.includes(r))" v-text="r"/>
+                          v-for="r in user.roles.filter(role=>!allRoles.includes(role))" v-text="r"/>
                 </v-chip-group>
                 <v-text-field class="mt-2" hide-details dense label="Custom Role" @keydown.enter="addRole"
                               v-model="roleToAdd"/>
@@ -113,7 +116,7 @@
                 <template v-slot:footer v-if="editing">
                   <v-row no-gutters class="flex-nowrap mx-2">
                     <v-col class="flex-grow-1 mx-2">
-                      <v-autocomplete item-text="name" item-value="cid" :items="$store.state.collections" hide-details
+                      <v-autocomplete item-text="name" item-value="cid" :items="collections" hide-details
                                       v-model="toAddPerm.cid" dense label="Collection"></v-autocomplete>
                     </v-col>
                     <v-col tag="v-simple-checkbox" class="flex-grow-0" v-model="toAddPerm.allow" dense
@@ -139,42 +142,40 @@
 <script lang="ts">
 import {Component, Prop, Vue, Watch} from "vue-property-decorator";
 import {permissions, User} from '@/types/user';
-import {Role} from "@/types/role";
 import {computeAccess, hasPermission, splitAccess} from "@/mixins/permission";
 import {post} from "@/mixins/api";
-import {cached} from "@/store";
+import Data from "@/store/data"
 
 @Component
-export default class UserView extends Vue {
+export default class UserViewer extends Vue {
   @Prop(String) readonly uid?: string;
-  readonly name = "UserView";
+  readonly name = "UserViewer";
   loading = false;
   saving = false;
   editing = false;
-  user: User = {} as User;
   editedUser: User = {} as User;
   editedAccess: number[] = []
-  editedPermissions: { cid: string, allow: boolean }[] = []
+  editedPermissions: { cid: string, allow?: boolean }[] = []
   toAddPerm: { cid: string, allow: boolean } = {cid: '', allow: true};
 
-  allRoles: string[] = [];
+  customRoles: string[] = [];
 
   roleToAdd = "";
 
   readonly permissions = permissions;
 
-  mounted() {
+  created() {
     this.onUIDChange();
-    cached('getRoles').then((roles: Role[]) => this.allRoles = roles.map(r => r.rid));
+    Data.fetchRoles();
   }
 
-  @Watch('uid')
+  @Watch('uid', {immediate: true})
   onUIDChange() {
+    if (!this.uid) return;
     this.loading = true;
     this.editing = false;
     this.saving = false;
-    cached('getUser', this.uid).then((user: User) => {
-      this.user = user;
+    Data.fetchUser(this.uid).then(() => {
       this.loading = false;
     });
     this.toAddPerm = {cid: '', allow: true};
@@ -188,7 +189,7 @@ export default class UserView extends Vue {
     this.editedAccess = splitAccess(this.user.access || 0);
     this.editedPermissions = this.user.permissions ? Object.keys(this.user.permissions).map(cid => ({
       cid,
-      allow: this.user.permissions[cid]
+      allow: this.user?.permissions[cid]
     })) : [];
   }
 
@@ -197,14 +198,14 @@ export default class UserView extends Vue {
   }
 
   get permOverwrites() {
-    return Object.entries(permissions).filter(([, p]) => hasPermission(this.user.access || 0, p));
+    return Object.entries(permissions).filter(([, p]) => hasPermission(this.user?.access || 0, p));
   }
 
   save() {
     this.saving = true;
     this.editedUser.access = this.editedAccess.reduce((a, b) => a | b, 0);
     this.editedUser.permissions = Object.fromEntries(this.editedPermissions.map(node => [node.cid, node.allow]));
-    post(`/api/users/${this.uid}`, {
+    post<{ user: User }>(`/api/users/${this.uid}`, {
       name: this.editedUser.name,
       nick: this.editedUser.nickname,
       roles: this.editedUser.roles,
@@ -212,11 +213,11 @@ export default class UserView extends Vue {
       access: this.editedUser.access,
       teacher: this.editedUser.teacher,
       permissions: this.editedUser.permissions
-    }).then(res => res.json()).then(json => {
-      if (json.status !== 'success') throw json.reason;
+    }).then(json => {
       this.editing = false;
-      this.user = json.user;
-      this.$store.cache.delete('getUser', this.uid);
+      if (!this.uid) return;
+      Data.setUser({uid: this.uid, user: json.user});
+      Data.setCurrentUser(json.user || null);
     }).catch(err => {
       alert(err)
     }).finally(() => this.saving = false)
@@ -236,13 +237,25 @@ export default class UserView extends Vue {
 
   addRole() {
     if (!this.roleToAdd) return;
-    if (this.allRoles.includes(this.roleToAdd)) return;
-    this.allRoles.push(this.roleToAdd);
+    if (this.customRoles.includes(this.roleToAdd)) return;
+    this.customRoles.push(this.roleToAdd);
     this.editedUser.roles.push(this.roleToAdd);
     this.roleToAdd = "";
   }
 
   readonly teacherItems = [{text: "Teacher", value: true}, {text: "Student", value: false}]
+
+  get user(): User {
+    return Data.currentUser || {} as User;
+  }
+
+  get collections() {
+    return Data.collections || [];
+  }
+
+  get allRoles() {
+    return this.customRoles.concat(Data.roles.map(r => r.rid));
+  }
 
   get permissionHeaders() {
     return [{text: 'Collection', align: 'start', value: 'cid'},

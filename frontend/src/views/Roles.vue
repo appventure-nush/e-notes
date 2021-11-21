@@ -26,14 +26,14 @@
       </v-list-item-group>
     </v-col>
     <v-col style="max-height:100%;overflow-y:auto">
-      <router-view :roles="roles" :creating="!$route.params.rid"></router-view>
+      <router-view :roles="roles"></router-view>
     </v-col>
   </v-row>
 </template>
 
 <script lang="ts">
 import {Component, Vue} from "vue-property-decorator";
-import {cached, storeTo} from "@/store";
+import Data from "@/store/data"
 import {Role} from "@/types/role";
 import {EventBus} from "@/event";
 
@@ -44,23 +44,16 @@ export default class Roles extends Vue {
   selected = "";
   query = "";
 
-  creating = false;
-
   get roles(): Role[] {
-    return this.$store.state.currentRoles;
+    return Data.roles;
   }
 
   created() {
-    cached("getRoles").then(json => storeTo("setCurrentRoles", json))
-    EventBus.$on('needRoleUpdate', (callback?: () => void) => {
-      cached("getRoles").then(json => {
-        storeTo("setCurrentRoles", json);
-        if (callback) callback();
-      })
-    });
-    EventBus.$on('newRoleRequested', () => {
-      this.$router.push({name: 'New Role'});
-    })
+    Data.fetchRoles();
+    EventBus.$on('needRoleUpdate', (callback?: () => void) => Data.fetchRoles().then(() => {
+      if (callback) callback();
+    }));
+    EventBus.$on('newRoleRequested', () => this.$router.push({name: 'New Role'}))
   }
 
   get hasSelected() {

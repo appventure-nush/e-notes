@@ -14,7 +14,7 @@
 
 <script lang="ts">
 import {Component, Vue} from "vue-property-decorator";
-import CollectionPopup from "@/components/CollectionPopup.vue";
+import CollectionPopup from "@/components/popup/CollectionPopup.vue";
 
 @Component({
   components: {CollectionPopup}

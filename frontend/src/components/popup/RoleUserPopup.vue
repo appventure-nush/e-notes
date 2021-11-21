@@ -38,7 +38,7 @@
 
 <script lang="ts">
 import {Component, Prop, Ref, Vue} from "vue-property-decorator";
-import {VForm} from "@/shims-vuetify";
+import {VForm} from "@/types/shims/shims-vuetify";
 
 @Component
 export default class RoleUserPopup extends Vue {

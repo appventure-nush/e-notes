@@ -40,23 +40,16 @@
 
 <script lang="ts">
 import {Component, Vue} from "vue-property-decorator";
-import {User} from "@/types/user";
-import {cached} from "@/store";
+import Data from "@/store/data"
 
 @Component
 export default class Users extends Vue {
   name = "Users"
-  users: User[] = []
-  loading = true
   selected = "";
   query = "";
 
   created() {
-    this.loading = true;
-    cached('getUsers').then(res => {
-      this.loading = false;
-      this.users = res;
-    });
+    Data.fetchUsers();
   }
 
   get hasSelected() {
@@ -67,6 +60,10 @@ export default class Users extends Vue {
     let result = this.users;
     if (this.query) result = result.filter(u => u.uid?.toUpperCase().includes(this.query.toUpperCase()) || u.name?.toUpperCase().includes(this.query.toUpperCase()) || u.email?.toUpperCase().includes(this.query.toUpperCase()))
     return result;
+  }
+
+  get users() {
+    return Data.users;
   }
 }
 </script>

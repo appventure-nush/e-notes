@@ -33,7 +33,7 @@
 <script lang="ts">
 import {Component, Prop, Vue, Watch} from "vue-property-decorator";
 import {User} from "@/types/user";
-import {cached} from "@/store";
+import Data from "@/store/data"
 
 function intToHSL(number: number) {
   return "hsl(" + number % 360 + ",50%,30%)";
@@ -47,31 +47,29 @@ export default class UserAvatar extends Vue {
   @Prop(String) readonly classes!: string;
   @Prop({type: Number, default: 0}) readonly elevation!: number;
   name = "UserAvatar"
-  user: User = {} as User;
+  user?: User = {} as User;
 
   @Watch('uid', {immediate: true})
   onUIDChange() {
-    cached('getUser', this.uid).then(user => {
-      this.user = user;
-    }).catch(() => {
-      if (this.admin) this.user = {
-        permissions: {},
-        admin: true,
-        name: "Admin",
-        pfp: "/images/admin.jpg",
-        roles: [],
-        teacher: true,
-        uid: "0"
-      };
-      else this.user = {
-        permissions: {},
-        admin: false,
-        name: "Deleted User",
-        roles: [],
-        teacher: false,
-        uid: "deleted"
-      };
-    });
+    this.user = Data.users.find(u => u.uid === this.uid);
+    if (this.user) return;
+    if (this.admin) this.user = {
+      permissions: {},
+      admin: true,
+      name: "Admin",
+      pfp: "/images/admin.jpg",
+      roles: [],
+      teacher: true,
+      uid: "0"
+    };
+    else this.user = {
+      permissions: {},
+      admin: false,
+      name: "Deleted User",
+      roles: [],
+      teacher: false,
+      uid: "deleted"
+    };
   }
 
   getHashCode(string?: string) {

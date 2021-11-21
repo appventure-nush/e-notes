@@ -13,7 +13,8 @@
 
 <script lang="ts">
 import {Component, Vue} from "vue-property-decorator";
-import NoteEditorAppbar from "@/components/NoteEditorAppbar.vue";
+import NoteEditorAppbar from "@/components/appbar/NoteEditorAppbar.vue";
+import Data from "@/store/data";
 
 @Component({
   components: {NoteEditorAppbar}
@@ -33,16 +34,16 @@ export default class CollectionAppbar extends Vue {
         name: "Home"
       }
     }, {
-      text: this.$store.state.currentCollection.name,
+      text: Data.currentCollection?.name,
       route: {
         name: "Collection",
-        params: {cid: this.$store.state.currentCollection.cid}
+        params: {cid: Data.currentCollection?.cid}
       }
     }, ...(this.$route.name !== 'Collection' ? [{
-      text: this.$store.state.currentNote?.name,
+      text: Data.currentNote?.name,
       route: {
         name: "Note",
-        params: {cid: this.$store.state.currentNote?.cid, nid: this.$store.state.currentNote?.nid}
+        params: {cid: Data.currentNote?.cid, nid: Data.currentNote?.nid}
       }
     }] : [])]
   }

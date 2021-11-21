@@ -11,7 +11,7 @@
           :disabled="saving"
           :loading="saving">
         <v-card-title>
-          <span class="text-h5">{{ editing ? "Editing " : "New " }}Note</span>
+          <span class="text-h5">{{ editing ? "Editing " : "New " }}Collection</span>
         </v-card-title>
         <v-card-text>
           <v-container>
@@ -21,8 +21,9 @@
                   sm="6"
                   md="4">
                 <v-text-field
-                    v-model="nid"
-                    label="Note ID"
+                    v-model="cid"
+                    :disabled="editing"
+                    label="Collection ID*"
                     hint="no spaces/unicode, caution changing"
                     :rules="INPUT_ID_RULES"
                     required
@@ -35,7 +36,7 @@
               >
                 <v-text-field
                     v-model="name"
-                    label="Note Name"
+                    label="Collection Name*"
                     hint="spaces are allowed here"
                     :rules="INPUT_NAME_RULES"
                     required
@@ -46,13 +47,12 @@
                   sm="6"
                   md="4"
               >
-                <v-autocomplete
-                    v-model="type"
-                    :items="['auto','jupyter','markdown','html']"
-                    label="Note Type"
-                    hint="auto only works for uploads"
-                    required
-                ></v-autocomplete>
+                <v-checkbox
+                    v-model="open"
+                    label="Public"
+                    hint="if everyone by default can read this collection"
+                    persistent-hint
+                ></v-checkbox>
               </v-col>
               <v-col cols="12">
                 <v-textarea
@@ -61,23 +61,13 @@
                     v-model="desc"
                     label="Description"
                 ></v-textarea>
-                <v-card flat outlined style="max-height:150px;overflow-y: auto">
+                <v-card flat outlined>
                   <v-card-text>
                     <markdown
                         :key="desc"
-                        :content="desc"
-                        :options="$store.state.markdownOptions"></markdown>
+                        :content="desc"></markdown>
                   </v-card-text>
                 </v-card>
-              </v-col>
-              <v-col cols="12">
-                <v-file-input
-                    v-model="file"
-                    label="Note File"
-                    hint="supports jupyter notebook, markdown and html"
-                    show-size
-                    required
-                ></v-file-input>
               </v-col>
             </v-row>
           </v-container>
@@ -88,6 +78,14 @@
               text
               @click="dialog = false">
             Close
+          </v-btn>
+          <v-btn
+              v-if="editing"
+              color="error"
+              :disabled="!valid"
+              @click="deleteCollection"
+              text>
+            Delete
           </v-btn>
           <v-btn
               color="primary"
@@ -104,29 +102,26 @@
 
 <script lang="ts">
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
-import {post} from "@/mixins/api";
-import {Note, NoteType} from "@/types/note";
+import {Collection} from "@/types/coll";
+import {del, post} from "@/mixins/api";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
-import {cached, storeTo} from "@/store";
+import Data from "@/store/data"
 
 @Component({
-  name: "NotePopup",
+  name: "CollectionPopup",
   components: {
     Markdown
   }
 })
-export default class NotePopup extends Vue {
-  @Prop(Object) preset!: Note;
+export default class CollectionPopup extends Vue {
+  @Prop(Object) preset!: Collection;
   @Prop(Boolean) editing!: boolean;
-  @Prop(String) readonly cid!: string;
   @Ref('form') form!: Vue & { validate: () => boolean };
 
-  nid = "";
-  url = "";
+  cid = "";
   name = "";
   desc = "";
-  type?: NoteType | "auto" = "auto";
-  file: File | null = null;
+  open = false;
 
   saving = false
   dialog = false
@@ -136,35 +131,26 @@ export default class NotePopup extends Vue {
     if (!this.form) return;
     if (!this.form.validate()) return;
     this.saving = true;
-    post(`/api/collections/${this.cid}/notes/${this.editing ? this.preset.nid : this.nid}`, {
+    post(`/api/collections/${this.cid}`, {
       action: this.editing ? "edit" : "add",
-      nid: this.nid,
+      cid: this.cid,
       name: this.name,
       desc: this.desc,
-      type: this.type === "auto" ? null : this.type
-    }).then(res => res.json()).then(json => {
-      if (json.status !== "success") {
-        throw json.reason;
-      } else {
-        if (this.file) {
-          let formData = new FormData();
-          formData.append("note_source", this.file);
-          return post(`/api/collections/${this.cid}/notes/${this.nid}/upload`, formData).then(res => res.json());
-        } else return json;
-      }
-    }).then(json => {
-      if (json.status !== "success") {
-        throw json.reason;
-      } else {
-        if (!this.editing) this.$router.push({name: "Note", params: {cid: this.cid, nid: this.nid}})
-        this.$store.cache.delete("getCollectionNotes", this.cid);
-        cached("getCollectionNotes", this.cid).then(notes => storeTo('setCurrentNotes', notes));
-        this.$store.commit('setCurrentNote', json.note);
-        this.dialog = false;
-      }
-    }).catch(e => {
-      alert(e);
-    }).finally(() => this.saving = false);
+      open: this.open
+    }).then(() => {
+      Data.fetchCollection(this.cid);
+      this.dialog = false;
+    }).catch(alert).finally(() => this.saving = false);
+  }
+
+  deleteCollection() {
+    if (prompt("Confirm Deletion?", 'Collection ID') !== this.cid) return;
+    this.saving = true;
+    del(`/api/collections/${this.cid}`).then(() => {
+      Data.fetchCollections();
+      this.$router.push("/");
+      this.dialog = false;
+    }).catch(alert).finally(() => this.saving = false);
   }
 
   @Watch("dialog")
@@ -172,16 +158,14 @@ export default class NotePopup extends Vue {
     if (!this.dialog) return;
     if (this.editing) {
       if (!this.preset) return;
-      this.nid = this.preset.nid;
-      this.url = this.preset.url;
+      this.cid = this.preset.cid;
       this.name = this.preset.name;
-      this.type = this.preset.type || "auto";
-      this.desc = this.preset.desc || "";
+      this.open = this.preset.open;
+      this.desc = this.preset.desc;
     } else {
-      this.nid = "";
-      this.url = "";
+      this.cid = "";
       this.name = "";
-      this.type = "auto";
+      this.open = false;
       this.desc = "";
     }
   }

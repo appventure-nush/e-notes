@@ -6,7 +6,7 @@
 
 <script lang="ts">
 import {Component, Vue} from "vue-property-decorator";
-import CollectionPopup from "@/components/CollectionPopup.vue";
+import CollectionPopup from "@/components/popup/CollectionPopup.vue";
 import {EventBus} from "@/event";
 
 @Component({

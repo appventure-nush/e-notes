@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import VueRouter, {RouteConfig, Route} from 'vue-router'
 import {FIREBASE_INITIALIZED} from "@/main";
-import store from "@/store";
 import {auth} from "@/plugins/firebase";
 
 Vue.use(VueRouter)
@@ -12,7 +11,7 @@ const routes: Array<RouteConfig> = [
         name: 'Home',
         components: {
             default: () => import(/* webpackChunkName: "home" */"@/views/Home.vue"),
-            appbar: () => import(/* webpackChunkName: "home.app" */"@/components/HomeAppbar.vue")
+            appbar: () => import(/* webpackChunkName: "home.app" */"@/components/appbar/HomeAppbar.vue")
         },
         meta: {
             icon: "mdi-view-dashboard",
@@ -40,7 +39,7 @@ const routes: Array<RouteConfig> = [
                 props: true,
                 name: "User",
                 path: ':uid',
-                component: () => import(/* webpackChunkName: "user" */'@/views/User.vue')
+                component: () => import(/* webpackChunkName: "user" */'@/components/viewer/UserViewer.vue')
             }
         ]
     },
@@ -49,7 +48,7 @@ const routes: Array<RouteConfig> = [
         name: 'Roles',
         components: {
             default: () => import(/* webpackChunkName: "roles" */"@/views/Roles.vue"),
-            appbar: () => import(/* webpackChunkName: "roles.appbar" */'@/components/RoleAppbar.vue')
+            appbar: () => import(/* webpackChunkName: "roles.appbar" */'@/components/appbar/RoleAppbar.vue')
         }, props: {
             default: true,
             appbar: true
@@ -67,8 +66,8 @@ const routes: Array<RouteConfig> = [
                 },
                 props: true,
                 name: "New Role",
-                path: '',
-                component: () => import(/* webpackChunkName: "role" */'@/views/RoleViewer.vue')
+                path: 'new',
+                component: () => import(/* webpackChunkName: "role" */'@/components/viewer/RoleViewer.vue')
             },
             {
                 meta: {
@@ -77,16 +76,15 @@ const routes: Array<RouteConfig> = [
                 props: true,
                 name: "Role",
                 path: ':rid',
-                component: () => import(/* webpackChunkName: "role" */'@/views/RoleViewer.vue')
+                component: () => import(/* webpackChunkName: "role" */'@/components/viewer/RoleViewer.vue')
             }
         ]
     },
     {
-        name: "Collections",
         path: '/collection/:cid',
         components: {
-            default: () => import(/* webpackChunkName: "collection" */'@/views/CollectionViewer.vue'),
-            appbar: () => import(/* webpackChunkName: "collection.appbar" */'@/components/CollectionAppbar.vue')
+            default: () => import(/* webpackChunkName: "collection" */'@/components/viewer/CollectionViewer.vue'),
+            appbar: () => import(/* webpackChunkName: "collection.appbar" */'@/components/appbar/CollectionAppbar.vue')
         }, props: {
             default: true,
             appbar: true
@@ -103,7 +101,6 @@ const routes: Array<RouteConfig> = [
                 path: '',
                 component: () => import(/* webpackChunkName: "collection.info" */'@/components/CollectionInfo.vue'),
                 beforeEnter(to, from, next) {
-                    store.commit('setCurrentNote', undefined);
                     next();
                 }
             },
@@ -124,7 +121,7 @@ const routes: Array<RouteConfig> = [
                     title: "{{cid}}/{{nid}}",
                     hideTitle: true
                 },
-                component: () => import(/* webpackChunkName: "note" */'@/views/NoteViewer.vue')
+                component: () => import(/* webpackChunkName: "note" */'@/components/viewer/NoteViewer.vue')
             },
             {
                 props: true,
