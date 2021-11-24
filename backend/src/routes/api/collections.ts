@@ -106,7 +106,7 @@ collections.post('/:cid/img', checkUser, fileUpload({limits: {fileSize: 64 * 102
         if (type && type.mime.toUpperCase() === payload.mimetype.toUpperCase()) {
             if (IMAGE_FORMATS.includes(type.mime.toLowerCase())) {
                 try {
-                    const file = storage().bucket().file(`collections/${req.params.cid}/images/${payload.name}`);
+                    const file = storage().bucket().file(`collections/${req.params.cid}/images/${payload.name.toLowerCase()}`);
                     await file.save(payload.data, {public: true, resumable: false});
                     res.json(success({
                         name: payload.name,

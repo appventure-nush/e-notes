@@ -51,6 +51,10 @@ export default class Markdown extends Vue {
 </script>
 <style lang="scss" scoped>
 ::v-deep {
+  img {
+    max-width: 100%;
+  }
+
   blockquote {
     border-left: 0.3em var(--v-primary-lighten1) solid;
     padding-left: 1em;

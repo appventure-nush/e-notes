@@ -7,7 +7,7 @@ const collection = Router();
 async function imageHandler(req: express.Request, res: express.Response) {
     if (!collectionCache.has(req.params.cid)) return res.json({status: 'failed', reason: 'collection_not_found'});
     if (!await hasPermissions(req.uid!, req.params.cid)) return res.json({status: 'failed', reason: 'no_perm'});
-    res.redirect(storage().bucket().file(`collections/${req.params.cid}/images/${req.params.file}`).publicUrl());
+    res.redirect(storage().bucket().file(`collections/${req.params.cid}/images/${req.params.file?.toLowerCase()}`).publicUrl());
 }
 
 collection.get("/:cid/images/:file", checkUser, imageHandler);
