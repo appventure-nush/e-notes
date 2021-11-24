@@ -36,14 +36,7 @@ class ConfigModule extends VuexModule {
 
     @Action
     verifyToken(token: string) {
-        return post("/api/auth", {token: token}).then(async () => {
-            const profile = await get<User>("/api/auth");
-            if (router.currentRoute.name === "Login") {
-                if (router.currentRoute.query.to === "/login") router.currentRoute.query.to = '';
-                router.push(<string>router.currentRoute.query.to || '/');
-            }
-            return profile;
-        });
+        return post("/api/auth", {token: token}).then(() => get<User>("/api/auth"));
     }
 
     @MutationAction({mutate: ['profile']})
@@ -57,6 +50,10 @@ class ConfigModule extends VuexModule {
                 name: "Login",
                 query: {to: router.currentRoute.path}
             });
+        }
+        if (router.currentRoute.name === "Login") {
+            if (router.currentRoute.query.to === "/login") router.currentRoute.query.to = '';
+            router.push(<string>router.currentRoute.query.to || '/');
         }
         return {profile};
     }

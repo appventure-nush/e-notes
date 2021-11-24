@@ -128,6 +128,7 @@ export default class Login extends Vue {
     signInWithEmailAndPassword(auth, this.email, this.password)
         .then(firebaseData => firebaseData.user?.getIdToken(true))
         .then(token => Config.verifyToken(token))
+        .then(() => Config.fetchProfile())
         .catch(e => {
           this.attempting = false;
           this.errorMsg = e.code;
@@ -141,17 +142,20 @@ export default class Login extends Vue {
       const credential = OAuthProvider.credentialFromResult(result);
       if (!(credential && credential.idToken)) throw "Credential is null";
       return result.user.getIdToken(true);
-    }).then(token => Config.verifyToken(token)).catch(error => {
-      this.attempting = false;
-      console.log(error);
-      if (error.code === 'auth/account-exists-with-different-credential') {
-        fetchSignInMethodsForEmail(auth, error.customData.email).then(methods => {
-          this.errorMsg = methods[0] !== 'password' ?
-              "Another account of same email already exists" :
-              "Email/password account already exist, please reset password. And link microsoft account in profile after login";
+    })
+        .then(token => Config.verifyToken(token))
+        .then(() => Config.fetchProfile())
+        .catch(error => {
+          this.attempting = false;
+          console.log(error);
+          if (error.code === 'auth/account-exists-with-different-credential') {
+            fetchSignInMethodsForEmail(auth, error.customData.email).then(methods => {
+              this.errorMsg = methods[0] !== 'password' ?
+                  "Another account of same email already exists" :
+                  "Email/password account already exist, please reset password. And link microsoft account in profile after login";
+            });
+          } else this.errorMsg = error.code;
         });
-      } else this.errorMsg = error.code;
-    });
   }
 
   sendEmail(): void {
