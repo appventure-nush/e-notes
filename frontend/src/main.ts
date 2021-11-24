@@ -38,4 +38,5 @@ new Vue({
     vuetify,
     render: h => h(App)
 }).$mount('#app');
+
 console.log(ASCII_NAME, "font-family:monospace");

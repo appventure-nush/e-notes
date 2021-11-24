@@ -55,7 +55,3 @@ export default class BlockSource extends Vue {
   }
 }
 </script>
-
-<style scoped>
-
-</style>

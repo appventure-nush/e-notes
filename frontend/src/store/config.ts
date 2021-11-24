@@ -54,6 +54,7 @@ class ConfigModule extends VuexModule {
                 });
             else router.push({name: "Login"});
         }
+        if (profile && router.currentRoute.name === 'Login') router.push('/');
         return {profile};
     }
 

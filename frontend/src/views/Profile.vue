@@ -125,9 +125,6 @@ export default class Profile extends Vue {
   linking = false;
   verifying = false;
 
-  linked = false;
-  verified = false;
-
   emailSnackbar = false;
 
   inputFile(newFile: VUFile, oldFile: VUFile) {
@@ -162,7 +159,7 @@ export default class Profile extends Vue {
     this.linking = true;
     const provider = new OAuthProvider('microsoft.com');
     provider.setCustomParameters({prompt: 'consent'});
-    linkWithPopup(auth.currentUser, provider).then(() => Config.setUser(auth.currentUser)).catch(error => console.error(error)).finally(() => this.linking = false);
+    linkWithPopup(auth.currentUser, provider).catch(error => console.error(error)).finally(() => this.linking = false);
   }
 
   verify() {
@@ -189,10 +186,12 @@ export default class Profile extends Vue {
     this.localCopy = {...val};
   }
 
-  @Watch('fbUser', {immediate: true, deep: true})
-  onFirebaseUserChange(user: FirebaseUser) {
-    this.linked = Boolean(user && user.providerData && user.providerData.some(p => p && p.providerId === "microsoft.com"));
-    this.verified = Boolean(user && user.emailVerified);
+  get linked() {
+    return Boolean(this.fbUser && this.fbUser.providerData && this.fbUser.providerData.some(p => p && p.providerId === "microsoft.com"))
+  }
+
+  get verified() {
+    return Boolean(this.fbUser && this.fbUser.emailVerified);
   }
 }
 </script>

@@ -151,6 +151,7 @@ pre {
       }
 
       &.output-err {
+        flex-grow: 1;
         padding: 5px 0 0 5px;
         background-color: #ef717140;
       }
