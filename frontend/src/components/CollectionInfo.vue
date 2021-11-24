@@ -94,6 +94,7 @@
                                  :headers="{'x-xsrf-token': getToken()}"
                                  v-model="files"
                                  accept="image/*"
+                                 :size="64 * 1024 * 1024"
                                  :thread="3"
                                  :timeout="60 * 1000"
                                  :drop="true"
@@ -250,16 +251,22 @@ export default class CollectionInfo extends Vue {
   giveAccess() {
     let emails = this.extractEmails(this.accessInput);
     this.changingAccess = true;
-    post<{ collection: Collection }>(`/api/collections/${this.cid}/access`, {emails})
-        .then(json => this.cid ? Data.setCollection({cid: this.cid, collection: json.collection}) : {})
-        .finally(() => this.changingAccess = false)
+    post<{ collection: Collection }>(`/api/collections/${this.cid}/access`, {emails}).then(json => {
+      if (this.cid) {
+        Data.setCollection({cid: this.cid, collection: json.collection});
+        Data.setCurrentCollection(json.collection);
+      }
+    }).finally(() => this.changingAccess = false)
   }
 
   revokeAccess() {
     this.changingAccess = true;
-    del<{ collection: Collection }>(`/api/collections/${this.cid}/access`)
-        .then(json => this.cid ? Data.setCollection({cid: this.cid, collection: json.collection}) : {})
-        .finally(() => this.changingAccess = false)
+    del<{ collection: Collection }>(`/api/collections/${this.cid}/access`).then(json => {
+      if (this.cid) {
+        Data.setCollection({cid: this.cid, collection: json.collection});
+        Data.setCurrentCollection(json.collection);
+      }
+    }).finally(() => this.changingAccess = false)
   }
 
   initUpload() {

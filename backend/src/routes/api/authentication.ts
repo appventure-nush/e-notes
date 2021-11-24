@@ -47,7 +47,7 @@ authentication.post('/profile', checkUser, async (req, res) => {
     }
     res.json(failed('not sure why, not sure where'));
 });
-authentication.post('/pfp', checkUser, fileUpload({limits: {fileSize: 64 * 1024 * 1024}}), async (req, res) => {
+authentication.post('/pfp', checkUser, fileUpload({limits: {fileSize: 16 * 1024 * 1024}}), async (req, res) => {
     if (!req.files) return res.json(failed('where is the file'));
     const uploaded = req.files.file;
     if (uploaded && "data" in uploaded) {

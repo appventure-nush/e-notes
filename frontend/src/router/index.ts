@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import VueRouter, {RouteConfig, Route} from 'vue-router'
 import {FIREBASE_INITIALIZED} from "@/main";
+import Config from "@/store/config";
 import {auth} from "@/plugins/firebase";
 
 Vue.use(VueRouter)
@@ -190,16 +191,24 @@ const router = new VueRouter({
     routes
 });
 
-export async function shouldAllow(to: Route): Promise<boolean> {
+export function shouldAllow(to: Route): boolean {
     if (to.matched.some(record => record.meta.auth)) {
         const user = auth.currentUser;
         if (user == null) return false;
-        else if (to.matched.some(record => record.meta.admin)) return user.getIdTokenResult().then(res => !!res.claims.admin);
+        else if (to.matched.some(record => record.meta.admin))
+            return !!(Config.profile?.admin);
         else return true;
     } else return true;
 }
 
 const DEFAULT_TITLE = 'Enotes';
+router.beforeEach((to, from, next) => {
+    if (FIREBASE_INITIALIZED && !shouldAllow(to)) router.push({
+        name: "Login",
+        query: {to: router.currentRoute.path}
+    });
+    else next();
+})
 router.afterEach(to => Vue.nextTick(() => {
     let title = to.meta?.title || DEFAULT_TITLE;
     title = title.replace(/{{uid}}/g, to.params.uid);
@@ -207,6 +216,5 @@ router.afterEach(to => Vue.nextTick(() => {
     title = title.replace(/{{nid}}/g, to.params.nid);
     title = title.replace(/{{cid}}/g, to.params.cid);
     document.title = title;
-    if (FIREBASE_INITIALIZED) shouldAllow(to).then(yes => yes ? null : router.push('/login'));
 }));
 export default router

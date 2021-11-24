@@ -36,7 +36,14 @@ class ConfigModule extends VuexModule {
 
     @Action
     verifyToken(token: string) {
-        return post("/api/auth", {token: token});
+        return post("/api/auth", {token: token}).then(async () => {
+            const profile = await get<User>("/api/auth");
+            if (router.currentRoute.name === "Login") {
+                if (router.currentRoute.query.to === "/login") router.currentRoute.query.to = '';
+                router.push(<string>router.currentRoute.query.to || '/');
+            }
+            return profile;
+        });
     }
 
     @MutationAction({mutate: ['profile']})
@@ -46,15 +53,11 @@ class ConfigModule extends VuexModule {
             profile = await get<User>("/api/auth");
         } catch (e) {
             if (auth.currentUser && reattempt) profile = await this.verifyToken(await auth.currentUser.getIdToken(true))
-                .then(() => this.fetchProfile(false)).then(p => p.profile)
-                .catch(e => {
-                    router.push({name: "Login"});
-                    console.error(e);
-                    return null;
-                });
-            else router.push({name: "Login"});
+            else router.push({
+                name: "Login",
+                query: {to: router.currentRoute.path}
+            });
         }
-        if (profile && router.currentRoute.name === 'Login') router.push('/');
         return {profile};
     }
 
@@ -62,7 +65,7 @@ class ConfigModule extends VuexModule {
     async logout() {
         await auth.signOut();
         await get("/api/auth/logout");
-        if (router.currentRoute.path !== '/login') router.push('/login');
+        if (router.currentRoute.name !== 'Login') router.push({name: "Login"});
         return {user: null, profile: null};
     }
 }
