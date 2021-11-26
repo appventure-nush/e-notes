@@ -123,7 +123,6 @@ export default class NoteViewer extends Vue {
 
   @Watch('nid', {immediate: true})
   onNIDChange() {
-    console.log(this.notes, "huh");
     Data.fetchNotes(this.cid);
     this.updateNote();
   }
