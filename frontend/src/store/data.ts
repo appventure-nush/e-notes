@@ -65,13 +65,15 @@ class DataModule extends VuexModule {
     @Mutation
     setNotes({cid, notes}: { cid: string, notes: Note[] | null }) {
         if (notes) return Vue.set(this.notes, cid, notes);
-        else return Vue.delete(this.notes, cid);
+        Vue.delete(this.notes, cid);
+        return null;
     }
 
     @Mutation
     setImages({cid, images}: { cid: string, images: Image[] | null }) {
         if (images) return Vue.set(this.images, cid, images);
-        else return Vue.delete(this.images, cid);
+        Vue.delete(this.images, cid);
+        return null;
     }
 
     @Mutation
