@@ -89,7 +89,7 @@ export default class NoteViewer extends Vue {
 
   @Prop(String) readonly cid!: string;
   @Prop(String) readonly nid!: string;
-  @Prop(Array) readonly notes?: Note[];
+  @Prop(Array) readonly notes!: Note[];
   name = "NoteViewer";
   doc: any = "";
   loading = false;
@@ -118,11 +118,17 @@ export default class NoteViewer extends Vue {
 
   @Watch('notes', {immediate: true})
   onNotesChange() {
-    this.onNIDChange();
+    this.updateNote();
   }
 
   @Watch('nid', {immediate: true})
   onNIDChange() {
+    console.log(this.notes, "huh");
+    Data.fetchNotes(this.cid);
+    this.updateNote();
+  }
+
+  updateNote() {
     if (!this.notes) return;
     if (this.notes.length === 0) return;
     let note = this.notes.find((n: Note) => n.nid === this.nid);

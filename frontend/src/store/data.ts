@@ -6,6 +6,8 @@ import {get} from "@/mixins/api";
 import {Note} from "@/types/note";
 import store from "@/store/index";
 
+import Vue from "vue";
+
 export type Image = { url: string, name: string };
 
 @Module({
@@ -20,8 +22,8 @@ class DataModule extends VuexModule {
     users: User[] = []
     collections: Collection[] = []
 
-    notes: { [cid: string]: Note[] | null } = {};
-    images: { [cid: string]: Image[] | null } = {};
+    notes: { [cid: string]: Note[] } = {};
+    images: { [cid: string]: Image[] } = {};
 
     currentRole: Role | null = null;
     currentUser: User | null = null;
@@ -62,12 +64,14 @@ class DataModule extends VuexModule {
 
     @Mutation
     setNotes({cid, notes}: { cid: string, notes: Note[] | null }) {
-        return this.notes[cid] = notes;
+        if (notes) return Vue.set(this.notes, cid, notes);
+        else return Vue.delete(this.notes, cid);
     }
 
     @Mutation
     setImages({cid, images}: { cid: string, images: Image[] | null }) {
-        return this.images[cid] = images;
+        if (images) return Vue.set(this.images, cid, images);
+        else return Vue.delete(this.images, cid);
     }
 
     @Mutation
