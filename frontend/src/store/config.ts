@@ -5,6 +5,7 @@ import {get, post} from "@/mixins/api";
 import {auth} from "@/plugins/firebase";
 import router from "@/router";
 import store from "@/store/index";
+import {signOut} from "@firebase/auth";
 
 @Module({
     dynamic: true, store,
@@ -60,7 +61,7 @@ class ConfigModule extends VuexModule {
 
     @MutationAction({mutate: ['user', 'profile']})
     async logout() {
-        await auth.signOut();
+        await signOut(auth);
         await get("/api/auth/logout");
         if (router.currentRoute.name !== 'Login') router.push({name: "Login"});
         return {user: null, profile: null};

@@ -1,5 +1,5 @@
 import {initializeApp} from "firebase/app"
-import {getAuth} from "firebase/auth";
+import {getAuth, setPersistence, browserLocalPersistence} from "firebase/auth";
 
 export const app = initializeApp({
     apiKey: "AIzaSyARHcPTpQ09ekeN91DtgfrAl8kA3bgrcYM",
@@ -12,3 +12,4 @@ export const app = initializeApp({
     measurementId: "G-5CEEWG9PZR"
 });
 export const auth = getAuth(app);
+setPersistence(auth, browserLocalPersistence);

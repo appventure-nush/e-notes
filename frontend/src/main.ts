@@ -3,6 +3,7 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import {auth} from "@/plugins/firebase";
+import {onAuthStateChanged} from "@firebase/auth";
 import './mixins'
 import './plugins/others'
 
@@ -25,7 +26,7 @@ Vue.config.productionTip = false;
 
 export let FIREBASE_INITIALIZED = false;
 
-const unsubscribe = auth.onAuthStateChanged(user => {
+const unsubscribe = onAuthStateChanged(auth, user => {
     FIREBASE_INITIALIZED = true;
     Config.setUser(user);
     Config.fetchProfile();
