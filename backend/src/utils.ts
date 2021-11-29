@@ -124,7 +124,9 @@ export async function hasPermissions(uid: string, cid: string): Promise<boolean>
     if (_accepts(user, cid)) return true;
     if (_rejects(user, cid)) return false;
     if (hasPermission(computeAccess(user, collection), VIEW_OTHER_COLLECTION)) return true;
-    if (collection?.hasReadAccess.includes(uid)) return true;
+    if (collection?.hasReadAccess?.includes(uid)) return true;
+    if (collection?.open) return true;
+
     const userRoles = user.roles.map(rid => roleCache.get(rid)).filter(role => role);
 
     const reject = !userRoles.some(role => _rejects(role, cid));
@@ -141,8 +143,9 @@ export async function checkCreatePermissions(req: express.Request): Promise<bool
 }
 
 export async function getAvailableCollections(uid: string) { // used in middleware
-    const flags = await Promise.all(collectionCache.values().map(c => hasPermissions(uid, c.cid)));
-    return collectionCache.values().filter((c, i) => flags[i]).sort(sortHandler('cid'));
+    const colls = collectionCache.values();
+    const flags = await Promise.all(colls.map(c => hasPermissions(uid, c.cid)));
+    return colls.filter((c, i) => flags[i]).sort(sortHandler('cid'));
 }
 
 async function getUID(req: express.Request): Promise<string | undefined> {

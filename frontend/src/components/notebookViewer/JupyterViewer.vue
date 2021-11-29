@@ -163,9 +163,16 @@ pre {
 
       &.output-display table {
         border-collapse: collapse;
+        border: none;
 
         td, th {
+          border: none;
           padding: 0.1em 0.2em;
+        }
+
+        th,
+        tr:nth-child(even) {
+          background: #8883;
         }
       }
     }

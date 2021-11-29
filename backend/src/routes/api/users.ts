@@ -9,7 +9,9 @@ import {middleware} from "apicache";
 const users = Router();
 
 users.get("/", checkUser, middleware('1 min'), (req, res) => {
-    Promise.all(profileCache.values().sort(sortHandler('uid')).map(u => getUser(u.uid))).then(u => res.json(u));
+    let users = profileCache.values();
+    if (!(req.user?.admin || req.user?.teacher)) users = users.filter(u => u.teacher);
+    Promise.all(users.sort(sortHandler('uid')).map(u => getUser(u.uid))).then(u => res.json(u));
 });
 
 users.get("/:uid", checkUser, async (req, res) => {

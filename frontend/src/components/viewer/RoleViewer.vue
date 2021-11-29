@@ -90,7 +90,6 @@ import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
 import {Role} from "@/types/role";
 import {del, get, post} from "@/mixins/api";
 import UserAvatar from "@/components/UserAvatar.vue";
-import {User} from "@/types/user";
 import RoleUserPopup from "@/components/popup/RoleUserPopup.vue";
 import {EventBus} from "@/event";
 import Data from "@/store/data"
@@ -108,7 +107,7 @@ export default class RoleViewer extends Vue {
   saving = false;
   editing = false;
   editedRole: Role = {} as Role;
-  usersWithRole: User[] = [];
+  usersWithRole: string[] = [];
   editedPermissions: { cid: string, allow?: boolean }[] = []
   toAddPerm: { cid: string, allow: boolean } = {cid: '', allow: true};
 
@@ -119,7 +118,7 @@ export default class RoleViewer extends Vue {
     this.usersPopup.$on('emails', (emails: string[]) => {
       if (!this.creating) {
         this.saving = true;
-        post<{ updated: number, users: User[] }>(`/api/roles/${this.rid}/users`, {
+        post<{ updated: number, users: string[] }>(`/api/roles/${this.rid}/users`, {
           action: this.usersPopup.action,
           emails: emails
         }).then(json => {
@@ -150,7 +149,7 @@ export default class RoleViewer extends Vue {
     let role = this.roles.find(r => r.rid === this.rid);
     if (!role) return this.$router.push({name: "Roles"});
     Data.setCurrentRole(role);
-    get<User[]>(`/api/roles/${this.rid}/users`).then(json => this.usersWithRole = json);
+    get<string[]>(`/api/roles/${this.rid}/users`).then(json => this.usersWithRole = json);
   }
 
   @Watch('roles', {immediate: true, deep: true})

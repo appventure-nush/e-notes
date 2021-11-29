@@ -9,7 +9,8 @@ import './plugins/others'
 
 import Config from "@/store/config"
 import vuetify from './plugins/vuetify'
-
+// TODO: hide roles from students
+// TODO: require email verification
 const ASCII_NAME =
     `%c  _____             _              _   _ _   _ ____  _   _ \n` +
     " | ____|_ __   ___ | |_ ___  ___  | \\ | | | | / ___|| | | |\n" +

@@ -38,8 +38,9 @@
               <span v-else>Admin</span>
             </div>
           </v-card-text>
-          <v-divider></v-divider>
+          <v-divider v-if="isAdmin()"></v-divider>
           <v-row
+              v-if="isAdmin()"
               class="text-left"
               tag="v-card-text">
             <v-col
