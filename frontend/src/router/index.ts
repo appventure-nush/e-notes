@@ -58,6 +58,7 @@ const routes: Array<RouteConfig> = [
             icon: "mdi-tag-multiple",
             title: "Roles",
             public: true,
+            admin: true,
             auth: true
         },
         children: [
@@ -192,13 +193,9 @@ const router = new VueRouter({
 });
 
 export function shouldAllow(to: Route): boolean {
-    if (to.matched.some(record => record.meta.auth)) {
-        const user = auth.currentUser;
-        if (user == null) return false;
-        else if (to.matched.some(record => record.meta.admin))
-            return !!(Config.profile?.admin);
-        else return true;
-    } else return true;
+    if (to.matched && to.matched.some(record => record.meta.auth) || to.meta?.auth) if (!auth.currentUser) return false;
+    if ((to.matched && to.matched.some(record => record.meta.admin)) || to.meta?.admin) if (!Config.profile?.admin) return false;
+    return true;
 }
 
 const DEFAULT_TITLE = 'Enotes';

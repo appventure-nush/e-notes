@@ -36,12 +36,10 @@ authentication.post('/profile', checkUser, async (req, res) => {
     if (nickname && typeof nickname === 'string') user.nickname = nickname;
     if (desc && typeof desc === 'string') user.desc = desc;
     try {
-        if ((nickname && typeof nickname === 'string') || (desc && typeof desc === 'string')) {
-            await addAudit(simpleAudit(user.uid, user.uid, Category.USER, Action.EDIT, [{nickname, desc}]));
-            return res.json(success({
-                user: await updateUser(user.uid, user as User)
-            }));
-        } else return res.json(failed('please give a nickname or a description'));
+        await addAudit(simpleAudit(user.uid, user.uid, Category.USER, Action.EDIT, [{nickname, desc}]));
+        return res.json(success({
+            user: await updateUser(user.uid, user as User)
+        }));
     } catch (e) {
         res.json(error(e.message));
     }

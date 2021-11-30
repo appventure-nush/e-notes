@@ -31,6 +31,15 @@ const unsubscribe = onAuthStateChanged(auth, user => {
     FIREBASE_INITIALIZED = true;
     Config.setUser(user);
     Config.fetchProfile();
+    if (user) {
+        if (!user.emailVerified && router.currentRoute.name !== "Profile") router.push({
+            name: "Profile",
+            query: {askVerify: "true"}
+        })
+        else if (user.emailVerified && router.currentRoute.name === "Profile") router.push({
+            name: "Profile"
+        })
+    }
     unsubscribe();
 });
 

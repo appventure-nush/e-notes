@@ -91,6 +91,20 @@
         v-model="emailSnackbar"
         :timeout="3000">A verification email has been sent, please check your inbox.
     </v-snackbar>
+    <v-snackbar :value="this.$route.query.askVerify&&!emailSnackbar"
+                multi-line>
+      Please verify your email to prevent loss of account!
+      <template v-slot:action="{ attrs }">
+        <v-btn
+            color="primary"
+            text
+            :disabled="verifying"
+            v-bind="attrs"
+            @click="verify">
+          Verify
+        </v-btn>
+      </template>
+    </v-snackbar>
   </v-container>
 </template>
 

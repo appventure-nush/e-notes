@@ -46,7 +46,7 @@
             nav>
           <!-- navigation links -->
           <v-list-item
-              v-for="item in $router.getRoutes().filter(i=>i.meta.public)"
+              v-for="item in $router.getRoutes().filter(i=>i.meta.public&&shouldAllow(i))"
               :to="item"
               :key="item.name"
               :exact="item.meta.exact"
@@ -130,9 +130,15 @@ import {Component, Vue} from "vue-property-decorator";
 import {Collection} from "@/types/coll";
 import Data from "@/store/data"
 import Config from "@/store/config"
+import {shouldAllow} from "./router";
+import {Route} from 'vue-router'
 
 @Component
 export default class App extends Vue {
+  shouldAllow(route: Route) {
+    return shouldAllow(route);
+  }
+
   get profile() {
     return Config.profile;
   }
