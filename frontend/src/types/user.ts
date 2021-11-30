@@ -1,8 +1,8 @@
 import {MutablePermissions} from "./permissions";
 
-export const CREATE_COLLECTION = 0b0001;
-export const VIEW_OTHER_COLLECTION = 0b0010;
-export const EDIT_OTHER_COLLECTION = 0b0100;
+export const VIEW_OTHER_COLLECTION = 0b001;
+export const EDIT_OTHER_COLLECTION = 0b010;
+export const CREATE_COLLECTION = 0b100;
 export const IDK_YET = 0b1000;
 
 export const TEACHER_PERMISSION = CREATE_COLLECTION;

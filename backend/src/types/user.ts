@@ -3,9 +3,9 @@ import {Collection} from "./coll";
 import {MutablePermissions} from "./permissions";
 import UserRecord = admin.auth.UserRecord;
 
-export const CREATE_COLLECTION = 0b0001;
-export const VIEW_OTHER_COLLECTION = 0b0010;
-export const EDIT_OTHER_COLLECTION = 0b0100;
+export const VIEW_OTHER_COLLECTION = 0b001;
+export const EDIT_OTHER_COLLECTION = 0b010;
+export const CREATE_COLLECTION = 0b100;
 
 export const TEACHER_PERMISSION = CREATE_COLLECTION;
 
@@ -45,6 +45,12 @@ export function computeAccess(user?: User, collection?: Collection): number {
     let final = user.access || 0;
     if (user.teacher) final |= TEACHER_PERMISSION;
     if (user.admin) final |= ADMIN_PERMISSION;
+
+    if (collection && user.permissions[collection.cid]) {
+        let perm = user.permissions[collection.cid];
+        if (typeof perm === "boolean") final |= VIEW_OTHER_COLLECTION;
+        else final |= perm;
+    }
 
     // if in the context of a collection
     if (collection && collection.owner === user.uid) final |= ADMIN_PERMISSION;

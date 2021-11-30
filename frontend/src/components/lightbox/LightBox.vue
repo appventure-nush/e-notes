@@ -230,7 +230,7 @@ export default class LightBox extends Vue {
 
   mounted() {
     if (this.autoPlay) {
-      this.timer = setInterval(() => {
+      this.timer = window.setInterval(() => {
         this.nextImage()
       }, this.autoPlayTime)
     }

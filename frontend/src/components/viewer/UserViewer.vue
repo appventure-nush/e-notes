@@ -95,37 +95,8 @@
             </v-col>
             <v-col cols="12" sm="9" md="7" lg="6" v-else><i>None</i></v-col>
             <v-col cols="12">
-              <v-data-table
-                  :headers="permissionHeaders"
-                  :items="this.editedPermissions"
-                  no-data-text="No overrides set for this user"
-                  disable-pagination
-                  hide-default-footer>
-                <template v-slot:item.allow="{ item }">
-                  <v-simple-checkbox
-                      v-if="editing"
-                      :ripple="false"
-                      v-model="item.allow"
-                  ></v-simple-checkbox>
-                  <span v-else v-text="item.allow?'Allow':'Deny'"></span>
-                </template>
-                <template v-slot:item.actions="{ item }" v-if="editing">
-                  <v-icon small @click="deletePermissionDeclaration(item)">
-                    mdi-delete
-                  </v-icon>
-                </template>
-                <template v-slot:footer v-if="editing">
-                  <v-row no-gutters class="flex-nowrap mx-2">
-                    <v-col class="flex-grow-1 mx-2">
-                      <v-autocomplete item-text="name" item-value="cid" :items="collections" hide-details
-                                      v-model="toAddPerm.cid" dense label="Collection"></v-autocomplete>
-                    </v-col>
-                    <v-col tag="v-simple-checkbox" class="flex-grow-0" v-model="toAddPerm.allow" dense
-                           :ripple="false"></v-col>
-                    <v-col tag="v-btn" class="flex-grow-0 my-auto" text @click="commitPermToAdd">Add</v-col>
-                  </v-row>
-                </template>
-              </v-data-table>
+              <PermissionEditor v-model="editedPermissions" :editing="editing"
+                                no-data="No permission overrides set for this user"></PermissionEditor>
             </v-col>
           </v-row>
           <v-card-actions v-if="isAdmin()">
@@ -146,8 +117,11 @@ import {permissions, User} from '@/types/user';
 import {computeAccess, hasPermission, splitAccess} from "@/mixins/permission";
 import {post} from "@/mixins/api";
 import Data from "@/store/data"
+import PermissionEditor from "@/components/PermissionEditor.vue";
 
-@Component
+@Component({
+  components: {PermissionEditor}
+})
 export default class UserViewer extends Vue {
   @Prop(String) readonly uid?: string;
   readonly name = "UserViewer";
@@ -156,8 +130,7 @@ export default class UserViewer extends Vue {
   editing = false;
   editedUser: User = {} as User;
   editedAccess: number[] = []
-  editedPermissions: { cid: string, allow?: boolean }[] = []
-  toAddPerm: { cid: string, allow: boolean } = {cid: '', allow: true};
+  editedPermissions: { cid: string, allow: number | boolean }[] = []
 
   customRoles: string[] = [];
 
@@ -179,7 +152,6 @@ export default class UserViewer extends Vue {
     Data.fetchUser(this.uid).then(() => {
       this.loading = false;
     });
-    this.toAddPerm = {cid: '', allow: true};
   }
 
   @Watch('user')
@@ -224,18 +196,6 @@ export default class UserViewer extends Vue {
     }).finally(() => this.saving = false)
   }
 
-  deletePermissionDeclaration(item: { cid: string, allow: boolean }) {
-    const i = this.editedPermissions.findIndex(p => p.cid === item.cid);
-    if (i === -1) return;
-    this.editedPermissions.splice(i, 1)
-  }
-
-  commitPermToAdd() {
-    if (!this.toAddPerm.cid) return;
-    this.editedPermissions.push(this.toAddPerm);
-    this.toAddPerm = {cid: '', allow: true};
-  }
-
   addRole() {
     if (!this.roleToAdd) return;
     if (this.customRoles.includes(this.roleToAdd)) return;
@@ -250,18 +210,8 @@ export default class UserViewer extends Vue {
     return Data.currentUser || {} as User;
   }
 
-  get collections() {
-    return Data.collections || [];
-  }
-
   get allRoles() {
     return this.customRoles.concat(Data.roles.map(r => r.rid));
-  }
-
-  get permissionHeaders() {
-    return [{text: 'Collection', align: 'start', value: 'cid'},
-      {text: 'Permission', value: 'allow'},
-      {text: 'Actions', value: 'actions', sortable: false, align: this.editing ? undefined : ' d-none'}]
   }
 }
 </script>

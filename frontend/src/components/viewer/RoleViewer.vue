@@ -41,37 +41,10 @@
             </v-hover>
             <RoleUserPopup ref="users-popup" :rid="rid" :show="editing"></RoleUserPopup>
           </v-card-text>
-          <v-data-table
-              :headers="permissionHeaders"
-              :items="this.editedPermissions"
-              no-data-text="No overrides set for this role"
-              disable-pagination
-              hide-default-footer>
-            <template v-slot:item.allow="{ item }">
-              <v-simple-checkbox
-                  v-if="editing"
-                  :ripple="false"
-                  v-model="item.allow"
-              ></v-simple-checkbox>
-              <span v-else v-text="item.allow?'Allow':'Deny'"></span>
-            </template>
-            <template v-slot:item.actions="{ item }" v-if="editing">
-              <v-icon small @click="deletePermissionDeclaration(item)">
-                mdi-delete
-              </v-icon>
-            </template>
-            <template v-slot:footer v-if="editing">
-              <v-row no-gutters class="flex-nowrap mx-2">
-                <v-col class="flex-grow-1 mx-2">
-                  <v-autocomplete item-text="name" item-value="cid" :items="collections" hide-details
-                                  v-model="toAddPerm.cid" dense label="Collection"></v-autocomplete>
-                </v-col>
-                <v-col tag="v-simple-checkbox" class="flex-grow-0" v-model="toAddPerm.allow" dense
-                       :ripple="false"></v-col>
-                <v-col tag="v-btn" class="flex-grow-0 my-auto" text @click="commitPermToAdd">Add</v-col>
-              </v-row>
-            </template>
-          </v-data-table>
+          <PermissionEditor v-model="editedPermissions" :editing="editing"
+                            no-data="No permission overrides set for this role"></PermissionEditor>
+          <small v-if="editing">Note, edit permissions will not be respected for roles, will be regarded the same as
+            view</small>
           <v-card-actions v-if="isAdmin()">
             <v-spacer/>
             <v-btn v-if="editing" text @click="cancel">Cancel</v-btn>
@@ -93,9 +66,10 @@ import UserAvatar from "@/components/UserAvatar.vue";
 import RoleUserPopup from "@/components/popup/RoleUserPopup.vue";
 import {EventBus} from "@/event";
 import Data from "@/store/data"
+import PermissionEditor from "@/components/PermissionEditor.vue";
 
 @Component({
-  components: {RoleUserPopup, UserAvatar}
+  components: {PermissionEditor, RoleUserPopup, UserAvatar}
 })
 export default class RoleViewer extends Vue {
   @Prop(String) readonly rid!: string;
@@ -108,8 +82,7 @@ export default class RoleViewer extends Vue {
   editing = false;
   editedRole: Role = {} as Role;
   usersWithRole: string[] = [];
-  editedPermissions: { cid: string, allow?: boolean }[] = []
-  toAddPerm: { cid: string, allow: boolean } = {cid: '', allow: true};
+  editedPermissions: { cid: string, allow: number | boolean }[] = []
 
   // for creation only
   emailsWithRoles: string[] = [];
@@ -139,7 +112,6 @@ export default class RoleViewer extends Vue {
   onRIDChange() {
     this.editing = false;
     this.saving = false;
-    this.toAddPerm = {cid: '', allow: true};
     if (this.creating) {
       this.editing = true;
       this.editedRole = {} as Role;
@@ -219,36 +191,12 @@ export default class RoleViewer extends Vue {
     }
   }
 
-  deletePermissionDeclaration(item: { cid: string, allow: boolean }) {
-    const i = this.editedPermissions.findIndex(p => p.cid === item.cid);
-    if (i === -1) return;
-    this.editedPermissions.splice(i, 1)
-  }
-
-  commitPermToAdd() {
-    if (!this.toAddPerm.cid) return;
-    let edit = this.editedPermissions.find(perm => perm.cid === this.toAddPerm.cid);
-    if (edit) edit.allow = this.toAddPerm.allow;
-    else this.editedPermissions.push(this.toAddPerm);
-    this.toAddPerm = {cid: '', allow: true};
-  }
-
-  get role() {
-    return Data.currentRole;
-  }
-
-  get collections() {
-    return Data.collections;
+  get role(): Role {
+    return Data.currentRole || {} as Role;
   }
 
   get creating() {
     return !this.rid;
-  }
-
-  get permissionHeaders() {
-    return [{text: 'Collection', align: 'start', value: 'cid'},
-      {text: 'Permission', value: 'allow'},
-      {text: 'Actions', value: 'actions', sortable: false, align: this.editing ? undefined : ' d-none'}]
   }
 }
 </script>

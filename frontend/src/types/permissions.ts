@@ -1,3 +1,3 @@
 export interface MutablePermissions {
-    permissions: { [key: string]: boolean | undefined };
+    permissions: { [key: string]: boolean | number };
 }
