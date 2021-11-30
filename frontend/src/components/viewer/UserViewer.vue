@@ -1,7 +1,7 @@
 <template>
   <v-container>
     <v-scroll-y-transition mode="out-in">
-      <v-card :loading="saving" :key="uid" flat class="mt-6">
+      <v-card :loading="saving" :disabled="saving" :key="uid" flat class="mt-6">
         <template v-if="loading">
           <v-card-text>
             <v-skeleton-loader type="list-item-avatar,divider,card"></v-skeleton-loader>

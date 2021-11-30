@@ -83,7 +83,7 @@ class DataModule extends VuexModule {
             if (collection) this.collections.push(collection);
         } else {
             if (!collection) this.collections.splice(i, 1);
-            else this.collections[i] = collection;
+            else Vue.set(this.collections, i, collection);
         }
         return collection;
     }
@@ -95,7 +95,7 @@ class DataModule extends VuexModule {
             if (user) this.users.push(user);
         } else {
             if (!user) this.users.splice(i, 1);
-            else this.users[i] = user;
+            else Vue.set(this.users, i, user);
         }
         return user;
     }
@@ -107,7 +107,7 @@ class DataModule extends VuexModule {
             if (role) this.roles.push(role);
         } else {
             if (!role) this.roles.splice(i, 1);
-            else this.roles[i] = role;
+            else Vue.set(this.roles, i, role);
         }
         return role;
     }

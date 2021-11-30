@@ -20,8 +20,7 @@
             <pre v-text="role.rid" v-else></pre>
           </v-card-subtitle>
           <v-card-text>
-            <v-textarea v-if="editing" v-model="editedRole.desc" no-resize dense hide-details
-                        label="Description"></v-textarea>
+            <v-textarea v-if="editing" v-model="editedRole.desc" dense hide-details label="Description"></v-textarea>
             <template v-else>{{ role.desc }}</template>
           </v-card-text>
           <v-card-text class="py-0">

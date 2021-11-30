@@ -76,6 +76,9 @@
         <v-textarea v-if="editing" v-model="localCopy.desc" label="Description"></v-textarea>
         <span v-else v-text="user.desc"></span>
       </v-card-text>
+      <v-card-text>
+        <PermissionEditor no-data="No permission overrides" v-model="user.permissions"></PermissionEditor>
+      </v-card-text>
       <v-card-actions>
         <v-spacer/>
         <v-btn v-if="editing" color="warning" text @click="cancel">Cancel</v-btn>
@@ -118,12 +121,14 @@ import {linkWithPopup, OAuthProvider, sendEmailVerification} from "firebase/auth
 import {FirebaseUser} from "@/types/shims/shims-firebase-user";
 import {auth} from "@/plugins/firebase";
 import Config from "@/store/config"
+import PermissionEditor from "@/components/PermissionEditor.vue";
 
 @Component({
   methods: {
     getToken
   },
   components: {
+    PermissionEditor,
     FileUpload: VueUploadComponent,
   }
 })
