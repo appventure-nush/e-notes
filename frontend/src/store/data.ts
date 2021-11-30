@@ -77,7 +77,7 @@ class DataModule extends VuexModule {
     }
 
     @Mutation
-    setCollection({cid, collection}: { cid: string, collection: Collection | null }) {
+    setCollection({cid, collection}: { cid: string, collection: Collection | null }): Collection | null {
         const i = this.collections.findIndex(c => c && c.cid === cid);
         if (i === -1) {
             if (collection) this.collections.push(collection);
@@ -89,7 +89,7 @@ class DataModule extends VuexModule {
     }
 
     @Mutation
-    setUser({uid, user}: { uid: string, user: User | null }) {
+    setUser({uid, user}: { uid: string, user: User | null }): User | null {
         const i = this.users.findIndex(c => c && c.uid === uid);
         if (i === -1) {
             if (user) this.users.push(user);
@@ -101,7 +101,7 @@ class DataModule extends VuexModule {
     }
 
     @Mutation
-    setRole({rid, role}: { rid: string, role: Role | null }) {
+    setRole({rid, role}: { rid: string, role: Role | null }): Role | null {
         const i = this.roles.findIndex(c => c && c.rid === rid);
         if (i === -1) {
             if (role) this.roles.push(role);
@@ -152,7 +152,7 @@ class DataModule extends VuexModule {
     }
 
     @Action({rawError: true})
-    async fetchUser(uid: string) {
+    async fetchUser(uid: string): Promise<User | null> {
         this.setCurrentUser(this.users.find(c => c && c.uid === uid) || null)
         const user = await get<User>(`/api/users/${uid}`);
         this.setCurrentUser(user);

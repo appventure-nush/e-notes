@@ -7,7 +7,6 @@ import imageType from "image-type";
 import {error, failed, success} from "../../response";
 import sharp from "sharp";
 import fileUpload from "express-fileupload";
-import api from "../api";
 
 const authentication = Router();
 

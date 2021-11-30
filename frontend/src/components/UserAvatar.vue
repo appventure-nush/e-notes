@@ -34,6 +34,7 @@
 import {Component, Prop, Vue, Watch} from "vue-property-decorator";
 import {User} from "@/types/user";
 import Data from "@/store/data"
+import {get} from "@/mixins/api";
 
 function intToHSL(number: number) {
   return "hsl(" + number % 360 + ",50%,30%)";
@@ -47,12 +48,21 @@ export default class UserAvatar extends Vue {
   @Prop(String) readonly classes!: string;
   @Prop({type: Number, default: 0}) readonly elevation!: number;
   name = "UserAvatar"
-  user?: User = {} as User;
+  user: User = {} as User;
 
   @Watch('uid', {immediate: true})
-  onUIDChange() {
-    this.user = Data.users.find(u => u.uid === this.uid);
-    if (this.user) return;
+  async onUIDChange() {
+    let user = Data.users.find(u => u.uid === this.uid) || null;
+    if (user) {
+      this.user = user;
+      return;
+    }
+    user = await get<User>(`/api/users/${this.uid}`);
+    if (user) {
+      Data.setUser({uid: this.uid, user});
+      this.user = user;
+      return;
+    }
     if (this.admin) this.user = {
       permissions: {},
       admin: true,
