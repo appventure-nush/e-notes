@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app v-touch="touchOptions">
     <template v-if="!$router.currentRoute.meta.naked && profile">
       <v-navigation-drawer app v-model="drawer">
         <template v-slot:prepend>
@@ -106,6 +106,7 @@
       </v-navigation-drawer>
       <v-app-bar
           app
+          v-model="appbar"
           scroll-threshold="69"
           elevate-on-scroll
           hide-on-scroll
@@ -136,6 +137,8 @@ import {Route} from 'vue-router'
 
 @Component
 export default class App extends Vue {
+  appbar = true;
+
   shouldAllow(route: Route) {
     return shouldAllow(route);
   }
@@ -180,6 +183,12 @@ export default class App extends Vue {
   logout() {
     Config.logout();
   }
+
+  readonly touchOptions = {
+    down: () => this.appbar = true,
+    right: () => this.drawer = true,
+    left: () => this.drawer = false
+  };
 }
 </script>
 <style>

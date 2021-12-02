@@ -127,7 +127,7 @@ export async function hasPermissions(uid: string, cid: string): Promise<boolean>
 
     const userRoles = user.roles.map(rid => roleCache.get(rid)).filter(role => role);
     if (userRoles.some(role => _rejects(role, cid))) return false;
-
+    if (_rejects(user, cid)) return false;
     return collection?.open ||
         hasPermission(computeAccess(user, collection), VIEW_OTHER_COLLECTION) ||
         userRoles.some(role => roleAccepts(role, cid));

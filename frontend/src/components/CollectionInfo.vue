@@ -33,20 +33,6 @@
           </v-expansion-panel>
           <v-expansion-panel>
             <v-expansion-panel-header expand-icon="mdi-menu-down">
-                <span>
-                <v-icon small>
-                  mdi-text-long
-                </v-icon>
-                Description
-                </span>
-            </v-expansion-panel-header>
-            <v-expansion-panel-content>
-              <markdown v-if="collection.desc" :content="collection.desc"></markdown>
-              <i v-else>No description</i>
-            </v-expansion-panel-content>
-          </v-expansion-panel>
-          <v-expansion-panel>
-            <v-expansion-panel-header expand-icon="mdi-menu-down">
               <span><v-icon small>mdi-lock</v-icon> Permissions</span>
             </v-expansion-panel-header>
             <v-expansion-panel-content>
@@ -75,7 +61,6 @@
               <v-btn text color="error" @click="revokeAccess" :disabled="changingAccess">Clear Access</v-btn>
             </v-expansion-panel-content>
           </v-expansion-panel>
-
           <v-expansion-panel>
             <v-expansion-panel-header expand-icon="mdi-menu-down"><span>
                 <v-icon small>mdi-image-multiple</v-icon>
@@ -138,23 +123,21 @@
       <v-card-actions v-if="canEdit(collection)">
         <CollectionPopup editing :preset="collection">
           <template v-slot:activator="{on}">
-            <v-btn text color="primary" v-on="on">
-              Edit
-            </v-btn>
+            <v-btn text color="primary" v-on="on">Edit</v-btn>
           </template>
         </CollectionPopup>
         <NotePopup :cid="collection.cid">
           <template v-slot:activator="{on}">
-            <v-btn text color="primary" v-on="on" class="ml-4">
-              New Note
-            </v-btn>
+            <v-btn text color="primary" v-on="on" class="ml-4">New Note</v-btn>
           </template>
         </NotePopup>
-        <v-btn text color="error" class="ml-4" @click="deleteCollection">
-          Delete
-        </v-btn>
+        <v-btn text color="error" class="ml-4" @click="deleteCollection">Delete</v-btn>
       </v-card-actions>
     </v-card>
+    <v-container fluid>
+      <markdown v-if="collection.desc" :content="collection.desc"></markdown>
+      <i v-else>No description</i>
+    </v-container>
   </v-container>
 </template>
 

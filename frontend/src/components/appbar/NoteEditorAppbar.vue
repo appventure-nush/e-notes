@@ -6,6 +6,11 @@
       </v-btn>
     </v-col>
     <v-col>
+      <v-btn text :to="{name:'Note',params:{cid:this.$route.params.cid,nid:this.$route.params.nid}}">
+        Cancel
+      </v-btn>
+    </v-col>
+    <v-col>
       <v-btn text @click="format">
         Format
       </v-btn>
