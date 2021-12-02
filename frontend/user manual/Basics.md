@@ -1,25 +1,28 @@
 # 1. Basics
 
+## Contents
+
+1. [Basics](../basics)
+2. [Collections](../collections)
+   1. [Notes](../notes)
+3. [Permissions](../permissions)
+
 ### Login
 
-![image-20211124213126854](image-20211124213126854.png)
+- Remember to verify your account via the email you should have received in your inbox
 
-- Login via Microsoft Account, please use school email
-  - Remember to verify your account via the email you should have received in your inbox
-- Login via email/password pair
-  - For those that has fancy auto complete built into the browser and would like to take advantage of it
-  - You can click on reset password to set a password to use for login
-    - Note that there is no 2FA in place
+### Error/Bug Reporting
+
+[![New Issue](bugs.gif)](https://github.com/appventure-nush/e-notes/issues/new/choose)
+
+<small>Click the Image to report bugs</small>
 
 ### Layout
 
-![image-20211124212913001](image-20211124212913001.png)
+<img src="image-20211124212913001.png" alt="image-20211124212913001" style="zoom: 50%;" />
 
 The UI is divided into two parts, the navigation drawer and the main content, pretty self explanatory.
 
-### Collection
+You can click on **Open** to open/view a collection
 
-- A collection is a collection of notes and images.
-- It can represent a module, a submodule, or just a collection.
-- It has an owner, who has full access over the collection
-- 
+And on **New** to create a new collection

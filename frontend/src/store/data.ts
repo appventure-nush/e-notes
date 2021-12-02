@@ -24,10 +24,12 @@ class DataModule extends VuexModule {
 
     notes: { [cid: string]: Note[] } = {};
     images: { [cid: string]: Image[] } = {};
+    rolesWithAccess: { [cid: string]: Role[] } = {};
 
     currentRole: Role | null = null;
     currentUser: User | null = null;
     currentCollection: Collection | null = null;
+    currentRoles: Role[] | null = [];
     currentNotes: Note[] | null = [];
     currentImages: Image[] | null = [];
     currentNote: Note | null = null;
@@ -58,12 +60,25 @@ class DataModule extends VuexModule {
     }
 
     @Mutation
+    setCurrentRoles(currentRoles: Role[] | null) {
+        return this.currentRoles = currentRoles;
+    }
+
+    @Mutation
     setCurrentNote(currentNote: Note | null) {
         return this.currentNote = currentNote;
     }
 
     @Mutation
+    initObjects() {
+        this.images = {};
+        this.rolesWithAccess = {};
+        this.notes = {};
+    }
+
+    @Mutation
     setNotes({cid, notes}: { cid: string, notes: Note[] | null }) {
+        if (!this.notes) this.initObjects();
         if (notes) return Vue.set(this.notes, cid, notes);
         Vue.delete(this.notes, cid);
         return null;
@@ -71,8 +86,17 @@ class DataModule extends VuexModule {
 
     @Mutation
     setImages({cid, images}: { cid: string, images: Image[] | null }) {
+        if (!this.images) this.initObjects();
         if (images) return Vue.set(this.images, cid, images);
         Vue.delete(this.images, cid);
+        return null;
+    }
+
+    @Mutation
+    setRolesWithAccess({cid, roles}: { cid: string, roles: Role[] | null }) {
+        if (!this.rolesWithAccess) this.initObjects();
+        if (roles) return Vue.set(this.rolesWithAccess, cid, roles);
+        Vue.delete(this.rolesWithAccess, cid);
         return null;
     }
 
@@ -129,6 +153,7 @@ class DataModule extends VuexModule {
 
     @Action({rawError: true})
     async fetchNotes(cid: string) {
+        if (!this.notes) this.initObjects();
         this.setCurrentNotes(this.notes[cid]);
         const notes = await get<Note[]>(`/api/collections/${cid}/notes`);
         this.setCurrentNotes(notes);
@@ -137,10 +162,20 @@ class DataModule extends VuexModule {
 
     @Action({rawError: true})
     async fetchImages(cid: string) {
+        if (!this.images) this.initObjects();
         this.setCurrentImages(this.images[cid]);
         const images = await get<Image[]>(`/api/collections/${cid}/img`);
         this.setCurrentImages(images);
         return this.setImages({cid, images});
+    }
+
+    @Action({rawError: true})
+    async fetchRolesWithAccess(cid: string) {
+        if (!this.rolesWithAccess) this.initObjects();
+        this.setCurrentRoles(this.rolesWithAccess[cid]);
+        const roles = await get<Role[]>(`/api/collections/${cid}/roles`);
+        this.setCurrentRoles(roles);
+        return this.setRolesWithAccess({cid, roles});
     }
 
     @Action({rawError: true})

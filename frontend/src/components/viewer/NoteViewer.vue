@@ -31,12 +31,12 @@
         </v-expansion-panels>
       </v-card-text>
       <v-card-actions v-if="canEdit(currentCollection)">
-        <v-btn text color="primary" @click="download">
-          Download
-        </v-btn>
+        <!--        <v-btn text color="primary" @click="download">-->
+        <!--          Download-->
+        <!--        </v-btn>-->
         <NotePopup editing :preset="note" :cid="cid">
           <template v-slot:activator="{on}">
-            <v-btn text color="primary" class="ml-4" v-on="on" :disabled="loading">
+            <v-btn text color="primary" v-on="on" :disabled="loading">
               Edit
             </v-btn>
           </template>
@@ -99,12 +99,18 @@ export default class NoteViewer extends Vue {
   @Watch('doc')
   onDocChange() {
     if (!this.shadow) {
-      if (!this.shadowRoot) return;
+      if (!this.shadowRoot) return this.updateHash();
       this.shadow = this.shadowRoot.attachShadow({mode: 'open'});
     }
     this.shadow.innerHTML = "";
-    if (this.note && this.note.type && this.note.type !== "html") return;
+    if (this.note && this.note.type && this.note.type !== "html") return this.updateHash();
     this.shadow.innerHTML = this.doc;
+  }
+
+  updateHash() {
+    let hash = this.$route.hash;
+    location.hash = "";
+    setTimeout(() => location.hash = hash, 0);
   }
 
   get note(): Note {
@@ -123,6 +129,7 @@ export default class NoteViewer extends Vue {
 
   @Watch('nid', {immediate: true})
   onNIDChange() {
+    window.scrollTo(0, 0);
     Data.fetchNotes(this.cid);
     this.updateNote();
   }
@@ -164,14 +171,14 @@ export default class NoteViewer extends Vue {
     });
   }
 
-  download() {
-    if (!this.note) return;
-    const url = window.URL.createObjectURL(new Blob([this.note.type === "jupyter" ? JSON.stringify(this.doc) : this.doc]));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = this.note.nid + (this.note.type === "jupyter" ? '.ipynb' : this.note.type === "markdown" ? '.md' : '.html');
-    a.click();
-    window.URL.revokeObjectURL(url);
-  }
+  // download() {
+  //   if (!this.note) return;
+  //   const url = window.URL.createObjectURL(new Blob([this.note.type === "jupyter" ? JSON.stringify(this.doc) : this.doc]));
+  //   const a = document.createElement('a');
+  //   a.href = url;
+  //   a.download = this.note.nid + (this.note.type === "jupyter" ? '.ipynb' : this.note.type === "markdown" ? '.md' : '.html');
+  //   a.click();
+  //   window.URL.revokeObjectURL(url);
+  // }
 }
 </script>

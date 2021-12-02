@@ -4,13 +4,18 @@
 
 <script lang="ts">
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
-import MarkdownIt from 'markdown-it'
-import MarkdownItKatex from '@traptitech/markdown-it-katex'
-import MarkdownItTasklists from '@hedgedoc/markdown-it-task-lists'
+import MarkdownIt from 'markdown-it';
+import MarkdownItKatex from '@traptitech/markdown-it-katex';
+import MarkdownItTasklists from '@hedgedoc/markdown-it-task-lists';
 import markdown_it_highlightjs from "markdown-it-highlightjs";
+// @ts-ignore
+import TOC from "markdown-it-table-of-contents";
+
 import {MarkdownItVueOptions} from "@/components/markdownViewer/markdown";
 import 'katex/dist/katex.min.css'
 import '@/styles/github-dark.scss';
+
+import anchor from "markdown-it-anchor";
 
 @Component
 export default class Markdown extends Vue {
@@ -41,7 +46,14 @@ export default class Markdown extends Vue {
     this.md = new MarkdownIt(this.options.markdownIt || {})
         .use(MarkdownItKatex, this.options.katex || {})
         .use(MarkdownItTasklists, this.options.tasklists || {})
-        .use(markdown_it_highlightjs, this.options.highlight || {})
+        .use(markdown_it_highlightjs, this.options.highlight || {auto: false})
+        .use(anchor, {
+          permalink: anchor.permalink.ariaHidden({
+            symbol: '<i aria-hidden="true" class="mdi mdi-link-variant perma-link"></i>',
+            placement: 'after'
+          })
+        })
+        .use(TOC, {includeLevel: [1, 2, 3]});
   }
 
   get() {
@@ -56,6 +68,7 @@ export default class Markdown extends Vue {
   }
 
   blockquote {
+    background: #9991;
     border-left: 0.3em var(--v-primary-lighten1) solid;
     padding-left: 1em;
     border-left-width: 0.2em;
@@ -64,13 +77,34 @@ export default class Markdown extends Vue {
 
   p:not(table p), ul:not(table ul), ol:not(table ol) {
     &:not(:last-child) {
-      padding-bottom: 1em;
+      margin-bottom: 1em;
     }
   }
 
   h1, h2, h3, h4, h5, h6 {
     &:not(:last-child) {
       padding-bottom: 0.3em;
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    .perma-link {
+      visibility: hidden;
+    }
+
+    &:hover .perma-link {
+      visibility: visible;
+    }
+  }
+
+  h1, h2, h3 {
+    &::before {
+      margin-left: -10px;
+      margin-right: 0.5em;
+      border-right: var(--v-primary-base) .08em solid;
+      content: ''
     }
   }
 

@@ -226,18 +226,26 @@ export default class CollectionInfo extends Vue {
     this.deleting = [];
     this.files = [];
     Data.fetchImages(this.cid);
+    Data.fetchRolesWithAccess(this.cid);
     Data.fetchCollection(this.cid).then(() => {
       if (!this.collection) this.$router.push("/");
       this.loading = false;
     });
   }
 
+  notesCopy: Note[] | null = [];
+
   get notes(): Note[] | null {
-    return Data.currentNotes;
+    return this.notesCopy = Data.currentNotes;
+  }
+
+  set notes(notes: Note[] | null) {
+    if (!this.cid) return;
+    Data.setNotes({cid: this.cid, notes: this.notesCopy = notes});
   }
 
   get roles(): Role[] {
-    return Data.roles;
+    return Data.currentRoles || [];
   }
 
   get images(): Image[] | null {
@@ -308,10 +316,14 @@ export default class CollectionInfo extends Vue {
   onReorder() {
     let payload: { [nid: string]: number } = {};
     if (!this.notes) return;
-    this.notes.forEach((v, i) => payload[v.nid] = i);
+    (this.notesCopy || this.notes).forEach((v, i) => payload[v.nid] = i);
     this.reordering = true;
     post<{ notes: Note[] }>(`/api/collections/${this.cid}/reorder`, payload)
-        .then(json => Data.setCurrentNotes(this.cid ? Data.setNotes({cid: this.cid, notes: json.notes}) : []))
+        .then(json => {
+          if (!this.cid) return;
+          Data.setCurrentNotes(json.notes);
+          Data.setNotes({cid: this.cid, notes: json.notes});
+        })
         .catch(e => alert(e)).finally(() => this.reordering = false)
   }
 }

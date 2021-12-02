@@ -1,57 +1,42 @@
 <template>
-  <v-row no-gutters>
-    <v-col>
-      <v-card flat tile :loading="loading" :disabled="loading">
-        <h1 v-show="note.type==='jupyter'">Jupyter editor not implemented</h1>
-        <markdown-editor v-if="note.type==='markdown'" ref="markdown" :options="mdoptions"
-                         :class="{'toastui-editor-dark':dark,'editor':true}"></markdown-editor>
-        <prism-editor class="editor" v-show="!note.type||note.type==='html'" v-model="content"
-                      :highlight="highlighter" line-numbers></prism-editor>
-      </v-card>
-    </v-col>
-  </v-row>
+  <v-card flat tile :loading="loading" :disabled="loading" class="editor-window">
+    <h1 v-show="note.type==='jupyter'">Jupyter editor not implemented</h1>
+    <markdown-editor v-if="note.type==='markdown'" v-model="content"></markdown-editor>
+    <prism-editor class="editor" v-show="!note.type||note.type==='html'" v-model="content" :highlight="highlighter"
+                  line-numbers></prism-editor>
+  </v-card>
 </template>
 
 <script lang="ts">
-import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
+import {Component, Prop, Vue, Watch} from "vue-property-decorator";
 import {Note} from "@/types/note";
-import {Editor} from '@toast-ui/vue-editor';
 import {PrismEditor} from 'vue-prism-editor';
 import hljs from 'highlight.js/lib/common';
 import pretty from "pretty";
 
 import 'vue-prism-editor/dist/prismeditor.min.css';
-import '@toast-ui/editor/dist/toastui-editor.css';
-import '@toast-ui/editor/dist/theme/toastui-editor-dark.css';
 import '@/styles/github-dark.scss';
 import {EventBus} from "@/event";
 import {post} from "@/mixins/api";
 import Data from "@/store/data"
 import Config from "@/store/config"
+import MarkdownEditor from "@/components/MarkdownEditor.vue";
 
 @Component({
   components: {
-    'markdown-editor': Editor,
-    PrismEditor
+    PrismEditor,
+    MarkdownEditor
   }
 })
 export default class NoteEditor extends Vue {
   @Prop(String) readonly cid?: string;
   @Prop(String) readonly nid?: string;
   @Prop(Array) readonly notes!: Note[];
-  @Ref('markdown') readonly markdown!: Editor;
   name = "NoteEditor";
   doc?: any;
   loading = false;
 
   content = "";
-
-  mdoptions = {
-    height: "100%",
-    maxHeight: "100%",
-    usageStatistics: false,
-    placeholder: 'Markdown input here you could'
-  };
 
   created() {
     EventBus.$on('appbar-action', (action: string) => this.handle(action));
@@ -60,10 +45,9 @@ export default class NoteEditor extends Vue {
   handle(action: string) {
     if (!this.cid || !this.nid) return;
     if (!this.note) return;
-    if (this.note.type === 'markdown' && !this.markdown) return;
     if (action === 'format') {
       if (this.note.type === 'jupyter') this.content = JSON.stringify(JSON.parse(this.content), null, 4);
-      else if (this.note.type === 'markdown') this.markdown.invoke('setHTML', pretty(this.markdown.invoke('getHTML'), {ocd: true}));
+      // else if (this.note.type === 'markdown') this.markdown.invoke('setHTML', pretty(this.markdown.invoke('getHTML'), {ocd: true}));
       else this.content = pretty(this.content, {ocd: true});
     } else if (action === 'save') {
       this.loading = true;
@@ -72,7 +56,7 @@ export default class NoteEditor extends Vue {
       if (this.note.type === 'jupyter') formData.append('note_source',
           new Blob([JSON.stringify(this.doc)], {type: 'application/x-ipynb+json'}), 'note_source.ipynb');
       else if (this.note.type === 'markdown') formData.append('note_source',
-          new Blob([this.markdown.invoke('getMarkdown')], {type: 'text/markdown'}), 'note_source.md');
+          new Blob([this.content], {type: 'text/markdown'}), 'note_source.md');
       else formData.append('note_source',
             new Blob([this.content], {type: 'text/html'}), 'note_source.html');
       if (!this.cid) return;
@@ -110,19 +94,13 @@ export default class NoteEditor extends Vue {
       this.doc = note.type === "jupyter" ? JSON.parse(text) : text;
       if (note.type === "jupyter") return;
       else if (note.type === 'markdown') {
-        this.markdown.invoke("setMarkdown", this.doc);
-        this.markdown.invoke("moveCursorToStart");
+        this.content = this.doc;
       } else this.content = this.doc;
     }); else this.content = this.doc = "";
   }
 }
 </script>
 <style>
-.toastui-editor-dark .toastui-editor-defaultUI {
-  border-color: #494c56;
-  color: #eee;
-}
-
 .prism-editor-wrapper {
   font-family: monospace;
   padding: 5px;
@@ -132,7 +110,7 @@ export default class NoteEditor extends Vue {
   outline: none;
 }
 
-.editor {
+.editor-window {
   height: calc(100vh - 64px - 24px) !important;
 }
 </style>

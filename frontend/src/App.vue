@@ -106,6 +106,7 @@
       </v-navigation-drawer>
       <v-app-bar
           app
+          scroll-threshold="69"
           elevate-on-scroll
           hide-on-scroll
           color="primary"
@@ -193,6 +194,7 @@ export default class App extends Vue {
 <style lang="scss">
 ::-webkit-scrollbar {
   width: .5em;
+  height: .5em;
 }
 
 ::-webkit-scrollbar-track {
