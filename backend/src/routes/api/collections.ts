@@ -84,6 +84,9 @@ collections.delete("/:cid", checkUser, async (req, res) => {
         cid: req.params.cid
     })); else {
         await firestore().collection("collections").doc(req.params.cid).delete();
+        await Promise.all(await firestore().collection("collections").doc(req.params.cid).collection("notes").get().then(q => q.docs.map(d => d.ref.delete())));
+        await storage().bucket().deleteFiles({prefix: `collections/${req.params.cid}/notes`});
+        await storage().bucket().deleteFiles({prefix: `collections/${req.params.cid}/images`});
         res.json(success());
         await addAudit(simpleAudit(req.uid!, req.params.cid, Category.COLLECTION, Action.DELETE, [collection]));
     }

@@ -46,13 +46,13 @@ class ConfigModule extends VuexModule {
         try {
             profile = await get<User>("/api/auth");
         } catch (e) {
-            if (auth.currentUser && reattempt) profile = await this.verifyToken(await auth.currentUser.getIdToken(true))
-            else router.push({
-                name: "Login",
-                query: {to: router.currentRoute.path}
-            });
+            try {
+                if (auth.currentUser && reattempt) profile = await this.verifyToken(await auth.currentUser.getIdToken(true))
+            } catch (e) {
+                profile = null;
+            }
         }
-        if (router.currentRoute.name === "Login") {
+        if (profile && router.currentRoute.name === "Login") {
             if (router.currentRoute.query.to === "/login") router.currentRoute.query.to = '';
             router.push(<string>router.currentRoute.query.to || '/');
         }
@@ -63,6 +63,7 @@ class ConfigModule extends VuexModule {
     async logout() {
         await signOut(auth);
         await get("/api/auth/logout");
+        if (localStorage) localStorage.clear();
         if (router.currentRoute.name !== 'Login') router.push({name: "Login"});
         return {user: null, profile: null};
     }

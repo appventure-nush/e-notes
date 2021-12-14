@@ -38,6 +38,12 @@ const unsubscribe = onAuthStateChanged(auth, user => {
         else if (user.emailVerified && router.currentRoute.name === "Profile" && router.currentRoute.query.askVerify) router.push({
             name: "Profile"
         })
+    } else if (router.currentRoute.name !== "Login") {
+        Config.logout();
+        router.push({
+            name: "Login",
+            query: {to: router.currentRoute.path}
+        });
     }
     unsubscribe();
 });

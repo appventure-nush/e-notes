@@ -57,7 +57,7 @@ export default class UserAvatar extends Vue {
       this.user = user;
       return;
     }
-    user = await get<User>(`/api/users/${this.uid}`);
+    user = await get<User>(`/api/users/${this.uid}`).catch(() => null)
     if (user) {
       Data.setUser({uid: this.uid, user});
       this.user = user;

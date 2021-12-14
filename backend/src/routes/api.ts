@@ -7,21 +7,32 @@ import collections from './api/collections';
 import authentication from "./api/authentication";
 import {error, success} from "../response";
 import {checkUserOptional} from "../utils";
-import fileUpload from "express-fileupload";
 import nocache from "nocache";
+import os from "os";
 
 const api = express.Router();
 api.use(nocache());
 api.use(express.json());
 api.use(express.urlencoded({extended: true}));
 
-api.get("/", checkUserOptional, (req, res) => res.json(success({
-    name: "enotes api",
-    author: "zhao yun",
-    server_time: new Date(),
-    client_ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
-    logged_in_as: req.user ? req.user : "not_logged_in"
-})))
+api.get("/", checkUserOptional, (req, res) => {
+    const freeRam = os.freemem(), total = os.totalmem();
+    res.json(success({
+        name: "enotes api",
+        credits: "zhao yun",
+        logged_in_as: req.user?.email,
+        ip: req.ip,
+        ips: req.ips || req.socket.remoteAddress,
+        server_time: Date.now(),
+        server_uptime: os.uptime(),
+        cpus: os.cpus().length,
+        memory: {
+            free: freeRam,
+            total: total,
+            usage: 1 - freeRam / total
+        }
+    }));
+})
 api.get("/csrf", (req, res) => res.json({token: req.csrfToken()}));
 api.use("/auth", authentication);
 api.use("/roles", roles);
