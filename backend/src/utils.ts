@@ -186,7 +186,7 @@ export async function checkUser(req: express.Request, res: express.Response, nex
         if (e.message === "only nus/nushigh emails allowed")
             return res.json(error('non_school_email_not_allowed'));
         // await error({func: 'checkUserOptional', body: req.body, path: req.path});
-        return res.json(error('login_expired'));
+        return res.json(error({reason: 'login_expired', message: e.message}));
     }
 }
 
@@ -197,8 +197,8 @@ export async function checkUserOptional(req: express.Request, res: express.Respo
             req.uid = uid;
             req.user = await getUser(uid);
         }
-    } catch (_) {
-        return res.json(error('login_expired'));
+    } catch (e) {
+        return res.json(error({reason: 'login_expired', message: e.message}));
     }
     return next();
 }

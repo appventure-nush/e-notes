@@ -8,6 +8,7 @@ import MarkdownIt from 'markdown-it';
 import MarkdownItKatex from '@traptitech/markdown-it-katex';
 import MarkdownItTasklists from '@hedgedoc/markdown-it-task-lists';
 import markdown_it_highlightjs from "markdown-it-highlightjs";
+
 // @ts-ignore
 import TOC from "markdown-it-table-of-contents";
 
@@ -16,11 +17,15 @@ import 'katex/dist/katex.min.css'
 import '@/styles/github-dark.scss';
 
 import anchor from "markdown-it-anchor";
+import {EventBus} from "@/event";
+import {uwuifier} from "@/plugins/others";
+import {modifyText} from "@/plugins/uwu/utils";
 
 @Component
 export default class Markdown extends Vue {
   name = 'markdown-viewer';
   md!: MarkdownIt;
+  uwu = false;
   @Ref('markdown-it-vue-container') readonly container!: Element;
   @Prop(String) readonly content!: string;
   @Prop({
@@ -39,6 +44,7 @@ export default class Markdown extends Vue {
     this.$nextTick(() => {
       if (!val) return this.container.innerHTML = "";
       this.container.innerHTML = this.md.render(val)
+      if (this.uwu) modifyText(this.container, str => uwuifier.uwuifySentence(str));
     })
   }
 
@@ -54,10 +60,20 @@ export default class Markdown extends Vue {
           })
         })
         .use(TOC, {includeLevel: [1, 2, 3]});
+    EventBus.$on("uwufy", this.uwufy)
+  }
+
+  destroyed() {
+    EventBus.$off("uwufy", this.uwufy)
   }
 
   get() {
     return this.md;
+  }
+
+  uwufy() {
+    this.uwu = true;
+    this.onContentChange(this.content);
   }
 }
 </script>

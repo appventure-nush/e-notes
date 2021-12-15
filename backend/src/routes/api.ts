@@ -41,7 +41,7 @@ api.use("/audits", audits);
 api.use("/collections", collections);
 api.get('*', (req, res) => res.json(error("404")));
 api.use((err: Error, req: express.Request, res: express.Response) => {
-    res.send(err.message);
+    res.json(error(err.message));
 });
 
 export default api;

@@ -22,6 +22,7 @@
         "markdown-it-highlightjs": "^3.5.0",
         "markdown-it-table-of-contents": "^0.6.0",
         "pretty": "^2.0.0",
+        "tighpo": "^1.0.1",
         "vue": "^2.6.11",
         "vue-class-component": "^7.2.3",
         "vue-moment": "^4.1.0",

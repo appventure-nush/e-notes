@@ -138,6 +138,7 @@ import {Route} from 'vue-router'
 @Component
 export default class App extends Vue {
   appbar = true;
+  counter = 0;
 
   shouldAllow(route: Route) {
     return shouldAllow(route);
@@ -153,6 +154,8 @@ export default class App extends Vue {
 
   set drawer(drawer: boolean) {
     Config.setDrawer(drawer);
+    this.counter++;
+    if (this.counter > 100 && !document.body.classList.contains('rb')) document.body.classList.add('rb');
   }
 
   get currentCollection() {
@@ -216,5 +219,29 @@ export default class App extends Vue {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--v-primary-lighten1);
+}
+
+body.rb.rb-lock-off {
+  animation: rainbow 4s steps(36) infinite;
+}
+
+@-webkit-keyframes rainbow {
+  from {
+    -webkit-filter: hue-rotate(10deg);
+  }
+  to {
+    -webkit-filter: hue-rotate(360deg);
+  }
+}
+
+@keyframes rainbow {
+  from {
+    -webkit-filter: hue-rotate(10deg);
+    filter: hue-rotate(10deg);
+  }
+  to {
+    -webkit-filter: hue-rotate(360deg);
+    filter: hue-rotate(360deg);
+  }
 }
 </style>
