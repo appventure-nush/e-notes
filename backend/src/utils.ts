@@ -30,6 +30,10 @@ export const profileCache = new LRU<string, User>({max: Infinity});
 export const roleCache = new LRU<string, Role>({max: Infinity});
 export const collectionCache = new LRU<string, Collection>({max: Infinity});
 
+function endsWithAny(suffixes: string[], str?: string) {
+    return suffixes.some(suffix => str && str.endsWith(suffix));
+}
+
 export async function getUser(uid: string): Promise<User | undefined> { // heavy call function
     if (!uid) return undefined;
     let fbUser = userCache.get(uid);
@@ -37,12 +41,16 @@ export async function getUser(uid: string): Promise<User | undefined> { // heavy
     if (!fbUser) return undefined;
     let user = profileCache.get(uid);
     if (!user) {
-        let ref = firestore().collection("users").doc(fbUser.uid);
-        let get = await ref.get();
+        const ref = firestore().collection("users").doc(fbUser.uid);
+        const get = await ref.get();
         if (get.exists) updateUserCache(fbUser.uid, user = get.data() as User);
         else {
-            user = makeUser(fbUser.uid);
-            await Promise.all([ref.set(user), addAudit(simpleAudit("root", user.uid, Category.USER, Action.CREATE))]);
+            if (endsWithAny(['@nushigh.edu.sg', '@nus.edu.sg'], fbUser.email)) {
+                user = makeUser(fbUser.uid);
+                await Promise.all([ref.set(user), addAudit(simpleAudit("root", user.uid, Category.USER, Action.CREATE))]);
+            } else {
+                throw new Error("only nus/nushigh emails allowed");
+            }
         }
     }
     return fillUser(user, fbUser);
@@ -86,7 +94,7 @@ export async function getNotes(cid: string): Promise<Note[] | undefined> {
         if (!collectionCache.get(cid)) return [];
         const allNotes = await firestore().collection("collections").doc(cid).collection("notes").get();
         const notes = allNotes.docs.map((doc: DocumentSnapshot) => doc.data() as Note);
-        noteCache.set(cid, notes);
+        noteCache.set(cid, notes.sort((a, b) => a.index - b.index));
         return notes;
     }
 }
@@ -102,7 +110,7 @@ export async function updateNote(cid: string, nid: string, note?: Note) {
             return await firestore().collection("collections").doc(cid).collection("notes").doc(nid).set(note);
         } else {
             notes[index] = note;
-            return await firestore().collection("collections").doc(cid).collection("notes").doc(nid).update(note);
+            return await firestore().collection("collections").doc(cid).collection("notes").doc(nid).set(note);
         }
     } else {
         notes.splice(notes.findIndex(n => n.nid === nid), 1);
@@ -175,6 +183,8 @@ export async function checkUser(req: express.Request, res: express.Response, nex
             return next();
         } else return res.json(error('not_logged_in'));
     } catch (e) {
+        if (e.message === "only nus/nushigh emails allowed")
+            return res.json(error('non_school_email_not_allowed'));
         // await error({func: 'checkUserOptional', body: req.body, path: req.path});
         return res.json(error('login_expired'));
     }

@@ -23,12 +23,20 @@ Max file uplaod is 64MiB, extra data will be chopped off
 
 ```json
 {
-    "status": "success",
-    "name": "enotes api",
-    "author": "zhao yun",
-    "server_time": "2021-11-17T11:15:10.651Z",
-    "client_ip": "::1",
-    "logged_in_as": User
+  "status": "success",
+  "name": "enotes api",
+  "credits": "zhao yun",
+  "logged_in_as": "your_email_here",
+  "ip": "::1",
+  "ips": [],
+  "server_time": 1591676400000,
+  "server_uptime": 1337,
+  "cpus": 96,
+  "memory": {
+    "free": 67759802097,
+    "total": 68719476736,
+    "usage": 0.013965104
+  }
 }
 ```
 

@@ -6,7 +6,7 @@ import {
     checkPermissions,
     checkUser, collectionCache,
     difference,
-    getAvailableCollections, getNotes, roleCache, sortHandler
+    getAvailableCollections, getNotes, noteCache, roleCache, sortHandler
 } from '../../utils';
 import {makeColl} from "../../types/coll";
 import {auth, firestore, storage} from "firebase-admin";
@@ -157,7 +157,8 @@ collections.post("/:cid/reorder", checkUser, async (req, res) => {
             n.index = i;
             tasks.push(firestore().collection("collections").doc(req.params.cid).collection("notes").doc(n.nid).set(n));
         }
-    })
+    });
+    noteCache.set(req.params.cid, notes);
     await Promise.all(tasks);
     res.json(success({
         notes: notes
