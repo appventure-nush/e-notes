@@ -1,0 +1,20 @@
+id: e-notes
+name: E-Notes
+thumbnail: ./file.xxx
+description: |
+  long text
+created:
+  contributors: [contributorID]
+  year:
+maintained:
+  - contributors: [contributorID]
+    year:
+type: /AppVenture/...
+tags: [tagID]
+gallery:
+  - ./file1.xxx
+achievements:
+  - achievement, YYYY
+attachment: ./file.xxx
+website: https://example.com
+featured: false
