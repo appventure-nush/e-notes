@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /api/
+Disallow: /images/f5c4b1b93d9086dbb5a55bedf862b364.jpg
+Sitemap: https://enotes.nush.app/sitemap.txt

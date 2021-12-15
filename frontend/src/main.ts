@@ -56,3 +56,13 @@ new Vue({
 }).$mount('#app');
 
 console.log(ASCII_NAME, "font-family:monospace");
+
+if (window) { // fun code for the students to explore
+    let i = 0;
+    Object.defineProperty(window, 'flag', {
+        get() {
+            if (i > 10) window.location.href = "https://youtu.be/dQw4w9WgXcQ";
+            return ["flag{hello_world!}", "there are more secrets hidden here", "try to find them!"][i++];
+        }
+    });
+}
