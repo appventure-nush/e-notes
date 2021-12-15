@@ -37,7 +37,8 @@ notes.post("/:nid", checkUser, async (req, res) => {
         await addAudit(simpleAudit(req.uid!, note.nid, Category.NOTE, Action.EDIT, [old], {colls: [req.body.cid]}));
         if (old.nid !== note.nid) {
             await renameNote(note.cid, old.nid, note.nid);
-            note.url = (await storage().bucket().file(`collections/${note.cid}/notes/${note.nid}`).getSignedUrl({
+            // if url follows convention
+            if (note.url?.startsWith('https://storage.googleapis.com/e-notes-nush.appspot.com')) note.url = (await storage().bucket().file(`collections/${note.cid}/notes/${note.nid}`).getSignedUrl({
                 action: 'read',
                 expires: '01-01-2500'
             }))[0];
