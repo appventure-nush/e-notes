@@ -1,20 +1,21 @@
 id: e-notes
 name: E-Notes
-thumbnail: ./file.xxx
+thumbnail: ./thumb.png
 description: |
-  long text
+  E Notes for NUS High
 created:
-  contributors: [contributorID]
-  year:
+  contributors: [ zhaoyun ]
+  year: 2021
 maintained:
-  - contributors: [contributorID]
-    year:
-type: /AppVenture/...
-tags: [tagID]
+  - contributors: [ zhaoyun ]
+      year: 2021
+type: /AppVenture/School
+tags: [ web ]
 gallery:
-  - ./file1.xxx
+  - ./enotes_1.png
+  - ./enotes_2.png
+  - ./enotes_3.png
 achievements:
-  - achievement, YYYY
-attachment: ./file.xxx
-website: https://example.com
+attachment:
+website: https://enotes.nush.app/
 featured: false
