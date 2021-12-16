@@ -39,8 +39,8 @@ export default function generate(word: string, cb: () => void, once = false) {
     const destroy = () => window.removeEventListener('keydown', handler);
 
     function handler({keyCode}: { keyCode: number }) {
-        if (codes[keyCode] !== match.charAt(0)) return;
-        if (!(match = match.slice(1))) {
+        if (codes[keyCode] !== match.charAt(0)) match = word
+        else if (!(match = match.slice(1))) {
             cb && cb();
             once && destroy();
             match = word;
