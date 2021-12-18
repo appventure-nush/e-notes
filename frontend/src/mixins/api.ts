@@ -1,3 +1,5 @@
+import {User} from "@/types/user";
+
 let csrfToken = "";
 
 export function get<T>(path: string): Promise<T> {
@@ -38,6 +40,10 @@ function successFilter<T extends { status?: string, reason?: string }>(json: T) 
 
 export function getToken() {
     return csrfToken; //bit unsafe but whatever, it cant do much against real attacks anyways
+}
+
+export function verifyToken(token: string) {
+    return post("/api/auth", {token: token}).then(() => get<User>("/api/auth"));
 }
 
 get<{ token: string }>('/api/csrf').then(json => csrfToken = json.token);

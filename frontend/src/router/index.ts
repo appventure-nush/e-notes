@@ -1,8 +1,7 @@
 import Vue from 'vue'
 import VueRouter, {RouteConfig, Route} from 'vue-router'
-import {FIREBASE_INITIALIZED} from "@/main";
+import {FIREBASE_INITIALIZED} from "@/pages/Index/main";
 import Config from "@/store/config";
-import {auth} from "@/plugins/firebase";
 
 Vue.use(VueRouter)
 
@@ -18,7 +17,6 @@ const routes: Array<RouteConfig> = [
             icon: "mdi-view-dashboard",
             title: "Home",
             public: true,
-            auth: true,
             exact: true
         }
     },
@@ -29,8 +27,7 @@ const routes: Array<RouteConfig> = [
         meta: {
             icon: "mdi-account-multiple",
             title: "Users",
-            public: true,
-            auth: true
+            public: true
         },
         children: [
             {
@@ -58,8 +55,7 @@ const routes: Array<RouteConfig> = [
             icon: "mdi-tag-multiple",
             title: "Roles",
             public: true,
-            admin: true,
-            auth: true
+            admin: true
         },
         children: [
             {
@@ -93,8 +89,7 @@ const routes: Array<RouteConfig> = [
         },
         meta: {
             title: "{{cid}}",
-            hideTitle: true,
-            auth: true
+            hideTitle: true
         },
         children: [
             {
@@ -158,17 +153,7 @@ const routes: Array<RouteConfig> = [
         name: 'Profile',
         component: () => import(/* webpackChunkName: "profile" */'@/views/Profile.vue'),
         meta: {
-            title: "Profile",
-            auth: true
-        }
-    },
-    {
-        path: '/login',
-        name: 'Login',
-        component: () => import(/* webpackChunkName: "login" */'@/views/Login.vue'),
-        meta: {
-            title: "Login",
-            naked: true
+            title: "Profile"
         }
     },
     {
@@ -179,10 +164,16 @@ const routes: Array<RouteConfig> = [
         }
     },
     {
+        path: "/login",
+        beforeEnter(to) {
+            window.location.href = to.fullPath;
+        }
+    },
+    {
         path: "*",
         name: "404",
         component: () => import(/* webpackChunkName: "404" */"@/views/PageNotFound.vue"),
-        meta: {title: '404 Not Found', naked: true}
+        meta: {title: '404 Not Found'}
     },
 ]
 
@@ -193,17 +184,13 @@ const router = new VueRouter({
 });
 
 export function shouldAllow(to: Route): boolean {
-    if (to.matched && to.matched.some(record => record.meta.auth) || to.meta?.auth) if (!auth.currentUser) return false;
     if ((to.matched && to.matched.some(record => record.meta.admin)) || to.meta?.admin) if (!Config.profile?.admin) return false;
     return true;
 }
 
 const DEFAULT_TITLE = 'Enotes';
 router.beforeEach((to, from, next) => {
-    if (FIREBASE_INITIALIZED && !shouldAllow(to)) router.push({
-        name: "Login",
-        query: {to: router.currentRoute.path}
-    });
+    if (FIREBASE_INITIALIZED && !shouldAllow(to)) history.back();
     else next();
 })
 router.afterEach(to => Vue.nextTick(() => {

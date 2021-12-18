@@ -1,9 +1,8 @@
-import {Module, Mutation, Action, MutationAction, VuexModule, getModule} from 'vuex-module-decorators'
+import {Module, Mutation, MutationAction, VuexModule, getModule} from 'vuex-module-decorators'
 import {User} from "@/types/user";
 import {FirebaseUser} from "@/types/shims/shims-firebase-user";
-import {get, post} from "@/mixins/api";
+import {get, verifyToken} from "@/mixins/api";
 import {auth} from "@/plugins/firebase";
-import router from "@/router";
 import store from "@/store/index";
 import {signOut} from "@firebase/auth";
 
@@ -35,11 +34,6 @@ class ConfigModule extends VuexModule {
         this.user = user;
     }
 
-    @Action
-    verifyToken(token: string) {
-        return post("/api/auth", {token: token}).then(() => get<User>("/api/auth"));
-    }
-
     @MutationAction({mutate: ['profile']})
     async fetchProfile(reattempt = true): Promise<{ profile: User | null }> {
         let profile: User | null = null;
@@ -47,14 +41,14 @@ class ConfigModule extends VuexModule {
             profile = await get<User>("/api/auth");
         } catch (e) {
             try {
-                if (auth.currentUser && reattempt) profile = await this.verifyToken(await auth.currentUser.getIdToken(true))
+                if (auth.currentUser && reattempt) {
+                    console.log("Re-login");
+                    profile = await verifyToken(await auth.currentUser.getIdToken(true))
+                }
             } catch (e) {
+                console.log("Re-login failed", e);
                 profile = null;
             }
-        }
-        if (profile && router.currentRoute.name === "Login") {
-            if (router.currentRoute.query.to === "/login") router.currentRoute.query.to = '';
-            router.push(<string>router.currentRoute.query.to || '/');
         }
         return {profile};
     }
@@ -64,7 +58,7 @@ class ConfigModule extends VuexModule {
         await signOut(auth);
         await get("/api/auth/logout");
         if (localStorage) localStorage.clear();
-        if (router.currentRoute.name !== 'Login') router.push({name: "Login"});
+        location.href = "/login";
         return {user: null, profile: null};
     }
 }

@@ -1,14 +1,15 @@
+// Index/main.ts
 import Vue from 'vue'
 import App from './App.vue'
-import router from './router'
-import store from './store'
+import router from '@/router'
+import store from '@/store'
 import {auth} from "@/plugins/firebase";
 import {onAuthStateChanged} from "@firebase/auth";
-import './mixins'
-import './plugins/others'
+import '@/mixins'
+import '@/plugins/others'
 
 import Config from "@/store/config"
-import vuetify from './plugins/vuetify'
+import vuetify from '@/plugins/vuetify'
 
 const ASCII_NAME =
     `%c  _____             _              _   _ _   _ ____  _   _ \n` +
@@ -38,12 +39,9 @@ const unsubscribe = onAuthStateChanged(auth, user => {
         else if (user.emailVerified && router.currentRoute.name === "Profile" && router.currentRoute.query.askVerify) router.push({
             name: "Profile"
         })
-    } else if (router.currentRoute.name !== "Login") {
+    } else {
         Config.logout();
-        router.push({
-            name: "Login",
-            query: {to: router.currentRoute.path}
-        });
+        window.location.href = "/login?to=" + encodeURIComponent(router.currentRoute.path);
     }
     unsubscribe();
 });

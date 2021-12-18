@@ -37,7 +37,11 @@ function endsWithAny(suffixes: string[], str?: string) {
 export async function getUser(uid: string): Promise<User | undefined> { // heavy call function
     if (!uid) return undefined;
     let fbUser = userCache.get(uid);
-    if (!fbUser) userCache.set(uid, fbUser = await auth().getUser(uid));
+    if (!fbUser) try {
+        userCache.set(uid, fbUser = await auth().getUser(uid));
+    } catch (e) {
+        return undefined;
+    }
     if (!fbUser) return undefined;
     let user = profileCache.get(uid);
     if (!user) {
@@ -47,6 +51,7 @@ export async function getUser(uid: string): Promise<User | undefined> { // heavy
         else {
             if (endsWithAny(['@nushigh.edu.sg', '@nus.edu.sg'], fbUser.email)) {
                 user = makeUser(fbUser.uid);
+                fillUser(user, fbUser);
                 await Promise.all([ref.set(user), addAudit(simpleAudit("root", user.uid, Category.USER, Action.CREATE))]);
             } else {
                 throw new Error("only nus/nushigh emails allowed");

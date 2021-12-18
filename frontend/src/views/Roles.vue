@@ -1,5 +1,5 @@
 <template>
-  <v-row style="height:calc(100vh - 64px);" no-gutters>
+  <v-row style="height:calc(100vh - 48px);" no-gutters>
     <v-col style="max-height:100%;width:300px;min-width:300px;" class="d-flex flex-column flex-grow-0">
       <v-card class="flex-grow-0 pa-2" :flat="!query" tile>
         <v-text-field v-model="query"

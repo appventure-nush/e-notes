@@ -111,6 +111,6 @@ export default class NoteEditor extends Vue {
 }
 
 .editor-window {
-  height: calc(100vh - 64px - 24px) !important;
+  height: calc(100vh - 48px - 24px) !important;
 }
 </style>

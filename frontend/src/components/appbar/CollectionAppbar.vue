@@ -23,10 +23,6 @@ export default class CollectionAppbar extends Vue {
   name = "CollectionAppbar"
   text = 0
 
-  edit() {
-    alert("Edit");
-  }
-
   get items() {
     return [{
       text: "Home",
@@ -34,13 +30,13 @@ export default class CollectionAppbar extends Vue {
         name: "Home"
       }
     }, {
-      text: Data.currentCollection?.name,
+      text: Data.currentCollection?.cid,
       route: {
         name: "Collection",
         params: {cid: Data.currentCollection?.cid}
       }
     }, ...(this.$route.name !== 'Collection' ? [{
-      text: Data.currentNote?.name,
+      text: Data.currentNote?.nid,
       route: {
         name: "Note",
         params: {cid: Data.currentNote?.cid, nid: Data.currentNote?.nid}
