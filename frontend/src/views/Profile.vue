@@ -77,7 +77,7 @@
         <span v-else v-text="user.desc"></span>
       </v-card-text>
       <v-card-text>
-        <PermissionEditor no-data="No permission overrides" v-model="user.permissions"></PermissionEditor>
+        <PermissionEditor no-data="No permission overrides" v-model="permissions"></PermissionEditor>
       </v-card-text>
       <v-card-actions>
         <v-spacer/>
@@ -190,6 +190,10 @@ export default class Profile extends Vue {
   cancel() {
     this.editing = false;
     if (this.user) this.localCopy = {...this.user};
+  }
+
+  get permissions() {
+    return this.user ? Object.entries(this.user.permissions) : [];
   }
 
   get user(): User | null {

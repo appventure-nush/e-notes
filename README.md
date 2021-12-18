@@ -15,6 +15,8 @@
 - Management of collections and notes
 - Image uploading
 
+![](images/enotes_3.png)
+
 ### Maintaining
 
 - [frontend/](frontend/)

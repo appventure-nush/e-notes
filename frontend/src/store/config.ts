@@ -15,6 +15,9 @@ import {signOut} from "@firebase/auth";
 class ConfigModule extends VuexModule {
     dark = false;
     drawer = true;
+    mini = false;
+
+    showPages = false;
 
     user: FirebaseUser | null = null;
     profile: User | null = null;
@@ -27,6 +30,11 @@ class ConfigModule extends VuexModule {
     @Mutation
     setDrawer(drawer: boolean) {
         this.drawer = drawer;
+    }
+
+    @Mutation
+    setMini(mini: boolean) {
+        this.mini = mini;
     }
 
     @Mutation

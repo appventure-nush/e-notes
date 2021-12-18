@@ -36,10 +36,6 @@ import {User} from "@/types/user";
 import Data from "@/store/data"
 import {get} from "@/mixins/api";
 
-function intToHSL(number: number) {
-  return "hsl(" + number % 360 + ",50%,30%)";
-}
-
 @Component
 export default class UserAvatar extends Vue {
   @Prop(String) readonly uid!: string;
@@ -80,17 +76,6 @@ export default class UserAvatar extends Vue {
       teacher: false,
       uid: "deleted"
     };
-  }
-
-  getHashCode(string?: string) {
-    if (!string) return 'brown';
-    let hash = 0;
-    if (string.length == 0) return hash;
-    for (let i = 0; i < string.length; i++) {
-      hash = string.charCodeAt(i) + ((hash << 5) - hash);
-      hash = hash & hash;
-    }
-    return intToHSL(hash);
   }
 }
 </script>

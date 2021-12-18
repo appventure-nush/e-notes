@@ -45,3 +45,18 @@ export function initials(name: string) {
         (initials.shift()?.[1] || '') + (initials.pop()?.[1] || '')
     ).toUpperCase();
 }
+
+function intToHSL(number: number) {
+    return "hsl(" + number % 360 + ",50%,30%)";
+}
+
+export function getHashCode(string?: string) {
+    if (!string) return 'brown';
+    let hash = 0;
+    if (string.length == 0) return hash;
+    for (let i = 0; i < string.length; i++) {
+        hash = string.charCodeAt(i) + ((hash << 5) - hash);
+        hash = hash & hash;
+    }
+    return intToHSL(hash);
+}

@@ -1,9 +1,11 @@
 <template>
   <v-app v-touch="touchOptions">
-    <v-navigation-drawer v-if="profile" app v-model="drawer">
+    <v-navigation-drawer v-if="profile" app v-model="drawer" :mini-variant="mini">
       <template v-slot:prepend>
-        <v-list-item two-line>
-          <v-list-item-avatar>
+        <v-list-item two-line ripple @click="profileCard=!profileCard"
+                     :class="{'px-2': mini}">
+          <v-list-item-avatar :color="profile.pfp?undefined:getHashCode(profile.name)"
+                              :class="{'my-2': mini}">
             <v-img :src="pfp" v-if="pfp"></v-img>
             <span class="white--text text-h5" v-else>{{ initials(profile.name) }}</span>
           </v-list-item-avatar>
@@ -13,20 +15,30 @@
             <v-list-item-subtitle v-text="profile.email"></v-list-item-subtitle>
           </v-list-item-content>
         </v-list-item>
-        <div class="mx-2 mb-2 hidden-sm-and-down">
-          <v-chip class="ma-1" v-if="profile.admin" color="error" label dark small>admin</v-chip>
-          <v-chip class="ma-1" v-if="profile.teacher" color="info" label dark small>teacher</v-chip>
-          <v-chip class="ma-1" v-else outlined label small>student</v-chip>
-          <v-chip class="ma-1" v-for="role in profile.roles" :key="role" v-text="role" outlined label small></v-chip>
-        </div>
-        <div class="d-flex">
-          <v-btn to="/profile" color="primary" small depressed :outlined="$route.path!=='/profile'"
-                 class="flex-grow-1 mx-2 mb-2">Profile
-          </v-btn>
-          <v-btn color="error" outlined small depressed @click="logout"
-                 class="flex-grow-1 mx-2 mb-2">Logout
-          </v-btn>
-        </div>
+        <v-expand-transition>
+          <div v-if="profileCard">
+            <div class="mx-2 pb-2 hidden-sm-and-down" v-if="!mini">
+              <v-chip class="ma-1" v-if="profile.admin" color="error" label dark small>admin</v-chip>
+              <v-chip class="ma-1" v-if="profile.teacher" color="info" label dark small>teacher</v-chip>
+              <v-chip class="ma-1" v-else outlined label small>student</v-chip>
+              <v-chip class="ma-1" v-for="role in profile.roles" :key="role" v-text="role" outlined label
+                      small></v-chip>
+            </div>
+            <v-list-item dense to="/profile" color="primary">
+              <v-list-item-icon>
+                <v-icon>mdi-account-box</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>Profile</v-list-item-title>
+            </v-list-item>
+            <v-list-item dense color="error" link @click="logout">
+              <v-list-item-icon>
+                <v-icon>mdi-logout</v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>Logout</v-list-item-title>
+            </v-list-item>
+          </div>
+        </v-expand-transition>
+        <v-divider class="my-1"></v-divider>
       </template>
       <v-list
           dense
@@ -57,9 +69,27 @@
             </v-list-item>
           </v-list-group>
         </template>
+        <v-list-group prepend-icon="mdi-folder">
+          <template v-slot:activator>
+            <v-list-item-title>Collections</v-list-item-title>
+          </template>
+          <v-list-item
+              v-for="item in collections"
+              :to="{name:'Collection', params:{cid:item.cid}}" :key="item.cid">
+            <v-list-item-title>{{ item.name }}</v-list-item-title>
+          </v-list-item>
+        </v-list-group>
       </v-list>
+      <template v-slot:append>
+        <v-list-item link @click="mini=!mini">
+          <v-list-item-icon>
+            <v-icon>mdi-page-layout-sidebar-left</v-icon>
+          </v-list-item-icon>
+          <v-list-item-title>Collapse</v-list-item-title>
+        </v-list-item>
+      </template>
     </v-navigation-drawer>
-    <v-app-bar app v-model="appbar" fixed dense elevate-on-scroll color="primary" dark>
+    <v-app-bar app v-model="appbar" fixed dense elevate-on-scroll color="appbar" dark>
       <v-app-bar-nav-icon @click="drawer=!drawer"></v-app-bar-nav-icon>
       <v-toolbar-title v-if="!$route.meta.hideTitle">{{ $route.name }}</v-toolbar-title>
       <router-view name="appbar"></router-view>
@@ -87,6 +117,7 @@ import {Note} from "@/types/note";
 @Component
 export default class App extends Vue {
   appbar = true;
+  profileCard = false;
   counter = 0;
 
   shouldAllow(route: Route) {
@@ -107,6 +138,15 @@ export default class App extends Vue {
     if (this.counter > 100 && !document.body.classList.contains('rb')) document.body.classList.add('rb');
   }
 
+  get mini() {
+    return Config.mini;
+  }
+
+  set mini(mini: boolean) {
+    Config.setMini(mini);
+    if (!mini) this.drawer = true;
+  }
+
   get currentCollection(): Collection | null {
     return Data.currentCollection;
   }
@@ -125,6 +165,10 @@ export default class App extends Vue {
 
   get collections(): Collection[] {
     return Data.collections;
+  }
+
+  get mobile(): boolean {
+    return this.$vuetify.breakpoint.mobile
   }
 
   toggleDark() {

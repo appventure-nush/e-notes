@@ -1,5 +1,11 @@
 <template>
   <v-container>
+    <div class="text-center" v-if="showPages">
+      <v-pagination
+          v-model="page"
+          :length="notes.length"
+      ></v-pagination>
+    </div>
     <v-card :loading="loading" outlined>
       <v-card-title>{{ note.name }}</v-card-title>
       <v-card-subtitle>{{ note.nid }}<br>
@@ -50,7 +56,7 @@
       </v-card-actions>
     </v-card>
     <v-divider class="my-3"/>
-    <v-card class="pa-5" flat :loading="doc_loading" :disabled="doc_loading">
+    <v-card class="px-5 pb-2" flat :loading="doc_loading" :disabled="doc_loading">
       <template v-if="this.doc">
         <JupyterViewer v-if="note.type==='jupyter'" :notebook="doc"></JupyterViewer>
         <markdown v-else-if="note.type==='markdown'" :content="doc"></markdown>
@@ -62,6 +68,12 @@
           type="article,image,article,card"
       ></v-skeleton-loader>
     </v-card>
+    <div class="text-center" v-if="showPages">
+      <v-pagination
+          v-model="page"
+          :length="notes.length"
+      ></v-pagination>
+    </div>
   </v-container>
 </template>
 
@@ -74,6 +86,7 @@ import {Note} from "@/types/note";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
 import UserAvatar from "@/components/UserAvatar.vue";
 import Data from "@/store/data"
+import Config from "@/store/config"
 import {Collection} from "@/types/coll";
 
 @Component({
@@ -121,6 +134,17 @@ export default class NoteViewer extends Vue {
     return Data.currentCollection || {} as Collection;
   }
 
+  set page(page: number) {
+    this.$router.push({name: 'Note Redirect', params: {cid: this.cid, nid: this.notes[page - 1].nid}});
+  }
+
+  get page(): number {
+    return this.notes.findIndex(n => n.nid === this.nid) + 1;
+  }
+
+  get showPages() {
+    return Config.showPages;
+  }
 
   @Watch('notes', {immediate: true})
   onNotesChange() {
@@ -139,13 +163,17 @@ export default class NoteViewer extends Vue {
     if (this.notes.length === 0) return;
     let note = this.notes.find((n: Note) => n.nid === this.nid);
     if (!note) return this.$router.push({name: 'Collection', params: {cid: this.cid || ''}});
-    Data.setCurrentNote(note);
+    Data.setCurrentNote(note)
   }
+
+  last_url = "";
 
   @Watch('note', {immediate: true, deep: true})
   onNoteChanged() {
     if (this.note && this.note.url) {
+      if (this.note.url === this.last_url) return;
       this.doc_loading = true;
+      this.last_url = this.note.url;
       fetch(this.note.url).then(res => res.text()).then(text => {
         if (!this.note) return;
         this.doc = this.note.type === "jupyter" ? JSON.parse(text) : text;

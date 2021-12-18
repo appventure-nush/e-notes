@@ -1,41 +1,42 @@
 <template>
-  <v-row style="height:calc(100vh - 48px);" no-gutters>
-    <v-col style="max-height:100%;width:300px;min-width:300px;" class="d-flex flex-column flex-grow-0">
-      <v-card class="flex-grow-0 pa-2" :flat="!query" tile>
-        <v-text-field v-model="query"
-                      placeholder="Search..." dense flat prepend-icon="mdi-magnify" hide-details="auto"></v-text-field>
-      </v-card>
-      <v-list-item-group v-model="selected" class="flex-grow-1" style="overflow-y:auto;">
-        <v-list-item :key="user.uid" v-for="user in displayedUsers" :to="{name:'User',params:{uid:user.uid}}"
-                     :value="user.uid" two-line>
-          <v-list-item-avatar>
-            <v-avatar>
-              <v-img :src="user.pfp||'/images/guest.png'"/>
-            </v-avatar>
-          </v-list-item-avatar>
+  <div>
+    <v-navigation-drawer v-model="drawer" absolute color="background">
+      <v-text-field v-model="query" class="ma-2 mb-0" placeholder="Search..." dense flat prepend-icon="mdi-magnify"
+                    hide-details="auto"></v-text-field>
+      <v-list-item :key="user.uid" v-for="user in displayedUsers" :to="{name:'User',params:{uid:user.uid}}"
+                   :value="user.uid" two-line>
+        <v-list-item-avatar>
+          <v-avatar :color="user.pfp?undefined:getHashCode(user.name)">
+            <v-img :src="user.pfp" v-if="user.pfp"/>
+            <span class="white--text text-h5" v-else>{{ initials(user.name) }}</span>
+          </v-avatar>
+        </v-list-item-avatar>
 
-          <v-list-item-content>
-            <v-list-item-title v-text="user.name"></v-list-item-title>
-            <v-list-item-subtitle v-text="user.email"></v-list-item-subtitle>
-          </v-list-item-content>
-        </v-list-item>
-        <v-list-item v-if="displayedUsers.length===0" two-line>
-          <v-list-item-avatar>
-          </v-list-item-avatar>
+        <v-list-item-content>
+          <v-list-item-title v-text="user.name"></v-list-item-title>
+          <v-list-item-subtitle v-text="user.email"></v-list-item-subtitle>
+        </v-list-item-content>
+      </v-list-item>
+      <v-list-item v-if="displayedUsers.length===0" two-line>
+        <v-list-item-avatar>
+        </v-list-item-avatar>
 
-          <v-list-item-content>
-            <v-list-item-title>
-              <i>None</i>
-            </v-list-item-title>
-            <v-list-item-subtitle>No user found</v-list-item-subtitle>
-          </v-list-item-content>
-        </v-list-item>
-      </v-list-item-group>
-    </v-col>
-    <v-col style="max-height:100%;overflow-y:auto">
+        <v-list-item-content>
+          <v-list-item-title>
+            <i>None</i>
+          </v-list-item-title>
+          <v-list-item-subtitle>No user found</v-list-item-subtitle>
+        </v-list-item-content>
+      </v-list-item>
+    </v-navigation-drawer>
+    <v-main class="pt-1 ml-1 overflow-y-auto"
+            :style="{paddingLeft:drawer&&$vuetify.breakpoint.lgAndUp?'256px':'0px',maxHeight,height:maxHeight}">
+      <v-btn icon @click="drawer=!drawer" absolute>
+        <v-icon>mdi-menu</v-icon>
+      </v-btn>
       <router-view></router-view>
-    </v-col>
-  </v-row>
+    </v-main>
+  </div>
 </template>
 
 <script lang="ts">
@@ -45,15 +46,11 @@ import Data from "@/store/data"
 @Component
 export default class Users extends Vue {
   name = "Users"
-  selected = "";
+  drawer = true;
   query = "";
 
   created() {
     Data.fetchUsers();
-  }
-
-  get hasSelected() {
-    return !!this.selected;
   }
 
   get displayedUsers() {
@@ -65,9 +62,11 @@ export default class Users extends Vue {
   get users() {
     return Data.users;
   }
+
+  get maxHeight() {
+    const {bottom, footer, bar, top} = this.$vuetify.application;
+    const heightRest = bottom + footer + bar + top;
+    return `calc(100vh - ${heightRest}px)`;
+  }
 }
 </script>
-
-<style scoped>
-
-</style>
