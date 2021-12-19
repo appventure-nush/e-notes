@@ -203,4 +203,9 @@ class DataModule extends VuexModule {
     }
 }
 
-export default getModule(DataModule);
+const data = getModule(DataModule);
+if (!data) {
+    localStorage.clear();
+    location.reload();
+}
+export default data;

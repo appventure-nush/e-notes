@@ -72,4 +72,9 @@ class ConfigModule extends VuexModule {
     }
 }
 
-export default getModule(ConfigModule);
+const config = getModule(ConfigModule);
+if (!config) {
+    localStorage.clear();
+    location.reload();
+}
+export default config;
