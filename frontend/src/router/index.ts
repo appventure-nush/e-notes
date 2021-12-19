@@ -22,7 +22,6 @@ const routes: Array<RouteConfig> = [
     },
     {
         path: '/users',
-        name: 'Users',
         component: () => import(/* webpackChunkName: "users" */"@/views/Users.vue"),
         meta: {
             icon: "mdi-account-multiple",
@@ -30,6 +29,11 @@ const routes: Array<RouteConfig> = [
             public: true
         },
         children: [
+            {
+                name: "Users",
+                path: '',
+                component: () => import(/* webpackChunkName: "user-listing" */'@/components/viewer/UsersViewer.vue')
+            },
             {
                 meta: {
                     title: "{{uid}}"
@@ -96,10 +100,7 @@ const routes: Array<RouteConfig> = [
                 props: true,
                 name: "Collection",
                 path: '',
-                component: () => import(/* webpackChunkName: "collection.info" */'@/components/CollectionInfo.vue'),
-                beforeEnter(to, from, next) {
-                    next();
-                }
+                component: () => import(/* webpackChunkName: "collection.info" */'@/components/CollectionInfo.vue')
             },
             {
                 props: true,
@@ -157,6 +158,14 @@ const routes: Array<RouteConfig> = [
         }
     },
     {
+        path: '/settings',
+        name: 'Settings',
+        component: () => import(/* webpackChunkName: "settings" */'@/views/Settings.vue'),
+        meta: {
+            title: "Settings"
+        }
+    },
+    {
         path: "/rick",
         name: "rick",
         beforeEnter() {
@@ -178,8 +187,7 @@ const router = new VueRouter({
 });
 
 export function shouldAllow(to: Route): boolean {
-    if ((to.matched && to.matched.some(record => record.meta.admin)) || to.meta?.admin) if (!Config.profile?.admin) return false;
-    return true;
+    return !((to.matched && to.matched.some(record => record.meta.admin) || to.meta?.admin) && !Config.profile?.admin);
 }
 
 const DEFAULT_TITLE = 'Enotes';

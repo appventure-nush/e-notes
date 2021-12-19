@@ -49,7 +49,7 @@
           <v-list-item-icon>
             <v-icon>{{ item.meta.icon }}</v-icon>
           </v-list-item-icon>
-          <v-list-item-title>{{ item.name }}</v-list-item-title>
+          <v-list-item-title>{{ item.name || item.meta.title }}</v-list-item-title>
         </v-list-item>
         <!-- if in collection/notes page, show notes list -->
         <template v-if="isCollectionRoute($route)&&currentCollection">

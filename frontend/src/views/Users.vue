@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-navigation-drawer v-model="drawer" absolute color="background">
+    <v-navigation-drawer v-if="!hideControls" v-model="drawer" absolute color="background">
       <v-text-field v-model="query" class="ma-2 mb-0" placeholder="Search..." dense flat prepend-icon="mdi-magnify"
                     hide-details="auto"></v-text-field>
       <v-list-item :key="user.uid" v-for="user in displayedUsers" :to="{name:'User',params:{uid:user.uid}}"
@@ -30,11 +30,11 @@
       </v-list-item>
     </v-navigation-drawer>
     <v-main class="pt-1 ml-1 overflow-y-auto"
-            :style="{paddingLeft:drawer&&$vuetify.breakpoint.lgAndUp?'256px':'0px',maxHeight,height:maxHeight}">
-      <v-btn icon @click="drawer=!drawer" absolute>
+            :style="{paddingLeft:drawer&&$vuetify.breakpoint.lgAndUp&&!hideControls?'256px':'0px',maxHeight,height:maxHeight}">
+      <v-btn v-if="!hideControls" icon @click="drawer=!drawer" absolute>
         <v-icon>mdi-menu</v-icon>
       </v-btn>
-      <router-view></router-view>
+      <router-view :users="users"></router-view>
     </v-main>
   </div>
 </template>
@@ -48,6 +48,10 @@ export default class Users extends Vue {
   name = "Users"
   drawer = true;
   query = "";
+
+  get hideControls() {
+    return this.$route.name === "Users";
+  }
 
   created() {
     Data.fetchUsers();

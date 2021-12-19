@@ -32,6 +32,11 @@
               </v-text-field>
               <span v-else v-text="user.nickname"></span>
             </div>
+            <div class="mb-2 subheading" v-if="user.desc">
+              <v-textarea label="Description" v-if="editing" v-model="editedUser.desc" hide-details outlined flat dense>
+              </v-textarea>
+              <span v-else v-text="user.desc"></span>
+            </div>
             <div class="error--text align-center" v-if="user.admin||editing">
               <v-checkbox v-if="editing" dense hide-details label="Admin" v-model="editedUser.admin"
                           style="margin-left:50%;transform:translateX(-50%);width:5em;"/>
@@ -151,7 +156,10 @@ export default class UserViewer extends Vue {
     this.saving = false;
     Data.fetchUser(this.uid).then(() => {
       this.loading = false;
-    });
+    }).catch(() => {
+      this.$router.push({name: "Users"});
+      this.loading = false;
+    })
   }
 
   @Watch('user')

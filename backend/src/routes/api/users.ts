@@ -9,7 +9,7 @@ import {middleware} from "apicache";
 const users = Router();
 
 users.get("/", checkUser, middleware('1 min'), (req, res) => {
-    let users = profileCache.values();
+    let users = [...profileCache.values()];
     if (!req.user?.admin && !req.user?.teacher) users = users.filter(u => u.teacher);
     res.json(users.sort(sortHandler('uid')));
 });
@@ -18,7 +18,7 @@ users.get("/:uid", checkUser, async (req, res) => {
     try {
         res.json(await getUser(req.params.uid));
     } catch (e) {
-        res.send("failed_to_get_user")
+        res.json(error("failed_to_get_user"));
     }
 });
 

@@ -16,7 +16,7 @@
             <span class="white--text text-h5" v-else>{{ initials(user.name) }}</span>
           </v-avatar>
           <h3 class="px-2">
-            <router-link :to="{name:'User',params:{uid:uid}}">{{ user.name }}</router-link>
+            <router-link :to="{name:'User',params:{uid:uid}}">{{ user.name || user.uid }}</router-link>
           </h3>
           <div class="text-caption mt-1 px-2">
             {{ user.email }}
@@ -35,6 +35,7 @@ import {Component, Prop, Vue, Watch} from "vue-property-decorator";
 import {User} from "@/types/user";
 import Data from "@/store/data"
 import {get} from "@/mixins/api";
+import {auth} from "@/plugins/firebase";
 
 @Component
 export default class UserAvatar extends Vue {
@@ -49,7 +50,7 @@ export default class UserAvatar extends Vue {
   @Watch('uid', {immediate: true})
   async onUIDChange() {
     let user = Data.users.find(u => u.uid === this.uid) || null;
-    if (user) {
+    if (user?.name) {
       this.user = user;
       return;
     }

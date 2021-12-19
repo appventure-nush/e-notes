@@ -10,8 +10,10 @@ const vuexLocal = new VuexPersistence({
         try {
             return JSON.parse(storage?.getItem(key) || '');
         } catch (e) {
-            localStorage.clear();
-            location.reload();
+            return {
+                config: {},
+                data: {}
+            }
         }
     }
 })

@@ -27,7 +27,7 @@
       <v-btn icon @click="drawer=!drawer" absolute>
         <v-icon>mdi-menu</v-icon>
       </v-btn>
-      <router-view></router-view>
+      <router-view :roles="roles"></router-view>
     </v-main>
   </div>
 </template>
@@ -47,7 +47,7 @@ export default class Roles extends Vue {
   query = "";
 
   get roles(): Role[] {
-    return Data.roles;
+    return Data.roles || [];
   }
 
   created() {
