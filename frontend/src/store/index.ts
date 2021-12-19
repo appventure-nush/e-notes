@@ -5,11 +5,15 @@ import VuexPersistence from 'vuex-persist';
 Vue.use(Vuex);
 
 const vuexLocal = new VuexPersistence({
-    storage: window.localStorage, restoreState: (key, storage) => {
+    storage: window.localStorage,
+    restoreState: (key, storage) => {
         try {
-            return JSON.parse(storage?.getItem(key) || "{}");
+            return JSON.parse(storage?.getItem(key) || '');
         } catch (e) {
-            return {};
+            return {
+                config: {},
+                data: {}
+            };
         }
     }
 })
