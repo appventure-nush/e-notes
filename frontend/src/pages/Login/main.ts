@@ -4,6 +4,7 @@ import App from './App.vue'
 import store from '@/store'
 import {auth} from "@/plugins/firebase";
 import {onAuthStateChanged} from "@firebase/auth";
+import router from '@/router/login'
 import '@/mixins'
 import '@/plugins/others'
 
@@ -19,6 +20,7 @@ onAuthStateChanged(auth, user => {
 });
 new Vue({
     store,
+    router,
     vuetify,
     render: h => h(App)
 }).$mount('#app');

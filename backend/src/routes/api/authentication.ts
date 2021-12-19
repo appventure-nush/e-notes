@@ -72,7 +72,7 @@ authentication.post('/pfp', checkUser, fileUpload({limits: {fileSize: 16 * 1024 
 });
 authentication.get('/logout', (req, res) => {
     const sessionCookie = req.cookies.session || '';
-    if (!sessionCookie) return res.redirect("/");
+    if (!sessionCookie) return res.json(success());
     res.clearCookie('session');
     auth()
         .verifySessionCookie(sessionCookie)

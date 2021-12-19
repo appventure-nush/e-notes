@@ -28,7 +28,9 @@ Vue.config.productionTip = false;
 export let FIREBASE_INITIALIZED = false;
 
 const unsubscribe = onAuthStateChanged(auth, user => {
+    if (router.currentRoute.name === "404") return;
     FIREBASE_INITIALIZED = true;
+    console.log("Firebase INIT")
     Config.setUser(user);
     Config.fetchProfile();
     if (user) {
@@ -39,9 +41,11 @@ const unsubscribe = onAuthStateChanged(auth, user => {
         else if (user.emailVerified && router.currentRoute.name === "Profile" && router.currentRoute.query.askVerify) router.push({
             name: "Profile"
         })
-    } else {
-        Config.logout();
-        window.location.href = "/login?to=" + encodeURIComponent(router.currentRoute.path);
+    } else if (router.currentRoute.path !== "/login") {
+        const url = router.currentRoute.path;
+        Config.logout(true).then(() => {
+            return window.location.href = "/login?to=" + encodeURIComponent(url);
+        });
     }
     unsubscribe();
 });

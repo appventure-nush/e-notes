@@ -23,7 +23,12 @@ if (process.env.NODE_ENV !== 'production')
 
 app.use("/api", apiRouter);
 app.use("/collection", collectionRouter);
-if (process.env.NODE_ENV === 'production') app.use("/", history());
+if (process.env.NODE_ENV === 'production') app.use("/", history({
+    rewrites: [
+        {from: /^\/login(\?.*)?/, to: context => '/login.html' + (context.match[1] || '')},
+        {from: /^\/email(\?.*)?/, to: context => '/email.html' + (context.match[1] || '')}
+    ]
+}));
 else app.use('/', createProxyMiddleware({target: 'http://localhost:8090', changeOrigin: true})); // local testing
 
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

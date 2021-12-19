@@ -89,7 +89,7 @@
         </v-list-item>
       </template>
     </v-navigation-drawer>
-    <v-app-bar app v-model="appbar" fixed dense elevate-on-scroll color="appbar" dark>
+    <v-app-bar app fixed dense elevate-on-scroll color="appbar" dark>
       <v-app-bar-nav-icon @click="drawer=!drawer"></v-app-bar-nav-icon>
       <v-toolbar-title v-if="!$route.meta.hideTitle">{{ $route.name }}</v-toolbar-title>
       <router-view name="appbar"></router-view>
@@ -116,7 +116,6 @@ import {Note} from "@/types/note";
 
 @Component
 export default class App extends Vue {
-  appbar = true;
   profileCard = false;
   counter = 0;
 
@@ -181,7 +180,6 @@ export default class App extends Vue {
   }
 
   readonly touchOptions = {
-    down: () => this.appbar = true,
     right: () => this.drawer = true,
     left: () => this.drawer = false
   };

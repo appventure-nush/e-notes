@@ -165,7 +165,7 @@ export default class Login extends Vue {
   }
 
   postLogin() {
-    if (Config.profile) {
+    if (auth.currentUser) {
       window.location.href = "/";
     }
   }
