@@ -1,6 +1,7 @@
-import {initializeApp} from "firebase/app"
+import {initializeApp} from "firebase/app";
 import {getAuth, setPersistence, browserLocalPersistence} from "firebase/auth";
 
+export {FirebaseError} from "firebase/app";
 export const app = initializeApp({
     apiKey: "AIzaSyARHcPTpQ09ekeN91DtgfrAl8kA3bgrcYM",
     authDomain: "e-notes-nush.firebaseapp.com",

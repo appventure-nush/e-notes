@@ -10,7 +10,15 @@ module.exports = {
             entry: 'src/pages/Login/main.ts',
             template: 'public/index.html',
             filename: 'login.html',
+            title: "Login",
             chunks: ['chunk-vendors', 'chunk-common', 'login']
+        },
+        email: {
+            entry: 'src/pages/EmailLanding/main.ts',
+            template: 'public/index.html',
+            filename: 'email.html',
+            title: "Landing Site",
+            chunks: ['chunk-vendors', 'chunk-common', 'email']
         }
     },
     productionSourceMap: false,
