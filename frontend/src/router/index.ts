@@ -164,12 +164,6 @@ const routes: Array<RouteConfig> = [
         }
     },
     {
-        path: "/login",
-        beforeEnter(to) {
-            window.location.href = to.fullPath;
-        }
-    },
-    {
         path: "*",
         name: "404",
         component: () => import(/* webpackChunkName: "404" */"@/views/PageNotFound.vue"),
