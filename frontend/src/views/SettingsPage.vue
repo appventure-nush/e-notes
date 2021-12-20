@@ -20,7 +20,7 @@
         ></v-checkbox>
       </v-col>
     </v-row>
-    <v-snackbar :value="hasChanges">
+    <v-snackbar :timeout="-1" :value="hasChanges">
       Unsaved changes
 
       <template v-slot:action="{ attrs }">
