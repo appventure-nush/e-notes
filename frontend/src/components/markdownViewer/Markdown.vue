@@ -7,7 +7,7 @@ import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
 import MarkdownIt from 'markdown-it';
 import MarkdownItKatex from '@traptitech/markdown-it-katex';
 import MarkdownItTasklists from '@hedgedoc/markdown-it-task-lists';
-import markdown_it_highlightjs from "markdown-it-highlightjs";
+import MarkdownItHighlightJS from "markdown-it-highlightjs";
 
 // @ts-ignore
 import TOC from "markdown-it-table-of-contents";
@@ -17,6 +17,7 @@ import 'katex/dist/katex.min.css'
 import '@/styles/github-dark.scss';
 
 import anchor from "markdown-it-anchor";
+import Config from "@/store/config";
 import {EventBus} from "@/event";
 import {uwuifier} from "@/plugins/others";
 import {modifyText} from "@/plugins/uwu/utils";
@@ -32,8 +33,9 @@ export default class Markdown extends Vue {
     type: Object,
     default: (): MarkdownItVueOptions => ({
       markdownIt: {
-        html: true,
-        linkify: true
+        html: !Config.settings.noHTML,
+        linkify: !Config.settings.noLinkify,
+        breaks: Config.settings.lineBreaks
       },
       katex: {}
     })
@@ -52,14 +54,14 @@ export default class Markdown extends Vue {
     this.md = new MarkdownIt(this.options.markdownIt || {})
         .use(MarkdownItKatex, this.options.katex || {})
         .use(MarkdownItTasklists, this.options.tasklists || {})
-        .use(markdown_it_highlightjs, this.options.highlight || {auto: false})
+        .use(MarkdownItHighlightJS, this.options.highlight || {auto: false})
         .use(anchor, {
           permalink: anchor.permalink.ariaHidden({
             symbol: '<i aria-hidden="true" class="mdi mdi-link-variant perma-link"></i>',
             placement: 'after'
           })
         })
-        .use(TOC, {includeLevel: [1, 2, 3]});
+        .use(TOC, this.options.toc || {includeLevel: [1, 2, 3]});
     EventBus.$on("uwufy", this.uwufy)
   }
 

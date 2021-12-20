@@ -35,7 +35,6 @@ import {Component, Prop, Vue, Watch} from "vue-property-decorator";
 import {User} from "@/types/user";
 import Data from "@/store/data"
 import {get} from "@/mixins/api";
-import {auth} from "@/plugins/firebase";
 
 @Component
 export default class UserAvatar extends Vue {

@@ -96,20 +96,6 @@ export interface LinkAttributesOpions {
 }
 
 /**
- * The options of image.
- */
-export interface ImageOptions {
-    /**
-     * The horizontal align of the images. 'left' or 'center' or 'right'.
-     */
-    hAlign: string
-    /**
-     * True if show the image viewer.
-     */
-    viewer: boolean
-}
-
-/**
  * The options of katex.
  * https://www.npmjs.com/package/markdown-it-katex
  */
@@ -118,124 +104,15 @@ export interface KatexOptions {
     blockClass?: string
 }
 
-/**
- * The options of tasklists.
- * https://www.npmjs.com/package/markdown-it-task-lists
- */
-export interface TasklistsOptions {
-    /**
-     * The rendered checkboxes are disabled;
-     * to change this, pass a truthy value into the enabled property of the plugin options.
-     */
-    enabled: boolean
-    /**
-     * If you'd like to wrap the rendered list items in a <label> element for UX purposes,
-     *  pass a truthy value to the label property of the plugin options.
-     */
-    label: boolean
-    /**
-     * To add the label after the checkbox pass a truthy value to labelAfter property.
-     */
-    labelAfter: boolean
+export interface TOCOptions {
+    includeLevel?: number[]
 }
-
-/**
- * The options of githubToc
- * https://www.npmjs.com/package/markdown-it-github-tocmarkdown-it-github-toc
- */
-export interface GithubTocOptions {
-    /**
-     * Allow you to enable / disable the toc transformation of[toc]
-     * (default : true)
-     */
-    toc: boolean
-    /**
-     * Option to customize html class of the < ul > wrapping the toc
-     * (default : "markdownIt-TOC")
-     */
-    tocClassName: string
-    /**
-     * Allow you to skip some heading level.Example: use 2 if you want to skip < h1 > from the TOC.
-     * (default : 1)
-     */
-    tocFirstLevel: number
-    /**
-     * Allow you to skip some heading level.Example: use 5 if you want to skip < h6 > from the TOC.
-     * (default: 6)
-     */
-    tocLastLevel: number
-    /**
-     * Allow you to enable / disable the anchor link in the headings
-     * (default: true)
-     */
-    anchorLink: boolean
-    /**
-     * Allow you to customize the anchor link symbol
-     * (default: "#")
-     */
-    anchorLinkSymbol: string
-    /**
-     * Allow you to enable / disable inserting a space between the anchor link and heading.
-     * (default: true)
-     */
-    anchorLinkSpace: boolean
-    /**
-     * Allow you to customize the anchor link symbol class name.If not null,
-     * symbol will be rendered as <span class="anchorLinkSymbolClassName" > anchorLinkSymbol < /span>.
-     * (default: null)
-     */
-    anchorLinkSymbolClassName: string
-    /**
-     * Allow you to prepend / append the anchor link in the headings
-     * (default: true)
-     */
-    anchorLinkBefore: boolean
-    /**
-     * Allow you to customize the anchor link class
-     * (default: "markdownIt-Anchor")
-     */
-    anchorClassName: string
-    /**
-     * Allow you to reset(or not) ids incrementation.Use it if you will have multiple documents on the same page.
-     * (default: true)
-     */
-    resetIds: boolean
-    /**
-     * Allow you to customize indentation
-     * (default: " ")
-     */
-    indentation: string
-}
-
 
 export interface MarkdownItVueOptions {
     highlight?: HighlightOptions;
-    /**
-     * The options of MarkdownIt.
-     */
     markdownIt?: MarkdownItOptions
-    /**
-     * The options of markdown-it-link-attributes.
-     * https://www.npmjs.com/package/markdown-it-link-attributes
-     */
     linkAttributes?: LinkAttributesOpions
-    /**
-     * The options of katex.
-     * https://www.npmjs.com/package/markdown-it-katex
-     */
     katex?: KatexOptions
-    /**
-     * The options of tasklists.
-     * https://www.npmjs.com/package/markdown-it-task-lists
-     */
     tasklists?: TasklistsOptions
-    /**
-     * The options of githubToc
-     * https://www.npmjs.com/package/markdown-it-github-tocmarkdown-it-github-toc
-     */
-    githubToc?: GithubTocOptions
-    /**
-     * The options of ImageViewer.
-     */
-    image?: ImageOptions
+    toc?: TOCOptions
 }

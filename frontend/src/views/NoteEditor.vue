@@ -19,7 +19,6 @@ import '@/styles/github-dark.scss';
 import {EventBus} from "@/event";
 import {post} from "@/mixins/api";
 import Data from "@/store/data"
-import Config from "@/store/config"
 import MarkdownEditor from "@/components/MarkdownEditor.vue";
 
 @Component({
@@ -76,10 +75,6 @@ export default class NoteEditor extends Vue {
 
   get note() {
     return Data.currentNote;
-  }
-
-  get dark() {
-    return Config.dark;
   }
 
   @Watch('nid', {immediate: true})

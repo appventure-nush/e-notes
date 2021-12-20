@@ -13,6 +13,7 @@ import compression from "compression";
 
 import history from "connect-history-api-fallback";
 import {createProxyMiddleware} from "http-proxy-middleware";
+import {error} from "./response";
 
 const app = express();
 app.use(compression());
@@ -33,7 +34,7 @@ else app.use('/', createProxyMiddleware({target: 'http://localhost:8090', change
 
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
     if (err.code !== 'EBADCSRFTOKEN') return next();
-    res.status(403).send("CSRF ERROR: bWF5YmUgaSBzaG91bGQgZ2l2ZSB5b3UgYSBmbGFn");
+    res.status(403).json(error({reason: "csrf error", code: "bWF5YmUgaSBzaG91bGQgZ2l2ZSB5b3UgYSBmbGFn"}));
 });
 app.use(express.static(path.join(__dirname, '..', 'public'), {maxAge: 31557600}));
 

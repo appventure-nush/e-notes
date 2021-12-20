@@ -1,6 +1,6 @@
 <template>
   <v-app v-touch="touchOptions">
-    <v-navigation-drawer v-if="profile" app v-model="drawer" :mini-variant="mini">
+    <v-navigation-drawer :permanent="permanent" v-if="profile" app v-model="drawer" :mini-variant="mini">
       <template v-slot:prepend>
         <v-list-item two-line ripple @click="profileCard=!profileCard"
                      :class="{'px-2': mini}">
@@ -90,10 +90,13 @@
       </template>
     </v-navigation-drawer>
     <v-app-bar app fixed dense elevate-on-scroll color="appbar" dark>
-      <v-app-bar-nav-icon @click="drawer=!drawer"></v-app-bar-nav-icon>
+      <v-app-bar-nav-icon v-if="!permanent" @click="drawer=!drawer"></v-app-bar-nav-icon>
       <v-toolbar-title v-if="!$route.meta.hideTitle">{{ $route.name }}</v-toolbar-title>
       <router-view name="appbar"></router-view>
       <v-spacer></v-spacer>
+      <v-btn small icon :to="{name:'Settings'}" class="mr-1">
+        <v-icon v-text="$route.name==='Settings'?'mdi-cog':'mdi-cog-outline'"></v-icon>
+      </v-btn>
       <v-btn small icon @click="toggleDark" class="mr-1">
         <v-icon v-text="dark?'mdi-white-balance-sunny':'mdi-moon-waxing-crescent'"></v-icon>
       </v-btn>
@@ -105,7 +108,7 @@
 </template>
 
 <script lang="ts">
-import {Component, Vue} from "vue-property-decorator";
+import {Component, Vue, Watch} from "vue-property-decorator";
 import {Collection} from "@/types/coll";
 import Data from "@/store/data"
 import Config from "@/store/config"
@@ -128,7 +131,7 @@ export default class App extends Vue {
   }
 
   get drawer() {
-    return Config.drawer;
+    return Boolean(Config.settings.drawer);
   }
 
   set drawer(drawer: boolean) {
@@ -137,8 +140,12 @@ export default class App extends Vue {
     if (this.counter > 100 && !document.body.classList.contains('rb')) document.body.classList.add('rb');
   }
 
+  get permanent() {
+    return Boolean(Config.settings.permanentDrawer);
+  }
+
   get mini() {
-    return Config.mini;
+    return Boolean(Config.settings.mini);
   }
 
   set mini(mini: boolean) {
@@ -159,7 +166,11 @@ export default class App extends Vue {
   }
 
   get dark() {
-    return Config.dark;
+    return Boolean(Config.settings.dark);
+  }
+
+  get noTransition() {
+    return Boolean(Config.settings.noTransition);
   }
 
   get collections(): Collection[] {
@@ -171,8 +182,17 @@ export default class App extends Vue {
   }
 
   toggleDark() {
-    Config.setDark(!Config.dark);
-    this.$vuetify.theme.dark = Config.dark;
+    Config.setDark(!Config.settings.dark);
+  }
+
+  @Watch('dark')
+  onDarkChange(val: boolean) {
+    this.$vuetify.theme.dark = val;
+  }
+
+  @Watch('noTransition', {immediate: true})
+  onTransitionPreferenceChange(val: boolean) {
+    (val ? document.body.classList.add("no-transition") : document.body.classList.remove("no-transition"));
   }
 
   logout() {
@@ -234,5 +254,9 @@ body.rb.rb-lock-off {
     -webkit-filter: hue-rotate(360deg);
     filter: hue-rotate(360deg);
   }
+}
+
+.no-transition * {
+  transition: none !important;
 }
 </style>

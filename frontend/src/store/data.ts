@@ -14,7 +14,7 @@ export type Image = { url: string, name: string };
     dynamic: true, store,
     name: 'data',
     namespaced: true,
-    preserveState: localStorage.getItem('vuex') !== null
+    preserveState: !!localStorage.getItem('vuex')
 })
 class DataModule extends VuexModule {
     // state

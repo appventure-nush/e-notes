@@ -5,41 +5,44 @@ import {get, verifyToken} from "@/mixins/api";
 import {auth} from "@/plugins/firebase";
 import store from "@/store/index";
 import {signOut} from "@firebase/auth";
+import {Settings} from "@/types/settings";
+import Vue from "vue";
 
 @Module({
     dynamic: true, store,
     name: 'config',
     namespaced: true,
-    preserveState: localStorage.getItem('vuex') !== null
+    preserveState: !!localStorage.getItem('vuex')
 })
 class ConfigModule extends VuexModule {
-    dark = false;
-    drawer = true;
-    mini = false;
-
-    showPages = false;
+    settings: Settings = {};
 
     user: FirebaseUser | null = null;
     profile: User | null = null;
 
     @Mutation
     setDark(dark: boolean) {
-        this.dark = dark;
+        Vue.set(this.settings, 'dark', dark);
     }
 
     @Mutation
     setDrawer(drawer: boolean) {
-        this.drawer = drawer;
+        Vue.set(this.settings, 'drawer', drawer);
     }
 
     @Mutation
     setMini(mini: boolean) {
-        this.mini = mini;
+        Vue.set(this.settings, 'mini', mini);
     }
 
     @Mutation
     setUser(user: FirebaseUser | null) {
         this.user = user;
+    }
+
+    @Mutation
+    updateSettings(settings: Settings) {
+        this.settings = {...settings};
     }
 
     @MutationAction({mutate: ['profile']})
@@ -77,4 +80,5 @@ if (!config) {
     localStorage.clear();
     location.reload();
 }
+if (!config.settings) config.updateSettings({});
 export default config;

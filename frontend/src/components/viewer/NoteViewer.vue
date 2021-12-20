@@ -143,7 +143,7 @@ export default class NoteViewer extends Vue {
   }
 
   get showPages() {
-    return Config.showPages;
+    return Config.settings.showPages;
   }
 
   @Watch('notes', {immediate: true})

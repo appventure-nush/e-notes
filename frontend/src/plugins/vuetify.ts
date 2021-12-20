@@ -3,12 +3,6 @@ import Vuetify from 'vuetify/lib'
 import Config from "@/store/config"
 
 Vue.use(Vuetify);
-try {
-    Config.dark;
-} catch (e) {
-    localStorage.clear();
-    location.reload();
-}
 
 export default new Vuetify({
     theme: {
@@ -35,6 +29,6 @@ export default new Vuetify({
                 background: '#1E1E1E'
             },
         },
-        dark: Config.dark
+        dark: Boolean(Config.settings.dark)
     },
 });
