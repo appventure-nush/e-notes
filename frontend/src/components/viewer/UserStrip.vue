@@ -1,7 +1,7 @@
 <template>
   <v-list-item :to="{name:'User', params:{uid:user.uid}}" :key="user.uid">
     <v-list-item-avatar>
-      <v-avatar :color="user.pfp?undefined:getHashCode(user.name)">
+      <v-avatar :color="getHashCode(user.name)">
         <v-img :src="user.pfp" v-if="user.pfp"/>
         <span class="white--text text-h5" v-else>{{ initials(user.name) }}</span>
       </v-avatar>

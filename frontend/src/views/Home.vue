@@ -1,9 +1,7 @@
 <template>
   <v-container>
     <v-row v-if="colls&&colls.filter">
-      <v-col cols="12" sm="6" lg="4" v-for="(coll,i) in colls" :key="coll.cid">
-        <collection-display v-model="colls[i]"/>
-      </v-col>
+      <collection-display v-model="colls[i]" v-for="(coll,i) in colls" :key="coll.cid"/>
     </v-row>
   </v-container>
 </template>

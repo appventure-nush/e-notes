@@ -3,14 +3,12 @@
     <v-navigation-drawer :permanent="permanent" v-if="profile" app v-model="drawer" :mini-variant="mini">
       <template v-slot:prepend>
         <v-list-item two-line ripple @click="profileCard=!profileCard"
-                     :class="{'px-2': mini}">
-          <v-list-item-avatar :color="profile.pfp?undefined:getHashCode(profile.name)"
-                              :class="{'my-2': mini}">
+                     :class="{'px-0': mini,'justify-center':mini}">
+          <v-list-item-avatar :color="getHashCode(profile.name)">
             <v-img :src="pfp" v-if="pfp"></v-img>
             <span class="white--text text-h5" v-else>{{ initials(profile.name) }}</span>
           </v-list-item-avatar>
-
-          <v-list-item-content v-if="profile">
+          <v-list-item-content>
             <v-list-item-title v-text="profile.nickname||profile.name"></v-list-item-title>
             <v-list-item-subtitle v-text="profile.email"></v-list-item-subtitle>
           </v-list-item-content>
@@ -44,8 +42,8 @@
           dense
           nav>
         <!-- navigation links -->
-        <v-list-item v-for="item in $router.getRoutes().filter(i=>i.meta.public&&shouldAllow(i))" :to="item"
-                     :key="item.name" :exact="item.meta.exact" link>
+        <v-list-item color="primary" v-for="item in $router.getRoutes().filter(i=>i.meta.public&&shouldAllow(i))"
+                     :to="item" :key="item.name" :exact="item.meta.exact" link>
           <v-list-item-icon>
             <v-icon>{{ item.meta.icon }}</v-icon>
           </v-list-item-icon>

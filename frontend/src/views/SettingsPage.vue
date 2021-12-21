@@ -193,6 +193,10 @@ export default class SettingsPage extends Vue {
       key: "mini",
       name: "Mini Drawer",
       desc: "Cute and cozy"
+    }, {
+      key: "listDisplay",
+      name: "Use lists for display",
+      desc: "Compact, may not work everywhere (require manual coding)"
     }]
   }, {
     name: "Markdown",

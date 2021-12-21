@@ -67,7 +67,6 @@ class ConfigModule extends VuexModule {
     @MutationAction({mutate: ['user', 'profile']})
     async logout(no_redirect = false) {
         if (auth.currentUser) await signOut(auth);
-        if (localStorage) localStorage.clear();
         get("/api/auth/logout").then(() => {
             if (!no_redirect) window.location.href = "/login";
         }).catch(e => console.log(e));

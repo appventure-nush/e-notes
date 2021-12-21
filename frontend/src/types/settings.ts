@@ -6,6 +6,7 @@ export interface Settings {
     noTransition?: boolean;
     mini?: boolean;
     showPages?: boolean;
+    listDisplay?: boolean;
 
     noHTML?: boolean;
     noLinkify?: boolean;

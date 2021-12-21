@@ -1,5 +1,25 @@
 <template>
-  <v-row class="ma-2">
+  <v-list v-if="listDisplay">
+    <v-list-item dense :key="index" v-for="(image,index) in images" @click="show(index)">
+      <v-list-item-avatar>
+        <v-img :src="image.url" aspect-ratio="1"/>
+      </v-list-item-avatar>
+      <v-list-item-content v-text="image.name"></v-list-item-content>
+      <v-list-item-action v-if="canEdit(currentCollection)">
+        <v-btn color="red" text @click.stop="$emit('delete',image.name)"
+               :disabled="deleting.includes(image.name)">Delete
+        </v-btn>
+      </v-list-item-action>
+    </v-list-item>
+    <LightBox
+        v-if="media.length > 0"
+        :media="media"
+        :showThumbs="false"
+        :show-caption="true"
+        :show-light-box="false"
+        ref="lightBox"></LightBox>
+  </v-list>
+  <v-row v-else class="ma-2">
     <v-col cols="6" sm="4" md="3" lg="2"
            :key="image.name" class="pa-2"
            v-for="(image,index) in images">
@@ -37,6 +57,7 @@
 import {Component, Model, Prop, Ref, Vue} from "vue-property-decorator";
 import LightBox from "@/components/lightbox/LightBox.vue";
 import Data from "@/store/data"
+import Config from "@/store/config";
 
 @Component({components: {LightBox}})
 export default class Gallery extends Vue {
@@ -58,6 +79,10 @@ export default class Gallery extends Vue {
 
   get currentCollection() {
     return Data.currentCollection;
+  }
+
+  get listDisplay() {
+    return Boolean(Config.settings.listDisplay);
   }
 }
 </script>
