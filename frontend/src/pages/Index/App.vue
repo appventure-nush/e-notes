@@ -94,7 +94,8 @@
       <v-toolbar-title v-if="!$route.meta.hideTitle">{{ $route.name }}</v-toolbar-title>
       <router-view name="appbar"></router-view>
       <v-spacer></v-spacer>
-      <v-btn small icon :to="{name:'Settings'}" class="mr-1">
+      <v-btn small icon class="mr-1"
+             :to="$route.name==='Settings'?($route.query.back||'/'):{name:'Settings',query:{back:$route.path}}">
         <v-icon v-text="$route.name==='Settings'?'mdi-cog':'mdi-cog-outline'"></v-icon>
       </v-btn>
       <v-btn small icon @click="toggleDark" class="mr-1">
@@ -116,11 +117,25 @@ import {shouldAllow} from "@/router";
 import {Route} from 'vue-router'
 import {User} from "@/types/user";
 import {Note} from "@/types/note";
+import {removeDarkModeListener, requestDarkModeListener} from "@/mixins/helpers";
 
 @Component
 export default class App extends Vue {
   profileCard = false;
   counter = 0;
+  requestedDarkMode = false;
+
+  created() {
+    requestDarkModeListener(this.autoDarkCallback);
+  }
+
+  destroyed() {
+    removeDarkModeListener(this.autoDarkCallback);
+  }
+
+  autoDarkCallback(e: MediaQueryListEvent | MediaQueryList) {
+    this.requestedDarkMode = e.matches;
+  }
 
   shouldAllow(route: Route) {
     return shouldAllow(route);
@@ -166,7 +181,7 @@ export default class App extends Vue {
   }
 
   get dark() {
-    return Boolean(Config.settings.dark);
+    return Config.settings.autoDark ? this.requestedDarkMode : Boolean(Config.settings.dark);
   }
 
   get noTransition() {
@@ -181,8 +196,14 @@ export default class App extends Vue {
     return this.$vuetify.breakpoint.mobile
   }
 
+  get fontSize(): number {
+    return Config.settings.fontSize || 16;
+  }
+
   toggleDark() {
-    Config.setDark(!Config.settings.dark);
+    const target = !Config.settings.dark;
+    if (Config.settings.autoDark) Config.updateSettings({...Config.settings, autoDark: false});
+    Config.setDark(target);
   }
 
   @Watch('dark')
@@ -195,6 +216,11 @@ export default class App extends Vue {
     (val ? document.body.classList.add("no-transition") : document.body.classList.remove("no-transition"));
   }
 
+  @Watch('fontSize', {immediate: true})
+  onFontSizeChange(val: number) {
+    document.documentElement.style.fontSize = `${val}px`;
+  }
+
   logout() {
     Config.logout();
   }
@@ -205,7 +231,7 @@ export default class App extends Vue {
   };
 }
 </script>
-<style>
+<style lang="scss">
 .markdown-body {
   color: inherit !important;
 }
@@ -213,8 +239,7 @@ export default class App extends Vue {
 .v-application code {
   background-color: unset !important;
 }
-</style>
-<style lang="scss">
+
 ::-webkit-scrollbar {
   width: .5em;
   height: .5em;

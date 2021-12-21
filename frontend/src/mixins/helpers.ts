@@ -60,3 +60,16 @@ export function getHashCode(string?: string) {
     }
     return intToHSL(hash);
 }
+
+export function requestedDarkMode(): boolean {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+export function requestDarkModeListener(callback: (e: MediaQueryListEvent | MediaQueryList) => void) {
+    callback(window.matchMedia('(prefers-color-scheme: dark)'));
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', callback);
+}
+
+export function removeDarkModeListener(callback: (e: MediaQueryListEvent | MediaQueryList) => void) {
+    window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', callback);
+}

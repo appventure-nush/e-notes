@@ -31,6 +31,10 @@
           </v-btn>
         </template>
       </CollectionPopup>
+      <v-btn small icon absolute top right @click="pinned=!pinned">
+        <v-icon small v-if="pinned">mdi-pin</v-icon>
+        <v-icon small v-else>mdi-pin-outline</v-icon>
+      </v-btn>
     </v-card-actions>
   </v-card>
 </template>
@@ -40,6 +44,7 @@ import {Component, Prop, Vue} from "vue-property-decorator";
 import {Collection} from "@/types/coll";
 import CollectionPopup from "@/components/popup/CollectionPopup.vue";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
+import Config from "@/store/config";
 
 @Component({
   components: {
@@ -49,6 +54,18 @@ import Markdown from "@/components/markdownViewer/Markdown.vue";
 })
 export default class CollectionDisplay extends Vue {
   name = "Collection Display"
-  @Prop(Object) readonly value: Collection | undefined
+  @Prop(Object) readonly value?: Collection;
+
+  get pinned() {
+    return Boolean(this.value && Config.settings.pinnedCollections && Config.settings.pinnedCollections.includes(this.value.cid));
+  }
+
+  set pinned(pinned: boolean) {
+    if (!this.value) return;
+    let pinnedCollections = Config.settings.pinnedCollections || [];
+    if (pinned && !pinnedCollections.includes(this.value.cid)) pinnedCollections.push(this.value.cid);
+    else if (!pinned && pinnedCollections.includes(this.value.cid)) pinnedCollections = pinnedCollections.filter(c => c !== this.value?.cid);
+    Config.updateSettings({...Config.settings, pinnedCollections});
+  }
 }
 </script>

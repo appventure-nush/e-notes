@@ -1,14 +1,14 @@
 <template>
-  <div class="markdown-body" ref="markdown-it-vue-container"></div>
+  <div class="markdown-body" :class="{'force-img-dark':imgDark}" ref="markdown-it-vue-container">
+  </div>
 </template>
-
 <script lang="ts">
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
 import MarkdownIt from 'markdown-it';
 import MarkdownItKatex from '@traptitech/markdown-it-katex';
 import MarkdownItTasklists from '@hedgedoc/markdown-it-task-lists';
 import MarkdownItHighlightJS from "markdown-it-highlightjs";
-
+import MarkdownItAttrs from "markdown-it-attrs";
 // @ts-ignore
 import TOC from "markdown-it-table-of-contents";
 
@@ -21,6 +21,9 @@ import Config from "@/store/config";
 import {EventBus} from "@/event";
 import {uwuifier} from "@/plugins/others";
 import {modifyText} from "@/plugins/uwu/utils";
+
+// why not lol
+if (Config.settings.animationCss) require('@/styles/animate.compat.css');
 
 @Component
 export default class Markdown extends Vue {
@@ -52,6 +55,7 @@ export default class Markdown extends Vue {
 
   created() {
     this.md = new MarkdownIt(this.options.markdownIt || {})
+        .use(MarkdownItAttrs, {})
         .use(MarkdownItKatex, this.options.katex || {})
         .use(MarkdownItTasklists, this.options.tasklists || {})
         .use(MarkdownItHighlightJS, this.options.highlight || {auto: false})
@@ -63,6 +67,10 @@ export default class Markdown extends Vue {
         })
         .use(TOC, this.options.toc || {includeLevel: [1, 2, 3]});
     EventBus.$on("uwufy", this.uwufy)
+  }
+
+  get imgDark() {
+    return Boolean(Config.settings.forceImageDark);
   }
 
   destroyed() {
@@ -79,7 +87,13 @@ export default class Markdown extends Vue {
   }
 }
 </script>
+<style>
+.v-application.theme--dark .markdown-body.force-img-dark img {
+  filter: invert(1) hue-rotate(180deg);
+}
+</style>
 <style lang="scss" scoped>
+
 ::v-deep {
   img {
     max-width: 100%;
