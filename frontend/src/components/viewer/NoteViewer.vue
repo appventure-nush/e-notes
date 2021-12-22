@@ -56,7 +56,8 @@
       </v-card-actions>
     </v-card>
     <v-divider class="my-3"/>
-    <v-card class="px-5 pb-2" flat :loading="doc_loading" :disabled="doc_loading">
+    <v-card class="pb-2" flat :loading="doc_loading" :disabled="doc_loading"
+            :class="{'px-5':$vuetify.breakpoint.mdAndUp}">
       <template v-if="this.doc">
         <JupyterViewer v-if="note.type==='jupyter'" :notebook="doc"></JupyterViewer>
         <markdown v-else-if="note.type==='markdown'" :content="doc"></markdown>
@@ -109,15 +110,11 @@ export default class NoteViewer extends Vue {
   doc_loading = false;
   shadow?: ShadowRoot;
 
-  @Watch('doc')
+  @Watch('doc', {immediate: true})
   onDocChange() {
-    if (!this.shadow) {
-      if (!this.shadowRoot) return this.updateHash();
-      this.shadow = this.shadowRoot.attachShadow({mode: 'open'});
-    }
-    this.shadow.innerHTML = "";
-    if (this.note && this.note.type && this.note.type !== "html") return this.updateHash();
-    this.shadow.innerHTML = this.doc;
+    if (!this.shadow && this.shadowRoot) this.shadow = this.shadowRoot.attachShadow({mode: 'open'});
+    // if (this.note && this.note.type && this.note.type !== "html") return this.updateHash();
+    if (this.shadow) this.shadow.innerHTML = this.doc;
   }
 
   updateHash() {
@@ -146,11 +143,6 @@ export default class NoteViewer extends Vue {
     return Config.settings.showPages;
   }
 
-  @Watch('notes', {immediate: true})
-  onNotesChange() {
-    this.updateNote();
-  }
-
   @Watch('nid', {immediate: true})
   onNIDChange() {
     window.scrollTo(0, 0);
@@ -158,6 +150,7 @@ export default class NoteViewer extends Vue {
     this.updateNote();
   }
 
+  @Watch('notes', {immediate: true})
   updateNote() {
     if (!this.notes) return;
     if (this.notes.length === 0) return;
@@ -198,15 +191,5 @@ export default class NoteViewer extends Vue {
       this.$router.push({name: 'Collection', params: {cid: this.cid}});
     });
   }
-
-  // download() {
-  //   if (!this.note) return;
-  //   const url = window.URL.createObjectURL(new Blob([this.note.type === "jupyter" ? JSON.stringify(this.doc) : this.doc]));
-  //   const a = document.createElement('a');
-  //   a.href = url;
-  //   a.download = this.note.nid + (this.note.type === "jupyter" ? '.ipynb' : this.note.type === "markdown" ? '.md' : '.html');
-  //   a.click();
-  //   window.URL.revokeObjectURL(url);
-  // }
 }
 </script>

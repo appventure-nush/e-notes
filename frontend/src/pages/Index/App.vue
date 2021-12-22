@@ -1,5 +1,5 @@
 <template>
-  <v-app v-touch="touchOptions">
+  <v-app v-touch="touchOptions" :class="{uwu}">
     <v-navigation-drawer :permanent="permanent" v-if="profile" app v-model="drawer" :mini-variant="mini">
       <template v-slot:prepend>
         <v-list-item two-line ripple @click="profileCard=!profileCard"
@@ -116,6 +116,7 @@ import {Route} from 'vue-router'
 import {User} from "@/types/user";
 import {Note} from "@/types/note";
 import {removeDarkModeListener, requestDarkModeListener} from "@/mixins/helpers";
+import {EventBus} from "@/event";
 
 @Component
 export default class App extends Vue {
@@ -137,6 +138,10 @@ export default class App extends Vue {
 
   shouldAllow(route: Route) {
     return shouldAllow(route);
+  }
+
+  get uwu() {
+    return EventBus.uwufy;
   }
 
   get profile(): User | null {
@@ -257,6 +262,11 @@ export default class App extends Vue {
 
 body.rb.rb-lock-off {
   animation: rainbow 4s steps(36) infinite;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap');
+.v-application.uwu {
+  font-family: 'Indie Flower', cursive;
 }
 
 @-webkit-keyframes rainbow {

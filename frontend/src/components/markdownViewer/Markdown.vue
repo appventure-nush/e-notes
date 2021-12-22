@@ -9,6 +9,7 @@ import MarkdownItKatex from '@traptitech/markdown-it-katex';
 import MarkdownItTasklists from '@hedgedoc/markdown-it-task-lists';
 import MarkdownItHighlightJS from "markdown-it-highlightjs";
 import MarkdownItAttrs from "markdown-it-attrs";
+import sanitizeHtml from 'sanitize-html';
 // @ts-ignore
 import TOC from "markdown-it-table-of-contents";
 
@@ -25,11 +26,19 @@ import {modifyText} from "@/plugins/uwu/utils";
 // why not lol
 if (Config.settings.animationCss) require('@/styles/animate.compat.css');
 
+const SANITIZE_OPTIONS = {
+  allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'hr']),
+  allowedAttributes: {
+    ...sanitizeHtml.defaults.allowedAttributes,
+    '*': ['id', 'class'],
+    'img': ['border', 'width', 'height', 'align', 'src']
+  }
+};
+
 @Component
 export default class Markdown extends Vue {
   name = 'markdown-viewer';
   md!: MarkdownIt;
-  uwu = false;
   @Ref('markdown-it-vue-container') readonly container!: Element;
   @Prop(String) readonly content!: string;
   @Prop({
@@ -44,12 +53,20 @@ export default class Markdown extends Vue {
     })
   }) readonly options!: MarkdownItVueOptions;
 
+
+  @Watch('uwufy', {immediate: true})
+  onUwufy() {
+    this.onContentChange(this.content);
+  }
+
   @Watch('content', {immediate: true})
   onContentChange(val: string) {
     this.$nextTick(() => {
       if (!val) return this.container.innerHTML = "";
-      this.container.innerHTML = this.md.render(val)
-      if (this.uwu) modifyText(this.container, str => uwuifier.uwuifySentence(str));
+      let html = this.md.render(val);
+      if (this.sanitize) html = sanitizeHtml(html, SANITIZE_OPTIONS);
+      this.container.innerHTML = html;
+      if (EventBus.uwufy) modifyText(this.container, str => uwuifier.uwuifySentence(str), ['pre', 'code']);
     })
   }
 
@@ -66,24 +83,18 @@ export default class Markdown extends Vue {
           })
         })
         .use(TOC, this.options.toc || {includeLevel: [1, 2, 3]});
-    EventBus.$on("uwufy", this.uwufy)
   }
 
   get imgDark() {
     return Boolean(Config.settings.forceImageDark);
   }
 
-  destroyed() {
-    EventBus.$off("uwufy", this.uwufy)
+  get sanitize() {
+    return !Config.settings.noSanitize;
   }
 
-  get() {
-    return this.md;
-  }
-
-  uwufy() {
-    this.uwu = true;
-    this.onContentChange(this.content);
+  get uwufy() {
+    return EventBus.uwufy;
   }
 }
 </script>

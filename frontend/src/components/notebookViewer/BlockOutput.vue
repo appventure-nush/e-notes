@@ -8,7 +8,7 @@
           <pre class="cell-header output"
                v-text="output.output_type === 'execute_result'?`Out [${output.execution_count}]: `:''"></pre>
         </v-col>
-        <v-col style="min-width: 0;">
+        <v-col :style="{'min-width':$vuetify.breakpoint.xsOnly?'100%':'0'}">
           <v-row no-gutters>
             <v-col v-if="output.output_type === 'stream'">
               <pre :class="[output.name==='stdout'?'output-std' : 'output-err']" v-text="output.text.join('')"></pre>

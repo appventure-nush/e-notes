@@ -91,11 +91,12 @@ export function isAt(value: string): boolean {
     return first === "@";
 }
 
-export function modifyText(node: Node, func: (input: string) => string) {
+export function modifyText(node: Node, func: (input: string) => string, spareTags: string[] = []) {
     if (node.nodeType === 3) {
         if (node.textContent && node.textContent.trim().length > 0) node.textContent = node.textContent && func(node.textContent);
     } else if (node.nodeType === 1) {
+        if (spareTags.includes((<Element>node).tagName.toLowerCase())) return;
         const children = node.childNodes;
-        for (let i = children.length; i--;) modifyText(children[i], func);
+        for (let i = children.length; i--;) modifyText(children[i], func, spareTags);
     }
 }

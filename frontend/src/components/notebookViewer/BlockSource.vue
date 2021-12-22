@@ -2,11 +2,11 @@
   <div class="block-source">
     <div :class='{"block-light-selected":highlighted,"block-light":!highlighted}'/>
     <div class="block-hidden" v-if="hide"/>
-    <v-row v-else no-gutters class="cell-row flex-nowrap">
+    <v-row v-else no-gutters class="cell-row">
       <v-col class="flex-grow-0">
         <pre class="cell-header source" v-text="cell.execution_count?`In [${cell.execution_count}]: `:''"></pre>
       </v-col>
-      <v-col style="min-width:0;">
+      <v-col :style="{'min-width':$vuetify.breakpoint.xsOnly?'100%':'0'}">
         <v-card class="cell-content source-code" v-if="type==='code'" flat outlined>
           <pre class="source-code-main" v-html="hljs"></pre>
         </v-card>

@@ -1,13 +1,9 @@
 <template>
   <div class="jupyter-viewer">
-    <v-card
-        tile
-        flat
-        :ripple="false"
+    <div
+        class="block"
         v-for="(cell, index) in notebook.cells"
         :key="index"
-        class="block"
-        color="transparent"
         @mousedown="clickCellIndex = index">
       <BlockSource
           v-if="'cell_type' in cell"
@@ -18,7 +14,7 @@
           v-if="'outputs' in cell"
           :cell="cell"
           :highlighted="clickCellIndex === index"/>
-    </v-card>
+    </div>
   </div>
 </template>
 

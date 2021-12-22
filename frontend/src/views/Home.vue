@@ -1,8 +1,8 @@
 <template>
   <v-container>
-    <v-row v-if="colls&&colls.filter">
+    <v-slide-y-transition group tag="div" class="layout row wrap" v-if="colls&&colls.filter">
       <collection-display v-model="colls[i]" v-for="(coll,i) in colls" :key="coll.cid"/>
-    </v-row>
+    </v-slide-y-transition>
   </v-container>
 </template>
 

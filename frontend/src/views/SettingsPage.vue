@@ -16,10 +16,12 @@
         <template v-for="child in CONFIG_SETTINGS[selectedConfig].children">
           <v-slider v-model="editedSettings[child.key]" :key="child.key" class="mt-2" thumb-label
                     :label="child.name" :hint="child.desc" persistent-hint v-if="child.type==='slider'"
+                    v-show="!child.showIf||child.showIf()"
                     :disabled="child.disabledBy&&editedSettings[child.disabledBy]"
           ></v-slider>
           <v-checkbox v-model="editedSettings[child.key]" :key="child.key"
                       :label="child.name" :hint="child.desc" persistent-hint v-else
+                      v-show="!child.showIf||child.showIf()"
                       :disabled="child.disabledBy&&editedSettings[child.disabledBy]"
           ></v-checkbox>
         </template>
@@ -62,6 +64,7 @@ import {Component, Vue, Watch} from "vue-property-decorator";
 import {Settings} from "@/types/settings";
 import Config from "@/store/config";
 import {humanFileSize} from "@/mixins/helpers";
+import {EventBus} from "@/event";
 
 function setting_equals(x: Settings, y: Settings) {
   if (x === y) return true;
@@ -78,6 +81,7 @@ function setting_equals(x: Settings, y: Settings) {
 type SettingConfig = {
   key: keyof Settings,
   disabledBy?: keyof Settings,
+  showIf?: () => boolean,
   name: string,
   desc?: string,
   type?: 'slider' | 'textfield',
@@ -89,15 +93,6 @@ type ActionConfig = {
   desc?: string,
   color?: string,
   action: () => void
-}
-
-function getLocalStorageSize() {
-  let total = 0;
-  for (const x in localStorage) {
-    const amount = localStorage[x].length * 2;
-    if (!isNaN(amount) && localStorage.getItem(x)) total += amount;
-  }
-  return total;
 }
 
 @Component
@@ -172,15 +167,15 @@ export default class SettingsPage extends Vue {
       }
     }, {
       name: "Reset All",
-      desc: "Reset local data, including config (localStorage)\nCurrent size: " + humanFileSize(getLocalStorageSize()),
+      desc: "Reset local data, including config (localStorage)\nCurrent size: " + humanFileSize((localStorage?.getItem('vuex')?.length || 0) * 2),
       color: "error",
       action: () => {
-        localStorage.clear();
+        localStorage.removeItem('vuex');
         location.reload();
       }
     }]
   }, {
-    name: "Controls",
+    name: "Layout",
     children: [{
       key: "showPages",
       name: "Show Pagination Buttons",
@@ -201,9 +196,18 @@ export default class SettingsPage extends Vue {
   }, {
     name: "Markdown",
     children: [{
+      key: "permanentUwufy",
+      name: "Permanent UwUfication",
+      desc: "You actually liked the uwu text? *blushes",
+      showIf: () => EventBus.uwufy
+    }, {
       key: "noHTML",
       name: "Disable HTML",
       desc: "No XSS if you can't put html on my page"
+    }, {
+      key: "noSanitize",
+      name: "Skip HTML Sanitization",
+      desc: "Did something break? This will disable sanitization for markdown notes"
     }, {
       key: "noLinkify",
       name: "Disable Autolink",
