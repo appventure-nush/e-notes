@@ -199,7 +199,7 @@ export default class SettingsPage extends Vue {
       key: "permanentUwufy",
       name: "Permanent UwUfication",
       desc: "You actually liked the uwu text? *blushes",
-      showIf: () => EventBus.uwufy
+      showIf: () => EventBus.uwufy || Boolean(this.$route.query.uwu)
     }, {
       key: "noHTML",
       name: "Disable HTML",
