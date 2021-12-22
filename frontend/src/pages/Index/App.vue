@@ -267,6 +267,10 @@ body.rb.rb-lock-off {
 @import url('https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap');
 .v-application.uwu {
   font-family: 'Indie Flower', cursive;
+
+  .text-h1, .text-h2, .text-h3, .text-h4, .text-h5, .text-h6, .text-subtitle-1, .text-subtitle-2, .text-body-1, .text-body-2, .text-button, .text-caption, .text-overline {
+    font-family: 'Indie Flower', cursive !important;
+  }
 }
 
 @-webkit-keyframes rainbow {
