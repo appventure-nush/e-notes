@@ -25,6 +25,9 @@ export interface User extends MutablePermissions {
     access?: number;
     teacher: boolean;
     has_control_over?: string[];
+
+    lastLogin?: string;
+    created?: string;
 }
 
 export function makeUser(uid: string): User {

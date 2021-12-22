@@ -1,5 +1,5 @@
 import {Router} from 'express';
-import {checkAdmin, checkUser, getUser, profileCache, sortHandler, updateUser} from '../../utils';
+import {checkAdmin, checkUser, getFBUser, getUser, profileCache, sortHandler, updateUser} from '../../utils';
 import {_setPermissions} from "../../types/permissions";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 import {error, failed, success} from "../../response";
@@ -16,7 +16,16 @@ users.get("/", checkUser, middleware('1 min'), (req, res) => {
 
 users.get("/:uid", checkUser, async (req, res) => {
     try {
-        res.json(await getUser(req.params.uid));
+        let user = await getUser(req.params.uid);
+        if (req.user?.admin && user) {
+            const fbUser = await getFBUser(req.params.uid);
+            if (fbUser) user = {
+                ...user,
+                lastLogin: fbUser.metadata.lastSignInTime,
+                created: fbUser.metadata.creationTime
+            };
+        }
+        res.json(user);
     } catch (e) {
         res.json(error("failed_to_get_user"));
     }

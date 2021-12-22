@@ -37,6 +37,10 @@
               </v-textarea>
               <span v-else v-text="user.desc"></span>
             </div>
+            <div class="mb-2 subheading" v-if="isAdmin()">
+              <strong>Last Login: </strong><span v-text="user.lastLogin"></span><br>
+              <strong>Created: </strong><span v-text="user.created"></span>
+            </div>
             <div class="error--text align-center" v-if="user.admin||editing">
               <v-checkbox v-if="editing" dense hide-details label="Admin" v-model="editedUser.admin"
                           style="margin-left:50%;transform:translateX(-50%);width:5em;"/>

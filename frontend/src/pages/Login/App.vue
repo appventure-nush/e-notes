@@ -1,34 +1,35 @@
 <template>
   <v-app>
     <v-container>
-      <v-card max-width="699px" class="ma-auto" :loading="attempting" :disabled="attempting">
-        <v-card-title>
-          Login
-          <v-btn small icon @click="toggleDark" class="ml-3">
-            <v-icon v-text="$store.state.config.dark?'mdi-white-balance-sunny':'mdi-moon-waxing-crescent'"></v-icon>
-          </v-btn>
-        </v-card-title>
-        <v-card-text>
-          <v-row
-              class="my-2"
-              align="center"
-              justify="space-around">
-            <v-col>
-              <v-btn
-                  @click="microsoft"
-                  outlined
-                  color="primary">
-                <v-icon left>
-                  mdi-microsoft
-                </v-icon>
-                Login with Microsoft
-              </v-btn>
-            </v-col>
-          </v-row>
-          <v-divider/>
-          <v-form
-              ref="form"
-              v-model="valid">
+      <v-form
+          @submit.prevent="login"
+          ref="form"
+          v-model="valid">
+        <v-card max-width="699px" class="ma-auto" :loading="attempting" :disabled="attempting">
+          <v-card-title>
+            Login
+            <v-btn small icon @click="toggleDark" class="ml-3">
+              <v-icon v-text="$store.state.config.dark?'mdi-white-balance-sunny':'mdi-moon-waxing-crescent'"></v-icon>
+            </v-btn>
+          </v-card-title>
+          <v-card-text>
+            <v-row
+                class="my-2"
+                align="center"
+                justify="space-around">
+              <v-col>
+                <v-btn
+                    @click="microsoft"
+                    outlined
+                    color="primary">
+                  <v-icon left>
+                    mdi-microsoft
+                  </v-icon>
+                  Login with Microsoft
+                </v-btn>
+              </v-col>
+            </v-row>
+            <v-divider/>
             <v-alert
                 v-if="errorMsg"
                 elevation="5"
@@ -52,6 +53,7 @@
                 required
             ></v-text-field>
             <v-btn
+                type="submit"
                 color="primary"
                 class="mr-4"
                 @click="login">
@@ -70,9 +72,9 @@
                   v-text='Math.floor((nextAllowed-now) / 1000) + "s"'>
               </v-chip>
             </v-btn>
-          </v-form>
-        </v-card-text>
-      </v-card>
+          </v-card-text>
+        </v-card>
+      </v-form>
     </v-container>
   </v-app>
 </template>

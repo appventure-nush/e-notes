@@ -21,6 +21,7 @@ import LRU from "lru-cache";
 import DocumentSnapshot = admin.firestore.DocumentSnapshot;
 import DocumentData = firestore.DocumentData;
 import QuerySnapshot = firestore.QuerySnapshot;
+import UserRecord = auth.UserRecord;
 
 export const noteCache = new LRU<string, Note[]>({max: 1000, maxAge: 1000});
 export const idTokenCache = new LRU<string, auth.DecodedIdToken>({max: 1000, maxAge: 60 * 1000});
@@ -34,14 +35,20 @@ function endsWithAny(suffixes: string[], str?: string) {
     return suffixes.some(suffix => str && str.endsWith(suffix));
 }
 
-export async function getUser(uid: string): Promise<User | undefined> { // heavy call function
-    if (!uid) return undefined;
+export async function getFBUser(uid: string): Promise<UserRecord | undefined> {
     let fbUser = userCache.get(uid);
-    if (!fbUser) try {
+    if (fbUser) return fbUser;
+    try {
         userCache.set(uid, fbUser = await auth().getUser(uid));
+        return fbUser;
     } catch (e) {
         return undefined;
     }
+}
+
+export async function getUser(uid: string): Promise<User | undefined> { // heavy call function
+    if (!uid) return undefined;
+    const fbUser = await getFBUser(uid);
     if (!fbUser) return undefined;
     let user = profileCache.get(uid);
     if (!user) {
