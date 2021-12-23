@@ -1,9 +1,4 @@
-import {
-    getCapitalPercentage,
-    InitModifierParam,
-    isAt,
-    isUri,
-} from "./utils";
+import {getCapitalPercentage, InitModifierParam, isAt, isUri,} from "./utils";
 
 import Seed from "./seed";
 
@@ -26,6 +21,8 @@ const DEFAULTS = {
 export default class Uwuifier {
     public faces: string[] = [
         "(・`ω´・)",
+        "(⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄",
+        "(/ω＼)",
         ";;w;;",
         "OwO",
         "UwU",
@@ -44,9 +41,7 @@ export default class Uwuifier {
         "*screams*",
         "*sweats*",
         "*twerks*",
-        "*runs away*",
         "*screeches*",
-        "*walks away*",
         "*sees bulge*",
         "*looks at you*",
         "*notices buldge*",
@@ -55,8 +50,8 @@ export default class Uwuifier {
         "*boops your nose*",
     ];
     public uwuMap = [
-        [/(?:r|l)/g, "w"],
-        [/(?:R|L)/g, "W"],
+        [/[rl]/g, "w"],
+        [/[RL]/g, "W"],
         [/n([aeiou])/g, "ny$1"],
         [/N([aeiou])/g, "Ny$1"],
         [/N([AEIOU])/g, "Ny$1"],
@@ -86,14 +81,15 @@ export default class Uwuifier {
         this._exclamationsModifier = exclamations ?? DEFAULTS.EXCLAMATIONS;
     }
 
-    public uwuifyWords(sentence: string): string {
+    public uwuifyWords(sentence: string, base = ""): string {
         const words = sentence.split(" ");
 
-        const uwuifiedSentence = words.map((word) => {
+        return words.map((word) => {
+            if (!word) return word;
             if (isAt(word)) return word;
             if (isUri(word)) return word;
 
-            const seed = new Seed(word);
+            const seed = new Seed(word + base);
 
             for (const [oldWord, newWord] of this.uwuMap) {
                 // Generate a random value for every map so words will be partly uwuified instead of not at all
@@ -104,19 +100,18 @@ export default class Uwuifier {
 
             return word;
         }).join(" ");
-
-        return uwuifiedSentence;
     }
 
-    public uwuifySpaces(sentence: string): string {
+    public uwuifySpaces(sentence: string, base = ""): string {
         const words = sentence.split(" ");
 
         const faceThreshold = this._spacesModifier.faces;
         const actionThreshold = this._spacesModifier.actions + faceThreshold;
         const stutterThreshold = this._spacesModifier.stutters + actionThreshold;
 
-        const uwuifiedSentence = words.map((word, index) => {
-            const seed = new Seed(word);
+        return words.map((word, index) => {
+            if (!word) return word;
+            const seed = new Seed(word + base);
             const random = seed.random();
 
             const [firstCharacter] = word;
@@ -159,16 +154,15 @@ export default class Uwuifier {
 
             return word;
         }).join(" ");
-
-        return uwuifiedSentence;
     }
 
-    public uwuifyExclamations(sentence: string): string {
+    public uwuifyExclamations(sentence: string, base = ""): string {
         const words = sentence.split(" ");
         const pattern = new RegExp("[?!]+$");
 
-        const uwuifiedSentence = words.map((word) => {
-            const seed = new Seed(word);
+        return words.map((word) => {
+            if (!word) return word;
+            const seed = new Seed(word + base);
 
             // If there are no exclamations return
             if (
@@ -183,16 +177,15 @@ export default class Uwuifier {
 
             return word;
         }).join(" ");
-
-        return uwuifiedSentence;
     }
 
-    public uwuifySentence(sentence: string): string {
+    public uwuifySentence(sentence: string, base = ""): string {
+        if (!sentence) return sentence;
         let uwuifiedString = sentence;
 
-        uwuifiedString = this.uwuifyWords(uwuifiedString);
-        uwuifiedString = this.uwuifyExclamations(uwuifiedString);
-        uwuifiedString = this.uwuifySpaces(uwuifiedString);
+        uwuifiedString = this.uwuifyWords(uwuifiedString, base);
+        uwuifiedString = this.uwuifyExclamations(uwuifiedString, base);
+        uwuifiedString = this.uwuifySpaces(uwuifiedString, base);
 
         return uwuifiedString;
     }

@@ -66,7 +66,7 @@ export default class Markdown extends Vue {
       let html = this.md.render(val);
       if (this.sanitize) html = sanitizeHtml(html, SANITIZE_OPTIONS);
       this.container.innerHTML = html;
-      if (EventBus.uwufy) modifyText(this.container, str => uwuifier.uwuifySentence(str), ['pre', 'code']);
+      if (EventBus.uwufy) modifyText(this.container, (str, i) => uwuifier.uwuifySentence(str, i), ['pre', 'code']);
     })
   }
 
