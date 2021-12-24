@@ -31,7 +31,7 @@ const SANITIZE_OPTIONS = {
   allowedAttributes: {
     ...sanitizeHtml.defaults.allowedAttributes,
     '*': ['id', 'class'],
-    'img': ['border', 'width', 'height', 'align']
+    'img': ['border', 'width', 'height', 'align', 'src']
   }
 };
 
