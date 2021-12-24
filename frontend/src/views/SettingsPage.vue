@@ -207,7 +207,7 @@ export default class SettingsPage extends Vue {
     }, {
       key: "noSanitize",
       name: "Skip HTML Sanitization",
-      desc: "Did something break? This will disable sanitization for markdown notes"
+      desc: "Did something break? This will disable sanitization for markdown notes. Sanitization is turned on only for markdown!"
     }, {
       key: "noLinkify",
       name: "Disable Autolink",

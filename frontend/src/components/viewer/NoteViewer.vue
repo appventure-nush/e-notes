@@ -89,6 +89,16 @@ import UserAvatar from "@/components/UserAvatar.vue";
 import Data from "@/store/data"
 import Config from "@/store/config"
 import {Collection} from "@/types/coll";
+import sanitizeHtml from 'sanitize-html';
+
+const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
+  allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'hr', 'html', 'body', 'style']),
+  allowedAttributes: {
+    ...sanitizeHtml.defaults.allowedAttributes,
+    '*': ['id', 'class'],
+    'img': ['border', 'width', 'height', 'align', 'src']
+  }
+};
 
 @Component({
   components: {
@@ -113,8 +123,8 @@ export default class NoteViewer extends Vue {
   @Watch('doc', {immediate: true})
   onDocChange() {
     if (!this.shadow && this.shadowRoot) this.shadow = this.shadowRoot.attachShadow({mode: 'open'});
-    // if (this.note && this.note.type && this.note.type !== "html") return this.updateHash();
-    if (this.shadow) this.shadow.innerHTML = this.doc;
+    console.log(sanitizeHtml(this.doc, SANITIZE_OPTIONS))
+    if (this.shadow && (!this.note.type || this.note.type === 'html')) this.shadow.innerHTML = sanitizeHtml(this.doc, SANITIZE_OPTIONS);
   }
 
   updateHash() {
