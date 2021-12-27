@@ -8,7 +8,7 @@
         <v-list-item-avatar>
           <v-avatar :color="getHashCode(user.name)">
             <v-img :src="user.pfp" v-if="user.pfp"/>
-            <span class="white--text text-h5" v-else>{{ initials(user.name) }}</span>
+            <span class="white--text text-h5" v-else v-text="initials(user.name)"></span>
           </v-avatar>
         </v-list-item-avatar>
 
@@ -34,7 +34,7 @@
       <v-btn v-if="!hideControls" icon @click="drawer=!drawer" absolute>
         <v-icon>mdi-menu</v-icon>
       </v-btn>
-      <router-view :users="users"></router-view>
+      <router-view v-model="query" :users="users" :shownUsers="displayedUsers"></router-view>
     </v-main>
   </div>
 </template>
@@ -59,7 +59,10 @@ export default class Users extends Vue {
 
   get displayedUsers() {
     let result = this.users;
-    if (this.query) result = result.filter(u => u.uid?.toUpperCase().includes(this.query.toUpperCase()) || u.name?.toUpperCase().includes(this.query.toUpperCase()) || u.email?.toUpperCase().includes(this.query.toUpperCase()))
+    if (this.query) result =
+        result.filter(u => u.uid?.includes(this.query) ||
+            u.name?.toUpperCase().includes(this.query.toUpperCase()) ||
+            u.email?.toUpperCase().includes(this.query.toUpperCase()))
     return result;
   }
 

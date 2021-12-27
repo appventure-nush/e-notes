@@ -4,7 +4,7 @@
       <v-btn icon :width="size" :height="size" v-on="on" :class="classes" :elevation="elevation">
         <v-avatar :color="getHashCode(user.name)" :size="size">
           <v-img :src="user.pfp" v-if="user.pfp"></v-img>
-          <span class="white--text text-h5" v-else>{{ initials(user.name) }}</span>
+          <span class="white--text text-h5" v-else v-text="initials(user.name)"></span>
         </v-avatar>
       </v-btn>
     </template>
@@ -13,7 +13,7 @@
         <div class="mx-auto text-center">
           <v-avatar :color="getHashCode(user.name)" class="mb-2">
             <v-img :src="user.pfp" v-if="user.pfp"></v-img>
-            <span class="white--text text-h5" v-else>{{ initials(user.name) }}</span>
+            <span class="white--text text-h5" v-else v-text="initials(user.name)"></span>
           </v-avatar>
           <h3 class="px-2">
             <router-link :to="{name:'User',params:{uid:uid}}">{{ user.name || user.uid }}</router-link>

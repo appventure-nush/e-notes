@@ -123,14 +123,7 @@ export default class NoteViewer extends Vue {
   @Watch('doc', {immediate: true})
   onDocChange() {
     if (!this.shadow && this.shadowRoot) this.shadow = this.shadowRoot.attachShadow({mode: 'open'});
-    console.log(sanitizeHtml(this.doc, SANITIZE_OPTIONS))
     if (this.shadow && (!this.note.type || this.note.type === 'html')) this.shadow.innerHTML = sanitizeHtml(this.doc, SANITIZE_OPTIONS);
-  }
-
-  updateHash() {
-    let hash = this.$route.hash;
-    location.hash = "";
-    setTimeout(() => location.hash = hash, 0);
   }
 
   get note(): Note {

@@ -6,7 +6,7 @@
                      :class="{'px-0': mini,'justify-center':mini}">
           <v-list-item-avatar :color="getHashCode(profile.name)">
             <v-img :src="pfp" v-if="pfp"></v-img>
-            <span class="white--text text-h5" v-else>{{ initials(profile.name) }}</span>
+            <span class="white--text text-h5" v-else v-text="initials(profile.name)"></span>
           </v-list-item-avatar>
           <v-list-item-content>
             <v-list-item-title v-text="profile.nickname||profile.name"></v-list-item-title>
@@ -14,14 +14,18 @@
           </v-list-item-content>
         </v-list-item>
         <v-expand-transition>
-          <div v-if="profileCard">
-            <div class="mx-2 pb-2 hidden-sm-and-down" v-if="!mini">
-              <v-chip class="ma-1" v-if="profile.admin" color="error" label dark small>admin</v-chip>
-              <v-chip class="ma-1" v-if="profile.teacher" color="info" label dark small>teacher</v-chip>
-              <v-chip class="ma-1" v-else outlined label small>student</v-chip>
-              <v-chip class="ma-1" v-for="role in profile.roles" :key="role" v-text="role" outlined label
-                      small></v-chip>
-            </div>
+          <v-list
+              dense
+              nav v-if="profileCard">
+            <v-list-item class="hidden-sm-and-down" v-if="!mini">
+              <div>
+                <v-chip class="ma-1" v-if="profile.admin" color="error" label dark small>admin</v-chip>
+                <v-chip class="ma-1" v-if="profile.teacher" color="info" label dark small>teacher</v-chip>
+                <v-chip class="ma-1" v-else outlined label small>student</v-chip>
+                <v-chip class="ma-1" v-for="role in profile.roles" :key="role" v-text="role" outlined label
+                        small></v-chip>
+              </div>
+            </v-list-item>
             <v-list-item dense to="/profile" color="primary">
               <v-list-item-icon>
                 <v-icon>mdi-account-box</v-icon>
@@ -34,7 +38,7 @@
               </v-list-item-icon>
               <v-list-item-title>Logout</v-list-item-title>
             </v-list-item>
-          </div>
+          </v-list>
         </v-expand-transition>
         <v-divider class="my-1"></v-divider>
       </template>
