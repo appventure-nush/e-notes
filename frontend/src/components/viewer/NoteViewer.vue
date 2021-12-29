@@ -92,7 +92,7 @@ import {Collection} from "@/types/coll";
 import sanitizeHtml from 'sanitize-html';
 
 const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
-  allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'hr', 'html', 'body', 'style']),
+  allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'hr', 'style']),
   allowedAttributes: {
     ...sanitizeHtml.defaults.allowedAttributes,
     '*': ['id', 'class'],
