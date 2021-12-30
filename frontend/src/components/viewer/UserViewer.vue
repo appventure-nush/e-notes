@@ -47,28 +47,25 @@
                           style="margin-left:50%;transform:translateX(-50%);width:5em;"/>
               <span v-else>Admin</span>
             </div>
-            <template v-if="ti">
-              <div class="mt-2">
-                <h4>Teacher Info</h4>
-              </div>
-              <div v-if="ti.department_name" class="d-flex justify-center">
-                <h5 class="mr-2">Department</h5>
-                <span v-text="ti.department_name"></span>
-              </div>
-              <div v-if="ti.designation" class="d-flex justify-center">
-                <h5 class="mr-2">Designation</h5>
-                <span v-text="ti.designation"></span>
-              </div>
-              <div v-if="ti.subjects_name">
-                <h4 class="mr-2">Subjects</h4>
-                <v-chip-group show-arrows class="justify-center">
-                  <v-spacer></v-spacer>
-                  <v-chip v-for="(s,i) in ti.subjects_name.split(/,\s?/g)" :key="i" v-text="s" x-small label>
-                  </v-chip>
-                  <v-spacer></v-spacer>
-                </v-chip-group>
-              </div>
-            </template>
+          </v-card-text>
+          <v-divider v-if="ti"></v-divider>
+          <v-card-text v-if="ti" class="text-center">
+            <div v-if="ti.department_name" class="d-flex justify-center">
+              <h5 class="mr-2">Department</h5>
+              <span v-text="ti.department_name"></span>
+            </div>
+            <div v-if="ti.designation" class="d-flex justify-center">
+              <h5 class="mr-2">Designation</h5>
+              <span v-text="ti.designation"></span>
+            </div>
+            <div v-if="ti.subjects_name">
+              <v-chip-group show-arrows class="justify-center" style="margin: -0.4em 0;">
+                <v-spacer></v-spacer>
+                <v-chip class="px-2" v-for="(s,i) in ti.subjects_name.split(/,\s?/g)" :key="i" v-text="s" x-small label>
+                </v-chip>
+                <v-spacer></v-spacer>
+              </v-chip-group>
+            </div>
           </v-card-text>
           <v-divider v-if="isAdmin()"></v-divider>
           <v-row
