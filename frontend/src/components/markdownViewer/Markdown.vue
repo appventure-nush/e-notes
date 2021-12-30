@@ -1,5 +1,5 @@
 <template>
-  <div class="markdown-body" :class="{'force-img-dark':imgDark}" ref="markdown-it-vue-container">
+  <div class="markdown-body" ref="markdown-it-vue-container">
   </div>
 </template>
 <script lang="ts">
@@ -85,10 +85,6 @@ export default class Markdown extends Vue {
         .use(TOC, this.options.toc || {includeLevel: [1, 2, 3]});
   }
 
-  get imgDark() {
-    return Boolean(Config.settings.forceImageDark);
-  }
-
   get sanitize() {
     return !Config.settings.noSanitize;
   }
@@ -99,7 +95,7 @@ export default class Markdown extends Vue {
 }
 </script>
 <style>
-.v-application.theme--dark .markdown-body.force-img-dark img {
+.v-application.theme--dark.force-img-dark .markdown-body img {
   filter: invert(1) hue-rotate(180deg);
 }
 </style>
@@ -108,6 +104,9 @@ export default class Markdown extends Vue {
 ::v-deep {
   img {
     max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
   }
 
   blockquote {
@@ -119,8 +118,10 @@ export default class Markdown extends Vue {
   }
 
   p:not(table p), ul:not(table ul), ol:not(table ol) {
-    &:not(:last-child) {
-      margin-bottom: 1em;
+    margin-bottom: 1em;
+
+    &:last-child {
+      margin-bottom: 0 !important;
     }
   }
 

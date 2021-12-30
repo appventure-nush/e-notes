@@ -1,7 +1,11 @@
 <template>
   <div class="jupyter-viewer">
+    <div class="block d-flex justify-end">
+      <v-checkbox prepend-icon="mdi-format-clear" v-model="plain" dense hide-details></v-checkbox>
+      <v-checkbox prepend-icon="mdi-image" v-model="graphic" class="ml-2" dense hide-details></v-checkbox>
+    </div>
     <div
-        class="block"
+        class="block" :class="{selected:clickCellIndex === index}"
         v-for="(cell, index) in notebook.cells"
         :key="index"
         @mousedown="clickCellIndex = index">
@@ -12,6 +16,8 @@
           :highlighted="clickCellIndex === index"/>
       <BlockOutput
           v-if="'outputs' in cell"
+          :graphic="graphic"
+          :plain="plain"
           :cell="cell"
           :highlighted="clickCellIndex === index"/>
     </div>
@@ -31,6 +37,8 @@ export default class JupyterViewer extends Vue {
   name = "JupyterViewer.vue"
   @Prop(Object) readonly notebook!: Notebook;
   @Prop({default: "python"}) readonly language!: string;
+  graphic = true;
+  plain = false;
   clickCellIndex = -1;
 }
 </script>
@@ -50,6 +58,10 @@ pre {
   box-sizing: border-box;
   overflow: hidden;
 
+  &.selected {
+    backdrop-filter: invert(0.03);
+  }
+
   .block-hidden {
     width: 100%;
     min-height: 20px;
@@ -61,6 +73,13 @@ pre {
 
     display: flex;
     flex-direction: row;
+
+    .hljs {
+      background: unset;
+      padding: 0;
+      margin: 0;
+      font-size: 1em;
+    }
   }
 
   .block-output {
@@ -125,6 +144,7 @@ pre {
     }
 
     .cell-content {
+      padding-left: 5px;
       width: auto;
       margin: 0 0 0 0;
 
@@ -136,10 +156,6 @@ pre {
       &.source-markdown {
         padding: 5px 10px;
         box-sizing: border-box;
-
-        p {
-          margin-bottom: inherit;
-        }
       }
 
       &.output-std {
@@ -166,9 +182,17 @@ pre {
           padding: 0.1em 0.2em;
         }
 
-        th,
-        tr:nth-child(even) {
+        thead tr,
+        tbody tr:nth-child(even) {
           background: #8883;
+
+          &:hover {
+            background: #009a9044;
+          }
+        }
+
+        tr:hover {
+          background: #009a9033;
         }
       }
     }

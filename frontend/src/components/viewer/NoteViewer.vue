@@ -126,6 +126,11 @@ export default class NoteViewer extends Vue {
     if (this.shadow && (!this.note.type || this.note.type === 'html')) this.shadow.innerHTML = sanitizeHtml(this.doc, SANITIZE_OPTIONS);
   }
 
+  updated() {
+    if (location.hash)
+      document.getElementById(location.hash.substring(1))?.scrollIntoView();
+  }
+
   get note(): Note {
     return Data.currentNote || {} as Note;
   }

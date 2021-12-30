@@ -8,7 +8,7 @@
       </v-col>
       <v-col :style="{'min-width':$vuetify.breakpoint.xsOnly?'100%':'0'}">
         <v-card class="cell-content source-code" v-if="type==='code'" flat outlined>
-          <pre class="source-code-main" v-html="hljs"></pre>
+          <pre class="source-code-main hljs" :class="['language-'+language]" v-html="hljs"></pre>
         </v-card>
         <div class="cell-content source-markdown" v-else-if="type==='markdown'">
           <markdown :content="cell.source.join('')"></markdown>
@@ -26,7 +26,10 @@ import {Component, Prop, Vue} from "vue-property-decorator";
 import hljs from 'highlight.js/lib/common';
 import {Cell} from "@/types/shims/shims-nbformat-v4";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
+
 import 'highlight.js/styles/github.css'
+import '@/styles/github-dark.scss';
+import {normaliseJupyterOutput} from "@/mixins/helpers";
 
 @Component({
   components: {
@@ -42,8 +45,10 @@ export default class BlockSource extends Vue {
   @Prop({type: Boolean, default: false}) highlighted!: boolean;
 
   get hljs() {
-    if (typeof this.cell.source === 'string') return hljs.highlight(this.cell.source, {language: this.language}).value;
-    else return hljs.highlight(this.cell.source.join(''), {language: this.language}).value
+    return hljs.highlight(normaliseJupyterOutput(this.cell.source), {
+      language: this.language,
+      ignoreIllegals: true
+    }).value;
   }
 
   get hide() {
@@ -55,3 +60,8 @@ export default class BlockSource extends Vue {
   }
 }
 </script>
+<style>
+img {
+  padding: 0.3em;
+}
+</style>

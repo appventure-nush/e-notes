@@ -73,3 +73,26 @@ export function requestDarkModeListener(callback: (e: MediaQueryListEvent | Medi
 export function removeDarkModeListener(callback: (e: MediaQueryListEvent | MediaQueryList) => void) {
     window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', callback);
 }
+
+function b64ToBlob(base64: string, type: string) {
+    const decodedData = window.atob(base64);
+
+    const uInt8Array = new Uint8Array(decodedData.length);
+
+    for (let i = 0; i < decodedData.length; ++i) {
+        uInt8Array[i] = decodedData.charCodeAt(i);
+    }
+
+    return new Blob([uInt8Array], {type});
+}
+
+const B64_IMAGE_CACHE: { [b64: string]: string } = {};
+
+export function b64ToUrl(base64: string, type: string) {
+    return B64_IMAGE_CACHE[base64] || (B64_IMAGE_CACHE[base64] = URL.createObjectURL(b64ToBlob(base64, type)));
+}
+
+export function normaliseJupyterOutput(input: string | string[]): string {
+    if (typeof input === 'string') return input;
+    else return input.join('');
+}

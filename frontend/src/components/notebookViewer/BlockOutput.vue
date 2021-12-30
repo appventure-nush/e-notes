@@ -14,12 +14,12 @@
               <pre :class="[output.name==='stdout'?'output-std' : 'output-err']" v-text="output.text.join('')"></pre>
             </v-col>
             <template v-else-if="output.output_type === 'display_data'||output.output_type === 'execute_result'">
-              <v-col cols="12" v-if="'text/plain' in output.data">
+              <v-col cols="12" v-if="showPlaintext(output.data)">
                 <pre class="cell-content output-std" v-text="output.data['text/plain'].join('')"></pre>
               </v-col>
-              <v-col cols="12" class="cell-content output-display">
-                <img v-if="'image/png' in output.data" :src="`data:image/png;base64,${output.data['image/png']}`"
-                     alt="Image Error"/>
+              <v-col cols="12" v-if="graphic" class="cell-content output-display">
+                <img v-if="'image/png' in output.data" alt="Image Error"
+                     :src="b64ToUrl(normaliseJupyterOutput(output.data['image/png']),'image/png')"/>
                 <div v-if="'text/html' in output.data" v-html="output.data['text/html'].join('')"></div>
               </v-col>
             </template>
@@ -32,7 +32,11 @@
     </div>
   </div>
 </template>
-
+<style>
+.v-application.theme--dark.force-img-dark .block-output img {
+  filter: invert(1) hue-rotate(180deg);
+}
+</style>
 <script lang="ts">
 import {Component, Prop, Vue} from "vue-property-decorator";
 import {Cell} from "@/types/shims/shims-nbformat-v4";
@@ -45,6 +49,14 @@ export default class BlockOutput extends Vue {
   @Prop(Object) readonly cell!: Cell;
   @Prop({type: Boolean, default: false}) readonly display!: boolean;
   @Prop({type: Boolean, default: false}) highlighted!: boolean;
+  @Prop({default: true}) readonly graphic!: boolean;
+  @Prop({default: true}) readonly plain!: boolean;
+
+  showPlaintext(data: { [k: string]: string | string[] }) {
+    if (this.plain) {
+      return 'text/plain' in data;
+    } else return !(this.graphic && ('image/png' in data || 'text/html' in data));
+  }
 
   convert(text: string) {
     return convert.toHtml(text)

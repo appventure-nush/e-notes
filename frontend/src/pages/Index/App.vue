@@ -1,5 +1,5 @@
 <template>
-  <v-app v-touch="touchOptions" :class="{uwu}">
+  <v-app v-touch="touchOptions" :class="{uwu,'force-img-dark':imgDark}">
     <v-navigation-drawer :permanent="permanent" v-if="profile" app v-model="drawer" :mini-variant="mini">
       <template v-slot:prepend>
         <v-list-item two-line ripple @click="profileCard=!profileCard"
@@ -142,6 +142,10 @@ export default class App extends Vue {
 
   shouldAllow(route: Route) {
     return shouldAllow(route);
+  }
+
+  get imgDark() {
+    return Boolean(Config.settings.forceImageDark);
   }
 
   get uwu() {
