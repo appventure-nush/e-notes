@@ -3,8 +3,9 @@ import {checkAdmin, checkUser, getFBUser, getUser, profileCache, sortHandler, up
 import {_setPermissions} from "../../types/permissions";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 import {error, failed, success} from "../../response";
-import {auth} from "firebase-admin";
 import {middleware} from "apicache";
+import {auth} from "../../app";
+import {teachers} from "../../config";
 
 const users = Router();
 
@@ -25,6 +26,7 @@ users.get("/:uid", checkUser, async (req, res) => {
                 created: fbUser.metadata.creationTime
             };
         }
+        if (user?.teacher) user = {...user, ...{teacherInfo: teachers.directory.find(t => t.email_stupr === user?.email)}};
         res.json(user);
     } catch (e) {
         res.json(error("failed_to_get_user"));
@@ -47,8 +49,9 @@ users.post("/:uid", checkUser, checkAdmin, async (req, res) => {
         if (typeof req.body.permissions === 'object') _setPermissions(user, req.body.permissions);
 
         if (typeof req.body.teacher === 'boolean') user.teacher = req.body.teacher;
-        if (typeof req.body.name === 'string') await auth().updateUser(req.params.uid, {displayName: user.name = req.body.name});
+        if (typeof req.body.name === 'string') await auth.updateUser(req.params.uid, {displayName: user.name = req.body.name});
         if (typeof req.body.nick === 'string') user.nickname = req.body.nick;
+        if (typeof req.body.desc === 'string') user.desc = req.body.desc;
 
         let claims = {
             admin: user.admin,
@@ -63,7 +66,7 @@ users.post("/:uid", checkUser, checkAdmin, async (req, res) => {
             claims.access = user.access = req.body.access;
             needUpdateClaims = true;
         }
-        if (needUpdateClaims) await auth().setCustomUserClaims(req.params.uid, claims);
+        if (needUpdateClaims) await auth.setCustomUserClaims(req.params.uid, claims);
 
         await updateUser(user.uid, user);
         res.json(success({user}));

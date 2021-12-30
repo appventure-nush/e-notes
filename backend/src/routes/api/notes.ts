@@ -1,12 +1,12 @@
 import {Router} from 'express';
 import {deleteNote, makeNote, NoteType, renameNote} from '../../types/note';
-import {storage} from "firebase-admin";
 import {checkEditPermissions, checkUser, getNote, getNotes, updateNote} from "../../utils";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 import iconv from "iconv-lite";
 
 import {failed, success} from "../../response";
 import fileUpload from "express-fileupload";
+import {bucket} from "../../app";
 
 const notes = Router();
 
@@ -39,7 +39,7 @@ notes.post("/:nid", checkUser, async (req, res) => {
             await renameNote(note.cid, old.nid, note.nid);
             // if url follows convention
             try {
-                if (note.url?.startsWith('https://storage.googleapis.com/e-notes-nush.appspot.com')) note.url = (await storage().bucket().file(`collections/${note.cid}/notes/${note.nid}`).getSignedUrl({
+                if (note.url?.startsWith('https://storage.googleapis.com/e-notes-nush.appspot.com')) note.url = (await bucket.file(`collections/${note.cid}/notes/${note.nid}`).getSignedUrl({
                     action: 'read',
                     expires: '01-01-2500'
                 }))[0];
@@ -74,7 +74,7 @@ notes.post("/:nid/upload", checkUser, fileUpload({limits: {fileSize: 64 * 1024 *
             cid: req.body.cid,
             nid: req.params.nid
         }));
-        const file = storage().bucket().file(`collections/${req.body.cid}/notes/${req.params.nid}`);
+        const file = bucket.file(`collections/${req.body.cid}/notes/${req.params.nid}`);
         let type!: NoteType;
         // Jupyter notebook renderer
         if (newNoteSource.name.endsWith(".ipynb")) {

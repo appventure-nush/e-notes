@@ -1,6 +1,7 @@
 import {Collection} from "./coll";
 import moment from "moment";
 import {firestore} from "firebase-admin";
+import {db} from "../app";
 import DocumentReference = firestore.DocumentReference;
 import Timestamp = firestore.Timestamp;
 
@@ -124,18 +125,18 @@ export function renderAudit(audit: Audit): Rendered {
 
 export function addAudit(audit: Audit) {
     let ref: DocumentReference;
-    if (!audit.aid) audit.aid = (ref = firestore().collection("audits").doc()).id;
-    else ref = firestore().collection("audits").doc(audit.aid);
+    if (!audit.aid) audit.aid = (ref = db.collection("audits").doc()).id;
+    else ref = db.collection("audits").doc(audit.aid);
     return ref.set(audit);
 }
 
 export async function getAudit(aid: string): Promise<Audit> {
-    return (await firestore().collection("audits").doc(aid).get()).data() as Audit;
+    return (await db.collection("audits").doc(aid).get()).data() as Audit;
 }
 
 export async function getAudits(lastID?: string, pageSize: number = 32, order: "asc" | "desc" = "desc"): Promise<Audit[]> {
-    let query = firestore().collection("audits").orderBy("time", order);
-    if (lastID) query = query.startAfter(await firestore().collection("audits").doc(lastID).get());
+    let query = db.collection("audits").orderBy("time", order);
+    if (lastID) query = query.startAfter(await db.collection("audits").doc(lastID).get());
     return (await query.limit(pageSize).get()).docs.map(doc => doc.data() as Audit);
 }
 

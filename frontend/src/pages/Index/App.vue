@@ -4,7 +4,7 @@
       <template v-slot:prepend>
         <v-list-item two-line ripple @click="profileCard=!profileCard"
                      :class="{'px-0': mini,'justify-center':mini}">
-          <v-list-item-avatar :color="getHashCode(profile.name)">
+          <v-list-item-avatar :color="profile.pfp?undefined:getHashCode(profile.name)">
             <v-img :src="pfp" v-if="pfp"></v-img>
             <span class="white--text text-h5" v-else v-text="initials(profile.name)"></span>
           </v-list-item-avatar>

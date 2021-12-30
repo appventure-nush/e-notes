@@ -2,21 +2,28 @@ import {Router} from 'express';
 
 import notesRouter from './notes';
 import {
-    checkCreatePermissions, checkEditPermissions,
+    checkCreatePermissions,
+    checkEditPermissions,
     checkPermissions,
-    checkUser, collectionCache,
+    checkUser,
+    collectionCache,
     difference,
-    getAvailableCollections, getNotes, noteCache, roleCache, sortHandler
+    getAvailableCollections,
+    getNotes,
+    noteCache,
+    roleCache,
+    sortHandler
 } from '../../utils';
 import {makeColl} from "../../types/coll";
-import {auth, firestore, storage} from "firebase-admin";
 import imageType from "image-type";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
-import WriteResult = firestore.WriteResult;
 import {error, failed, success} from "../../response";
 import {_rejects} from "../../types/permissions";
 import {roleAccepts} from "../../types/role";
 import fileUpload from "express-fileupload";
+import admin from "firebase-admin";
+import {auth, bucket, db} from "../../app";
+import WriteResult = admin.firestore.WriteResult;
 
 const collections = Router();
 
@@ -44,13 +51,13 @@ collections.post("/:cid", checkUser, async (req, res) => {
         if (req.body.hasOwnProperty("desc")) collection.desc = req.body.desc;
         if (req.body.hasOwnProperty("open")) collection.open = Boolean(req.body.open);
         await addAudit(simpleAudit(req.uid!, req.params.cid, Category.COLLECTION, Action.EDIT, difference(old, collection)));
-        await firestore().collection("collections").doc(req.params.cid).update(collection);
+        await db.collection("collections").doc(req.params.cid).update(collection);
     } else if (req.body.action === "add") {
         if (!await checkCreatePermissions(req)) return res.json(failed("not_authorised"));
         if (collection) return res.json(failed("collection_already_exist"));
         collection = makeColl(req.params.cid, req.uid!, req.body.name, req.body.desc, req.body.open);
         await addAudit(simpleAudit(req.uid!, req.params.cid, Category.COLLECTION, Action.CREATE, [collection]));
-        await firestore().collection("collections").doc(req.params.cid).set(collection);
+        await db.collection("collections").doc(req.params.cid).set(collection);
     } else {
         return res.json(failed("ZW5vdGVze04wVF80X0ZMNDl9"));
     }
@@ -62,10 +69,10 @@ collections.post("/:cid/access", checkUser, async (req, res) => {
     if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
     collection.hasReadAccess = collection?.hasReadAccess || [];
     if (Array.isArray(req.body.emails)) {
-        let users: (auth.UserRecord | undefined)[] = await Promise.all(req.body.emails.map((email: string) => auth().getUserByEmail(email)));
-        collection.hasReadAccess.push(...(users.filter(u => u && !collection?.hasReadAccess.includes(u.uid)) as auth.UserRecord[]).map(u => u.uid));
+        let users: (admin.auth.UserRecord | undefined)[] = await Promise.all(req.body.emails.map((email: string) => auth.getUserByEmail(email)));
+        collection.hasReadAccess.push(...(users.filter(u => u && !collection?.hasReadAccess.includes(u.uid)) as admin.auth.UserRecord[]).map(u => u.uid));
     }
-    await firestore().collection("collections").doc(req.params.cid).update(collection);
+    await db.collection("collections").doc(req.params.cid).update(collection);
     res.json(success({collection}));
 });
 collections.delete("/:cid/access", checkUser, async (req, res) => {
@@ -73,7 +80,7 @@ collections.delete("/:cid/access", checkUser, async (req, res) => {
     if (!collection) return res.json(failed("collection_does_not_exist"));
     if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
     collection.hasReadAccess = [];
-    await firestore().collection("collections").doc(req.params.cid).update(collection);
+    await db.collection("collections").doc(req.params.cid).update(collection);
     res.json(success({collection}));
 });
 collections.delete("/:cid", checkUser, async (req, res) => {
@@ -83,17 +90,17 @@ collections.delete("/:cid", checkUser, async (req, res) => {
         reason: "collection_not_found",
         cid: req.params.cid
     })); else {
-        await firestore().collection("collections").doc(req.params.cid).delete();
-        await Promise.all(await firestore().collection("collections").doc(req.params.cid).collection("notes").get().then(q => q.docs.map(d => d.ref.delete())));
-        await storage().bucket().deleteFiles({prefix: `collections/${req.params.cid}/notes`});
-        await storage().bucket().deleteFiles({prefix: `collections/${req.params.cid}/images`});
+        await db.collection("collections").doc(req.params.cid).delete();
+        await Promise.all(await db.collection("collections").doc(req.params.cid).collection("notes").get().then(q => q.docs.map(d => d.ref.delete())));
+        await bucket.deleteFiles({prefix: `collections/${req.params.cid}/notes`});
+        await bucket.deleteFiles({prefix: `collections/${req.params.cid}/images`});
         res.json(success());
         await addAudit(simpleAudit(req.uid!, req.params.cid, Category.COLLECTION, Action.DELETE, [collection]));
     }
 });
 collections.get('/:cid/img', checkUser, checkPermissions, async (req, res) => {
     if (!collectionCache.has(req.params.cid)) return res.json(failed('collection_not_found'));
-    const files = (await storage().bucket().getFiles({prefix: `collections/${req.params.cid}/images`}))[0];
+    const files = (await bucket.getFiles({prefix: `collections/${req.params.cid}/images`}))[0];
     res.json(files.map(f => ({
         url: f.publicUrl(),
         name: f.name.substring(f.name.lastIndexOf('/') + 1)
@@ -109,7 +116,7 @@ collections.post('/:cid/img', checkUser, fileUpload({limits: {fileSize: 64 * 102
         if (type && type.mime.toUpperCase() === payload.mimetype.toUpperCase()) {
             if (IMAGE_FORMATS.includes(type.mime.toLowerCase())) {
                 try {
-                    const file = storage().bucket().file(`collections/${req.params.cid}/images/${payload.name.toLowerCase()}`);
+                    const file = bucket.file(`collections/${req.params.cid}/images/${payload.name.toLowerCase()}`);
                     await file.save(payload.data, {public: true, resumable: false});
                     res.json(success({
                         name: payload.name,
@@ -126,7 +133,7 @@ collections.post('/:cid/img', checkUser, fileUpload({limits: {fileSize: 64 * 102
 collections.delete('/:cid/img/:img', checkUser, async (req, res) => {
     if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
     if (!collectionCache.has(req.params.cid)) return res.json(failed('collection_not_found'));
-    const file = storage().bucket().file(`collections/${req.params.cid}/images/${req.params.img}`);
+    const file = bucket.file(`collections/${req.params.cid}/images/${req.params.img}`);
     file.delete()
         .then(() => res.json(success()))
         .catch(e => res.json(error(e.message)));
@@ -155,7 +162,7 @@ collections.post("/:cid/reorder", checkUser, async (req, res) => {
     notes.forEach((n, i) => {
         if (n.index !== i || req.body.hasOwnProperty(n.nid)) {
             n.index = i;
-            tasks.push(firestore().collection("collections").doc(req.params.cid).collection("notes").doc(n.nid).set(n));
+            tasks.push(db.collection("collections").doc(req.params.cid).collection("notes").doc(n.nid).set(n));
         }
     });
     noteCache.set(req.params.cid, notes);

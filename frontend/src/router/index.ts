@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import VueRouter, {RouteConfig, Route} from 'vue-router'
+import VueRouter, {Route, RouteConfig} from 'vue-router'
 import {FIREBASE_INITIALIZED} from "@/pages/Index/main";
 import Config from "@/store/config";
 
@@ -163,6 +163,15 @@ const routes: Array<RouteConfig> = [
         component: () => import(/* webpackChunkName: "settings" */'@/views/SettingsPage.vue'),
         meta: {
             title: "Settings"
+        }
+    },
+    {
+        path: '/admin',
+        name: 'Config',
+        component: () => import(/* webpackChunkName: "settings" */'@/views/Config.vue'),
+        meta: {
+            title: "Config",
+            admin: true
         }
     },
     {

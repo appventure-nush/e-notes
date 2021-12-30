@@ -13,6 +13,7 @@
               <v-img :src="user.pfp||'/images/guest.png'"></v-img>
             </v-avatar>
             <h3 class="text-h5 mb-2">
+              <span v-if="ti&&ti.title" v-text="ti.title" class="mr-1 font-weight-bold"></span>
               <v-text-field label="Name" v-if="editing" v-model="editedUser.name" hide-details outlined flat>
               </v-text-field>
               <span v-else v-text="user.name"></span>
@@ -46,6 +47,28 @@
                           style="margin-left:50%;transform:translateX(-50%);width:5em;"/>
               <span v-else>Admin</span>
             </div>
+            <template v-if="ti">
+              <div class="mt-2">
+                <h4>Teacher Info</h4>
+              </div>
+              <div v-if="ti.department_name" class="d-flex justify-center">
+                <h5 class="mr-2">Department</h5>
+                <span v-text="ti.department_name"></span>
+              </div>
+              <div v-if="ti.designation" class="d-flex justify-center">
+                <h5 class="mr-2">Designation</h5>
+                <span v-text="ti.designation"></span>
+              </div>
+              <div v-if="ti.subjects_name">
+                <h4 class="mr-2">Subjects</h4>
+                <v-chip-group show-arrows class="justify-center">
+                  <v-spacer></v-spacer>
+                  <v-chip v-for="(s,i) in ti.subjects_name.split(/,\s?/g)" :key="i" v-text="s" x-small label>
+                  </v-chip>
+                  <v-spacer></v-spacer>
+                </v-chip-group>
+              </div>
+            </template>
           </v-card-text>
           <v-divider v-if="isAdmin()"></v-divider>
           <v-row
@@ -127,6 +150,7 @@ import {computeAccess, hasPermission, splitAccess} from "@/mixins/permission";
 import {post} from "@/mixins/api";
 import Data from "@/store/data"
 import PermissionEditor from "@/components/PermissionEditor.vue";
+import {Teacher} from "@/types/teachers";
 
 @Component({
   components: {PermissionEditor}
@@ -193,6 +217,7 @@ export default class UserViewer extends Vue {
     post<{ user: User }>(`/api/users/${this.uid}`, {
       name: this.editedUser.name,
       nick: this.editedUser.nickname,
+      desc: this.editedUser.desc,
       roles: this.editedUser.roles,
       admin: this.editedUser.admin,
       access: this.editedUser.access,
@@ -218,8 +243,12 @@ export default class UserViewer extends Vue {
 
   readonly teacherItems = [{text: "Teacher", value: true}, {text: "Student", value: false}]
 
-  get user(): User {
-    return Data.currentUser || {} as User;
+  get user(): User & { teacherInfo?: Teacher } {
+    return Data.currentUser || {} as (User & { teacherInfo?: Teacher });
+  }
+
+  get ti(): Teacher | undefined {
+    return this.user.teacherInfo;
   }
 
   get allRoles() {

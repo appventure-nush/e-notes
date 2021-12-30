@@ -12,20 +12,22 @@ import {Role, roleAccepts} from './types/role';
 import {Note} from "./types/note";
 import {Collection} from "./types/coll";
 import express from "express";
-import admin, {auth, firestore} from "firebase-admin";
+import admin from "firebase-admin";
 import {_rejects} from "./types/permissions";
 import {Action, addAudit, Category, simpleAudit} from "./types/audit";
 import {error, failed} from "./response";
 
 import LRU from "lru-cache";
+import {auth, db} from "./app";
+import {startListening} from "./config";
 import DocumentSnapshot = admin.firestore.DocumentSnapshot;
-import DocumentData = firestore.DocumentData;
-import QuerySnapshot = firestore.QuerySnapshot;
-import UserRecord = auth.UserRecord;
+import DocumentData = admin.firestore.DocumentData;
+import QuerySnapshot = admin.firestore.QuerySnapshot;
+import UserRecord = admin.auth.UserRecord;
 
 export const noteCache = new LRU<string, Note[]>({max: 1000, maxAge: 1000});
-export const idTokenCache = new LRU<string, auth.DecodedIdToken>({max: 1000, maxAge: 60 * 1000});
-export const userCache = new LRU<string, auth.UserRecord>({max: 1000, maxAge: 60 * 1000});
+export const idTokenCache = new LRU<string, admin.auth.DecodedIdToken>({max: 1000, maxAge: 60 * 1000});
+export const userCache = new LRU<string, admin.auth.UserRecord>({max: 1000, maxAge: 60 * 1000});
 
 export const profileCache = new LRU<string, User>({max: Infinity});
 export const roleCache = new LRU<string, Role>({max: Infinity});
@@ -39,7 +41,7 @@ export async function getFBUser(uid: string): Promise<UserRecord | undefined> {
     let fbUser = userCache.get(uid);
     if (fbUser) return fbUser;
     try {
-        userCache.set(uid, fbUser = await auth().getUser(uid));
+        userCache.set(uid, fbUser = await auth.getUser(uid));
         return fbUser;
     } catch (e) {
         return undefined;
@@ -52,11 +54,11 @@ export async function getUser(uid: string): Promise<User | undefined> { // heavy
     if (!fbUser) return undefined;
     let user = profileCache.get(uid);
     if (!user) {
-        const ref = firestore().collection("users").doc(fbUser.uid);
+        const ref = db.collection("users").doc(fbUser.uid);
         const get = await ref.get();
         if (get.exists) updateUserCache(fbUser.uid, user = get.data() as User);
         else {
-            if (endsWithAny(['@nushigh.edu.sg', '@nus.edu.sg'], fbUser.email)) {
+            if (endsWithAny(['@nushigh.edu.sg', '@nus.edu.sg', '@enotes.nush.app', '@nush.app'], fbUser.email)) {
                 user = makeUser(fbUser.uid);
                 fillUser(user, fbUser);
                 await Promise.all([ref.set(user), addAudit(simpleAudit("root", user.uid, Category.USER, Action.CREATE))]);
@@ -71,16 +73,16 @@ export async function getUser(uid: string): Promise<User | undefined> { // heavy
 export async function updateUser(uid: string, value: User): Promise<User> {
     value.roles = [...new Set(value.roles)];
     updateUserCache(uid, value);
-    if (value) await firestore().collection("users").doc(uid).update(value);
-    else await firestore().collection("users").doc(uid).delete();
+    if (value) await db.collection("users").doc(uid).update(value);
+    else await db.collection("users").doc(uid).delete();
     return value;
 }
 
 export async function updateRole(rid: string, value?: Role): Promise<Role | undefined> {
     if (value) {
-        if (roleCache.has(rid)) await firestore().collection("roles").doc(rid).update(value);
-        else await firestore().collection("roles").doc(rid).set(value);
-    } else await firestore().collection("roles").doc(rid).delete();
+        if (roleCache.has(rid)) await db.collection("roles").doc(rid).update(value);
+        else await db.collection("roles").doc(rid).set(value);
+    } else await db.collection("roles").doc(rid).delete();
     updateRoleCache(rid, value);
     return value;
 }
@@ -104,7 +106,7 @@ export async function getNotes(cid: string): Promise<Note[] | undefined> {
     if (noteCache.has(cid)) return noteCache.get(cid);
     else {
         if (!collectionCache.get(cid)) return [];
-        const allNotes = await firestore().collection("collections").doc(cid).collection("notes").get();
+        const allNotes = await db.collection("collections").doc(cid).collection("notes").get();
         const notes = allNotes.docs.map((doc: DocumentSnapshot) => doc.data() as Note);
         noteCache.set(cid, notes.sort((a, b) => a.index - b.index));
         return notes;
@@ -119,14 +121,14 @@ export async function updateNote(cid: string, nid: string, note?: Note) {
         if (index === -1) {
             if (note.index === -1) note.index = notes.length;
             notes.push(note);
-            return await firestore().collection("collections").doc(cid).collection("notes").doc(nid).set(note);
+            return await db.collection("collections").doc(cid).collection("notes").doc(nid).set(note);
         } else {
             notes[index] = note;
-            return await firestore().collection("collections").doc(cid).collection("notes").doc(nid).set(note);
+            return await db.collection("collections").doc(cid).collection("notes").doc(nid).set(note);
         }
     } else {
         notes.splice(notes.findIndex(n => n.nid === nid), 1);
-        return await firestore().collection("collections").doc(cid).collection("notes").doc(nid).delete();
+        return await db.collection("collections").doc(cid).collection("notes").doc(nid).delete();
     }
 }
 
@@ -173,13 +175,13 @@ async function getUID(req: express.Request): Promise<string | undefined> {
     let result;
     if (idToken) {
         if (!(result = idTokenCache.get(idToken))) {
-            result = await auth().verifyIdToken(idToken);
+            result = await auth.verifyIdToken(idToken);
             idTokenCache.set(idToken, result);
         }
         return result.uid;
     } else if (sessionCookie) {
         if (!(result = idTokenCache.get(sessionCookie))) {
-            result = await auth().verifySessionCookie(sessionCookie, true);
+            result = await auth.verifySessionCookie(sessionCookie, true);
             idTokenCache.set(sessionCookie, result);
         }
         return result.uid;
@@ -225,11 +227,13 @@ export async function checkAdmin(req: express.Request, res: express.Response, ne
     else return res.json(failed("not admin"));
 }
 
-export function setup(): [() => void, () => void, () => void] {
+export function setup(): (() => void)[] {
     // probably not very efficient
-    return [firestore().collection('collections').onSnapshot(genQuerySnapshotHandler(c => c.cid, collectionCache)),
-        firestore().collection('roles').onSnapshot(genQuerySnapshotHandler(r => r.rid, roleCache)),
-        firestore().collection('users').onSnapshot(genQuerySnapshotHandler(u => u.uid, profileCache))];
+    return [
+        ...startListening(),
+        db.collection('collections').onSnapshot(genQuerySnapshotHandler(c => c.cid, collectionCache)),
+        db.collection('roles').onSnapshot(genQuerySnapshotHandler(r => r.rid, roleCache)),
+        db.collection('users').onSnapshot(genQuerySnapshotHandler(u => u.uid, profileCache))];
 }
 
 export function genQuerySnapshotHandler<T>(getID: (el: T) => string, cache: LRU<string, T>): (querySnapshot: QuerySnapshot<DocumentData>) => void {

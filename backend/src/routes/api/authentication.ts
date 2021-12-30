@@ -1,12 +1,12 @@
 import {Router} from "express";
-import {auth, storage} from "firebase-admin";
 import {checkUser, checkUserOptional, updateUser, userCache} from "../../utils";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
-import {User, fillUser} from "../../types/user";
+import {fillUser, User} from "../../types/user";
 import imageType from "image-type";
 import {error, failed, success} from "../../response";
 import sharp from "sharp";
 import fileUpload from "express-fileupload";
+import {auth, bucket} from "../../app";
 
 const authentication = Router();
 
@@ -18,8 +18,7 @@ authentication.get('/', checkUserOptional, (req, res) => {
 authentication.post('/', (req, res) => {
     const token = req.body.token.toString();
     const expiresIn = 1000 * 60 * 60 * 24 * 7;
-    auth()
-        .createSessionCookie(token, {expiresIn})
+    auth.createSessionCookie(token, {expiresIn})
         .then((sessionCookie) => {
             res.cookie('session', sessionCookie,
                 {maxAge: expiresIn, httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict'}
@@ -52,13 +51,13 @@ authentication.post('/pfp', checkUser, fileUpload({limits: {fileSize: 16 * 1024 
         const type = imageType(uploaded.data);
         if (type && type.mime.toUpperCase() === uploaded.mimetype.toUpperCase()) {
             if (IMAGE_FORMATS.includes(type.mime.toLowerCase())) try {
-                const file = storage().bucket().file(`users/pfp/${req.uid}.${type.ext}`);
+                const file = bucket.file(`users/pfp/${req.uid}.${type.ext}`);
                 await file.save(await sharp(uploaded.data).resize(512, 512).toBuffer(), {
                     public: true,
                     resumable: false
                 });
                 const url = file.publicUrl() + "?" + Date.now();
-                const user = await auth().updateUser(req.uid!, {photoURL: url});
+                const user = await auth.updateUser(req.uid!, {photoURL: url});
                 userCache.set(user.uid, user);
                 res.json(success({
                     user: fillUser(req.user!, user)
@@ -74,9 +73,9 @@ authentication.get('/logout', (req, res) => {
     const sessionCookie = req.cookies.session || '';
     if (!sessionCookie) return res.json(success());
     res.clearCookie('session');
-    auth()
+    auth
         .verifySessionCookie(sessionCookie)
-        .then((decodedClaims) => auth().revokeRefreshTokens(decodedClaims.sub))
+        .then((decodedClaims) => auth.revokeRefreshTokens(decodedClaims.sub))
         .then(_ => res.json(success()))
         .catch(_ => res.json(error({reason: 'logout failed', message: _.message})));
 });

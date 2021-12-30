@@ -1,11 +1,6 @@
 import {Router} from 'express';
 import {makeRole} from '../../types/role';
-import {
-    checkAdmin,
-    checkUser, profileCache, roleCache, sortHandler,
-    updateRole,
-    updateUser
-} from '../../utils';
+import {checkAdmin, checkUser, profileCache, roleCache, sortHandler, updateRole, updateUser} from '../../utils';
 import {_setPermissions} from "../../types/permissions";
 import {User} from "../../types/user";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";

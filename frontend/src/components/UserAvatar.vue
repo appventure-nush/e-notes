@@ -2,7 +2,7 @@
   <v-menu bottom min-width="200px" rounded offset-y>
     <template v-slot:activator="{ on }">
       <v-btn icon :width="size" :height="size" v-on="on" :class="classes" :elevation="elevation">
-        <v-avatar :color="getHashCode(user.name)" :size="size">
+        <v-avatar :color="user.pfp?undefined:getHashCode(user.name)" :size="size">
           <v-img :src="user.pfp" v-if="user.pfp"></v-img>
           <span class="white--text text-h5" v-else v-text="initials(user.name)"></span>
         </v-avatar>
@@ -11,7 +11,7 @@
     <v-card>
       <v-list-item-content class="justify-center">
         <div class="mx-auto text-center">
-          <v-avatar :color="getHashCode(user.name)" class="mb-2">
+          <v-avatar :color="user.pfp?undefined:getHashCode(user.name)" class="mb-2">
             <v-img :src="user.pfp" v-if="user.pfp"></v-img>
             <span class="white--text text-h5" v-else v-text="initials(user.name)"></span>
           </v-avatar>

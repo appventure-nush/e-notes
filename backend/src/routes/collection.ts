@@ -1,13 +1,13 @@
 import express, {Router} from "express";
 import {checkUser, collectionCache, hasPermissions} from "../utils";
-import {storage} from "firebase-admin";
+import {bucket} from "../app";
 
 const collection = Router();
 
 async function imageHandler(req: express.Request, res: express.Response) {
     if (!collectionCache.has(req.params.cid)) return res.json({status: 'failed', reason: 'collection_not_found'});
     if (!await hasPermissions(req.uid!, req.params.cid)) return res.json({status: 'failed', reason: 'no_perm'});
-    res.redirect(storage().bucket().file(`collections/${req.params.cid}/images/${req.params.file?.toLowerCase()}`).publicUrl());
+    res.redirect(bucket.file(`collections/${req.params.cid}/images/${req.params.file?.toLowerCase()}`).publicUrl());
 }
 
 const IMAGE_REGEX = /^[^/]+\.(png|jpg|gif|bmp|jpeg|webp)$/i;

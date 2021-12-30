@@ -1,5 +1,6 @@
 <template>
   <v-data-table
+      v-show="editing||editedPermissions.length>0"
       :headers="permissionHeaders"
       :items="this.editedPermissions"
       :no-data-text="noData"
@@ -35,7 +36,7 @@
 </template>
 
 <script lang="ts">
-import {Component, Prop, Vue, ModelSync} from "vue-property-decorator";
+import {Component, ModelSync, Prop, Vue} from "vue-property-decorator";
 import Data from "@/store/data";
 import PermissionToggleButton from "@/components/PermissionToggleButton.vue";
 

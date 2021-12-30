@@ -9,6 +9,7 @@ import {error, success} from "../response";
 import {checkUserOptional} from "../utils";
 import nocache from "nocache";
 import os from "os";
+import adminRoute from "./api/admin";
 
 const api = express.Router();
 api.use(nocache());
@@ -39,6 +40,7 @@ api.use("/roles", roles);
 api.use("/users", users);
 api.use("/audits", audits);
 api.use("/collections", collections);
+api.use("/admin", adminRoute);
 api.get('*', (req, res) => res.json(error("404")));
 api.use((err: Error, req: express.Request, res: express.Response) => {
     res.json(error(err.message));
