@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import express from "express";
 import {setup} from './utils';
 import apiRouter from "./routes/api"
+import rawRouter from "./routes/raw"
 import collectionRouter from "./routes/collection"
 import path from "path";
 
@@ -15,7 +16,6 @@ import history from "connect-history-api-fallback";
 import {createProxyMiddleware} from "http-proxy-middleware";
 import {error} from "./response";
 import _firestore from "@google-cloud/firestore";
-import {Bucket} from "@google-cloud/storage";
 
 const app = express();
 app.use(compression());
@@ -25,6 +25,7 @@ if (process.env.NODE_ENV !== 'production')
     app.use(morgan('dev'));
 
 app.use("/api", apiRouter);
+app.use("/raw", rawRouter);
 app.use("/collection", collectionRouter);
 if (process.env.NODE_ENV === 'production') app.use("/", history({
     rewrites: [
@@ -42,7 +43,6 @@ app.use(express.static(path.join(__dirname, '..', 'public'), {maxAge: 31557600})
 
 export let db: _firestore.Firestore;
 export let auth: admin.auth.Auth;
-export let bucket: Bucket;
 (async () => {
     try {
         return require("../service-account.json");
@@ -65,7 +65,6 @@ export let bucket: Bucket;
     admin.firestore().settings({ignoreUndefinedProperties: true});
     db = admin.firestore();
     auth = admin.auth();
-    bucket = admin.storage().bucket();
     let listeners = setup();
     setInterval(() => {
         listeners.forEach(e => e());

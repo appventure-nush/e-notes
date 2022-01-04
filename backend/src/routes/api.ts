@@ -10,8 +10,6 @@ import {checkUserOptional} from "../utils";
 import nocache from "nocache";
 import os from "os";
 import adminRoute from "./api/admin";
-import * as fs from "fs";
-import moment from "moment";
 
 const api = express.Router();
 api.use(nocache());
@@ -44,7 +42,14 @@ api.use("/audits", audits);
 api.use("/collections", collections);
 api.use("/admin", adminRoute);
 
+api.get('*', (req, res) => res.json(error("404")));
+api.use((err: Error, req: express.Request, res: express.Response) => {
+    res.json(error(err.message));
+});
 
+export default api;
+
+/*
 api.get("/test/file", (req, res) => {
     fs.appendFileSync("/data/test.txt", moment().format("HH:mm:ss") + "\n");
     res.send(fs.readFileSync("/data/test.txt").toString());
@@ -88,10 +93,4 @@ api.get("/test/io", (req, res) => {
         res.send(e.toString());
     }
 });
-
-api.get('*', (req, res) => res.json(error("404")));
-api.use((err: Error, req: express.Request, res: express.Response) => {
-    res.json(error(err.message));
-});
-
-export default api;
+*/

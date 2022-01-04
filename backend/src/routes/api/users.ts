@@ -6,15 +6,16 @@ import {error, failed, success} from "../../response";
 import {middleware} from "apicache";
 import {auth} from "../../app";
 import {teachers} from "../../config";
+import {USERS_STORE} from "../../storage";
 
 const users = Router();
-
+export const PFP_URL = (uid: string) => `https://enotes.nush.app/users/pfp/${encodeURIComponent(uid)}`;
+export const PFP_PATH = (uid: string) => `${encodeURIComponent(uid)}/pfp`;
 users.get("/", checkUser, middleware('1 min'), (req, res) => {
     let users = [...profileCache.values()];
     if (!req.user?.admin && !req.user?.teacher) users = users.filter(u => u.teacher);
     res.json(users.sort(sortHandler('uid')));
 });
-
 users.get("/:uid", checkUser, async (req, res) => {
     try {
         let user = await getUser(req.params.uid);
@@ -32,7 +33,11 @@ users.get("/:uid", checkUser, async (req, res) => {
         res.json(error("failed_to_get_user"));
     }
 });
-
+users.get("/pfp/:uid", (req, res) => {
+    const r = USERS_STORE.read(PFP_PATH(req.params.uid));
+    if (r) return r?.pipe(res);
+    else return res.sendStatus(404);
+});
 users.post("/:uid", checkUser, checkAdmin, async (req, res) => {
     try {
         const user = await getUser(req.params.uid);
@@ -53,20 +58,12 @@ users.post("/:uid", checkUser, checkAdmin, async (req, res) => {
         if (typeof req.body.nick === 'string') user.nickname = req.body.nick;
         if (typeof req.body.desc === 'string') user.desc = req.body.desc;
 
-        let claims = {
-            admin: user.admin,
-            access: user.access
-        }
-        let needUpdateClaims = false;
-        if (typeof req.body.admin === 'boolean') {
-            claims.admin = user.admin = req.body.admin;
-            needUpdateClaims = true;
-        }
         if (typeof req.body.access === 'number') {
-            claims.access = user.access = req.body.access;
-            needUpdateClaims = true;
+            user.access = req.body.access;
+            await auth.setCustomUserClaims(req.params.uid, {
+                access: user.access
+            });
         }
-        if (needUpdateClaims) await auth.setCustomUserClaims(req.params.uid, claims);
 
         await updateUser(user.uid, user);
         res.json(success({user}));

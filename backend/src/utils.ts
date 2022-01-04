@@ -20,6 +20,8 @@ import {error, failed} from "./response";
 import LRU from "lru-cache";
 import {auth, db} from "./app";
 import {startListening} from "./config";
+import {UploadedFile} from "express-fileupload";
+import imageType from "image-type";
 import DocumentSnapshot = admin.firestore.DocumentSnapshot;
 import DocumentData = admin.firestore.DocumentData;
 import QuerySnapshot = admin.firestore.QuerySnapshot;
@@ -220,6 +222,23 @@ export async function checkUserOptional(req: express.Request, res: express.Respo
 export async function checkPermissions(req: express.Request, res: express.Response, next: () => any) {
     if (await hasPermissions(req.uid!, req.params.cid)) return next();
     else return res.json(failed("not authorized"));
+}
+
+const IMAGE_FORMATS = ['image/gif', 'image/jpeg', 'image/png'];
+
+export function filterBadImageUpload(req: express.Request, res: express.Response, next: () => any) {
+    if (!req.files) return res.json(failed('where is the file'));
+    const uploaded: UploadedFile | UploadedFile[] = req.files.file;
+    if (!uploaded) return res.json(failed('where is the file'));
+    if (Array.isArray(uploaded)) return res.json(failed("single images only"));
+    if (!("data" in uploaded)) return res.json(failed('empty file'));
+    if (uploaded.truncated) return res.json(failed("file was truncated"));
+
+    const type = imageType(uploaded.data);
+    if (!type || type.mime.toUpperCase() !== uploaded.mimetype.toUpperCase()) return res.json(failed('i like your funny words, magic man'));
+    if (!IMAGE_FORMATS.includes(type.mime.toLowerCase())) return res.json(failed('only gif/jpg/png allowed!'));
+    req.approvedImage = uploaded;
+    next();
 }
 
 export async function checkAdmin(req: express.Request, res: express.Response, next: () => any) {

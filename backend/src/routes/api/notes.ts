@@ -6,7 +6,8 @@ import iconv from "iconv-lite";
 
 import {failed, success} from "../../response";
 import fileUpload from "express-fileupload";
-import {bucket} from "../../app";
+import {COLLECTION_NOTE_PATH, COLLECTION_NOTE_URL} from "./collections";
+import {COLLECTION_NOTES_STORE} from "../../storage";
 
 const notes = Router();
 
@@ -38,14 +39,7 @@ notes.post("/:nid", checkUser, async (req, res) => {
         if (old.nid !== note.nid) {
             await renameNote(note.cid, old.nid, note.nid);
             // if url follows convention
-            try {
-                if (note.url?.startsWith('https://storage.googleapis.com/e-notes-nush.appspot.com')) note.url = (await bucket.file(`collections/${note.cid}/notes/${note.nid}`).getSignedUrl({
-                    action: 'read',
-                    expires: '01-01-2500'
-                }))[0];
-            } catch (e) {
-                // ignored
-            }
+            if (note.url?.startsWith('/')) note.url = COLLECTION_NOTE_PATH(note.cid, note.nid);
         }
     } else {
         note = makeNote(-1, req.params.nid, req.body.cid, req.uid!, req.body.name, req.body.desc);
@@ -74,27 +68,27 @@ notes.post("/:nid/upload", checkUser, fileUpload({limits: {fileSize: 64 * 1024 *
             cid: req.body.cid,
             nid: req.params.nid
         }));
-        const file = bucket.file(`collections/${req.body.cid}/notes/${req.params.nid}`);
         let type!: NoteType;
+        let name = newNoteSource.name.toLowerCase();
         // Jupyter notebook renderer
-        if (newNoteSource.name.endsWith(".ipynb")) {
-            type = "jupyter";
-        } else if (newNoteSource.name.toLowerCase().endsWith(".md")) {
-            type = "markdown";
-        } else {
-            if (newNoteSource.name.toLowerCase().endsWith(".html")) type = "html";
+        if (name.endsWith(".ipynb")) type = "jupyter";
+        else if (name.endsWith(".md")) type = "markdown";
+        else {
+            if (name.endsWith(".html")) type = "html";
             let str = newNoteSource.data.toString();
             const match = /charset=([^"']+)/.exec(str); // charset fix
-            if (match && match[1] && iconv.encodingExists(match[1])) newNoteSource.data = iconv.encode(iconv.decode(newNoteSource.data, match[1]), 'UTF-8')
+            if (match && match[1] && iconv.encodingExists(match[1]))
+                newNoteSource.data = iconv.encode(iconv.decode(newNoteSource.data, match[1]), 'UTF-8')
         }
-        await file.save(newNoteSource.data, {resumable: false});
-        note.url = (await file.getSignedUrl({action: 'read', expires: '01-01-2500'}))[0];
+        COLLECTION_NOTES_STORE.write(COLLECTION_NOTE_PATH(req.body.cid, req.params.nid)).write(newNoteSource.data);
+        note.url = COLLECTION_NOTE_URL(req.body.cid, req.params.nid);
+
         if (!note.type) note.type = type;
         note.lastEdit = Date.now();
         note.lastEditBy = req.uid!;
         await updateNote(req.body.cid, req.params.nid, note);
         res.json(success({note}));
-        await addAudit(simpleAudit(req.uid!, note.nid, Category.NOTE, Action.UPLOAD_FILE, [file.name], {colls: [req.body.cid]}));
+        await addAudit(simpleAudit(req.uid!, note.nid, Category.NOTE, Action.UPLOAD_FILE, [name], {colls: [req.body.cid]}));
     } else return res.json(failed('where is the file'));
 });
 

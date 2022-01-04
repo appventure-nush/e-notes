@@ -1,16 +1,15 @@
 import {Router} from "express";
-import {checkUser, checkUserOptional, updateUser, userCache} from "../../utils";
+import {checkUser, checkUserOptional, filterBadImageUpload, updateUser, userCache} from "../../utils";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 import {fillUser, User} from "../../types/user";
-import imageType from "image-type";
 import {error, failed, success} from "../../response";
 import sharp from "sharp";
 import fileUpload from "express-fileupload";
-import {auth, bucket} from "../../app";
+import {auth} from "../../app";
+import {USERS_STORE} from "../../storage";
+import {PFP_PATH, PFP_URL} from "./users";
 
 const authentication = Router();
-
-const IMAGE_FORMATS = ['image/gif', 'image/jpeg', 'image/png'];
 authentication.get('/', checkUserOptional, (req, res) => {
     if (req.user) return res.json(req.user);
     else return res.json(failed("not_logged_in"));
@@ -43,31 +42,21 @@ authentication.post('/profile', checkUser, async (req, res) => {
     }
     res.json(failed('not sure why, not sure where'));
 });
-authentication.post('/pfp', checkUser, fileUpload({limits: {fileSize: 16 * 1024 * 1024}}), async (req, res) => {
-    if (!req.files) return res.json(failed('where is the file'));
-    const uploaded = req.files.file;
-    if (uploaded && "data" in uploaded) {
-        if (uploaded.data.length > 16 * 1024 * 1024) return res.json(failed('file size exceeds 16MiB'));
-        const type = imageType(uploaded.data);
-        if (type && type.mime.toUpperCase() === uploaded.mimetype.toUpperCase()) {
-            if (IMAGE_FORMATS.includes(type.mime.toLowerCase())) try {
-                const file = bucket.file(`users/pfp/${req.uid}.${type.ext}`);
-                await file.save(await sharp(uploaded.data).resize(512, 512).toBuffer(), {
-                    public: true,
-                    resumable: false
-                });
-                const url = file.publicUrl() + "?" + Date.now();
-                const user = await auth.updateUser(req.uid!, {photoURL: url});
-                userCache.set(user.uid, user);
-                res.json(success({
-                    user: fillUser(req.user!, user)
-                }));
-                await addAudit(simpleAudit(req.uid!, req.uid!, Category.USER, Action.EDIT, [{pfp: url}]));
-            } catch (e) {
-                res.json(failed('please contact an admin'));
-            } else return res.json(failed('only gif/jpg/png allowed!'));
-        } else return res.json(failed('i like your funny words, magic man'));
-    } else return res.json(failed('where is the file'));
+authentication.post('/pfp', checkUser, fileUpload({limits: {fileSize: 16 * 1024 * 1024}}), filterBadImageUpload, async (req, res) => {
+    try {
+        await sharp(req.approvedImage!.data, {animated: true}).resize(512, 512)
+            .pipe(USERS_STORE.write(PFP_PATH(req.uid!)));
+        const url = PFP_URL(req.uid!) + "?" + Date.now();
+        const user = await auth.updateUser(req.uid!, {photoURL: url});
+        userCache.set(user.uid, user);
+        res.json(success({
+            user: fillUser(req.user!, user)
+        }));
+        await addAudit(simpleAudit(req.uid!, req.uid!, Category.USER, Action.EDIT, [{pfp: url}]));
+    } catch (e) {
+        console.log(e);
+        res.json(failed('please contact an admin'));
+    }
 });
 authentication.get('/logout', (req, res) => {
     const sessionCookie = req.cookies.session || '';

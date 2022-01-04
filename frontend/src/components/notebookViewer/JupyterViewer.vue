@@ -1,8 +1,8 @@
 <template>
   <div class="jupyter-viewer">
     <div class="block d-flex justify-end">
-      <v-checkbox prepend-icon="mdi-format-clear" v-model="plain" dense hide-details></v-checkbox>
-      <v-checkbox prepend-icon="mdi-image" v-model="graphic" class="ml-2" dense hide-details></v-checkbox>
+      <v-checkbox hint="Show plaintext" prepend-icon="mdi-format-clear" v-model="plain" dense hide-details></v-checkbox>
+      <v-checkbox hint="Show media" prepend-icon="mdi-image" v-model="graphic" class="ml-2" dense hide-details></v-checkbox>
     </div>
     <div
         class="block" :class="{selected:clickCellIndex === index}"

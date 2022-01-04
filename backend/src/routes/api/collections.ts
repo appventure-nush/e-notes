@@ -8,6 +8,7 @@ import {
     checkUser,
     collectionCache,
     difference,
+    filterBadImageUpload,
     getAvailableCollections,
     getNotes,
     noteCache,
@@ -15,19 +16,22 @@ import {
     sortHandler
 } from '../../utils';
 import {makeColl} from "../../types/coll";
-import imageType from "image-type";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 import {error, failed, success} from "../../response";
 import {_rejects} from "../../types/permissions";
 import {roleAccepts} from "../../types/role";
 import fileUpload from "express-fileupload";
 import admin from "firebase-admin";
-import {auth, bucket, db} from "../../app";
+import {auth, db} from "../../app";
+import {COLLECTION_IMAGE_STORE, COLLECTION_NOTES_STORE} from "../../storage";
 import WriteResult = admin.firestore.WriteResult;
 
 const collections = Router();
 
-const IMAGE_FORMATS = ['image/gif', 'image/jpeg', 'image/png'];
+export const COLLECTION_NOTE_URL = (cid: string, nid?: string) => `/raw/c/${encodeURIComponent(cid)}/notes/${nid && encodeURIComponent(nid) || ''}`;
+export const COLLECTION_NOTE_PATH = (cid: string, nid?: string) => `${encodeURIComponent(cid)}/${nid && encodeURIComponent(nid) || ''}`;
+export const COLLECTION_IMAGE_URL = (cid: string, image?: string) => `/raw/c/${encodeURIComponent(cid)}/images/${image && encodeURIComponent(image) || ''}`;
+export const COLLECTION_IMAGE_PATH = (cid: string, image?: string) => `${encodeURIComponent(cid)}/${image && encodeURIComponent(image) || ''}`;
 
 collections.get("/", checkUser, async (req, res) => {
     return res.json(await getAvailableCollections(req.uid!));
@@ -92,52 +96,47 @@ collections.delete("/:cid", checkUser, async (req, res) => {
     })); else {
         await db.collection("collections").doc(req.params.cid).delete();
         await Promise.all(await db.collection("collections").doc(req.params.cid).collection("notes").get().then(q => q.docs.map(d => d.ref.delete())));
-        await bucket.deleteFiles({prefix: `collections/${req.params.cid}/notes`});
-        await bucket.deleteFiles({prefix: `collections/${req.params.cid}/images`});
+        await Promise.all(COLLECTION_IMAGE_STORE.deleteDir(COLLECTION_IMAGE_PATH(req.params.cid)))
+        await Promise.all(COLLECTION_NOTES_STORE.deleteDir(COLLECTION_NOTE_PATH(req.params.cid)))
         res.json(success());
         await addAudit(simpleAudit(req.uid!, req.params.cid, Category.COLLECTION, Action.DELETE, [collection]));
     }
 });
 collections.get('/:cid/img', checkUser, checkPermissions, async (req, res) => {
     if (!collectionCache.has(req.params.cid)) return res.json(failed('collection_not_found'));
-    const files = (await bucket.getFiles({prefix: `collections/${req.params.cid}/images`}))[0];
+    const files = COLLECTION_IMAGE_STORE.find(COLLECTION_IMAGE_PATH(req.params.cid))
+
     res.json(files.map(f => ({
-        url: f.publicUrl(),
-        name: f.name.substring(f.name.lastIndexOf('/') + 1)
+        url: COLLECTION_IMAGE_URL(req.params.cid, f.name),
+        name: f.name
     })).filter(i => i.name));
 });
-collections.post('/:cid/img', checkUser, fileUpload({limits: {fileSize: 64 * 1024 * 1024}}), async (req, res) => {
+collections.post('/:cid/img', checkUser, fileUpload({limits: {fileSize: 64 * 1024 * 1024}}), filterBadImageUpload, async (req, res) => {
     if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
     if (!collectionCache.has(req.params.cid)) return res.json(failed('collection_not_found'));
-    if (!req.files) return res.json(failed('where is the file'));
-    const payload = req.files.file;
-    if (payload && "data" in payload) {
-        const type = imageType(payload.data);
-        if (type && type.mime.toUpperCase() === payload.mimetype.toUpperCase()) {
-            if (IMAGE_FORMATS.includes(type.mime.toLowerCase())) {
-                try {
-                    const file = bucket.file(`collections/${req.params.cid}/images/${payload.name.toLowerCase()}`);
-                    await file.save(payload.data, {public: true, resumable: false});
-                    res.json(success({
-                        name: payload.name,
-                        url: file.publicUrl()
-                    }));
-                    await addAudit(simpleAudit(req.uid!, req.params.cid, Category.COLLECTION, Action.UPLOAD_FILE, [file.name]));
-                } catch (e) {
-                    res.json(failed('please contact an admin'));
-                }
-            } else return res.json(failed('only gif/jpg/png allowed!'));
-        } else return res.json(failed('i like your funny words, magic man'));
-    } else return res.json(failed('where is the file'));
+    try {
+        let payload = req.approvedImage!;
+        let name = payload.name.toLowerCase();
+        COLLECTION_IMAGE_STORE.write(COLLECTION_IMAGE_PATH(req.params.cid, name)).write(payload.data);
+        res.json(success({
+            name: name,
+            url: COLLECTION_IMAGE_URL(req.params.cid, name)
+        }));
+        await addAudit(simpleAudit(req.uid!, req.params.cid, Category.COLLECTION, Action.UPLOAD_FILE, [name]));
+    } catch (e) {
+        res.json(failed('please contact an admin'));
+    }
 });
 collections.delete('/:cid/img/:img', checkUser, async (req, res) => {
     if (!await checkEditPermissions(req)) return res.json(failed("not_authorised"));
     if (!collectionCache.has(req.params.cid)) return res.json(failed('collection_not_found'));
-    const file = bucket.file(`collections/${req.params.cid}/images/${req.params.img}`);
-    file.delete()
-        .then(() => res.json(success()))
-        .catch(e => res.json(error(e.message)));
-    await addAudit(simpleAudit(req.uid!, req.params.cid, Category.COLLECTION, Action.DELETE_FILE, [file.name]));
+    try {
+        COLLECTION_IMAGE_STORE.delete(COLLECTION_IMAGE_PATH(req.params.cid, req.params.img));
+        res.json(success())
+        await addAudit(simpleAudit(req.uid!, req.params.cid, Category.COLLECTION, Action.DELETE_FILE, [req.params.img]));
+    } catch (e) {
+        res.json(error(e.message));
+    }
 });
 collections.use("/:cid/notes", checkUser, checkPermissions, (req, res, next) => {
     req.body.cid = req.params.cid;
