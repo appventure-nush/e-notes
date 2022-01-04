@@ -27,10 +27,12 @@ import {modifyText} from "@/plugins/uwu/utils";
 if (Config.settings.animationCss) require('@/styles/animate.compat.css');
 
 const SANITIZE_OPTIONS = {
-  allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'hr']),
+  allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'hr', 'font']),
   allowedAttributes: {
     ...sanitizeHtml.defaults.allowedAttributes,
     '*': ['id', 'class'],
+    'span': ['style'],
+    'font': ['size'],
     'img': ['border', 'width', 'height', 'align', 'src']
   }
 };

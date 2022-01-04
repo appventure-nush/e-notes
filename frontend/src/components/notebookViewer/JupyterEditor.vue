@@ -1,17 +1,14 @@
 <template>
-  <div class="jupyter-viewer">
-    <div class="block d-flex justify-end">
-      <v-checkbox prepend-icon="mdi-format-clear" v-model="plain" dense hide-details></v-checkbox>
-      <v-checkbox prepend-icon="mdi-image" v-model="graphic" class="ml-2" dense hide-details></v-checkbox>
-    </div>
+  <div class="jupyter-editor">
     <div
-        class="block" :class="{selected:clickCellIndex === index}"
+        class="block ma-2 rounded" :class="{selected:clickCellIndex === index}"
+        style="backdrop-filter: invert(0.05)"
         v-for="(cell, index) in notebook.cells"
         :key="index"
         @mousedown="clickCellIndex = index">
-      <BlockSource
+      <BlockSourceEditor
           v-if="'cell_type' in cell"
-          :cell="cell"
+          v-model="notebook.cells[index]"
           :language="language"
           :highlighted="clickCellIndex === index"/>
       <BlockOutput
@@ -25,17 +22,17 @@
 </template>
 
 <script lang="ts">
-import {Component, Prop, Vue} from "vue-property-decorator";
+import {Component, Prop, VModel, Vue} from "vue-property-decorator";
 import {Notebook} from "@/types/shims/shims-nbformat-v4";
-import BlockSource from "@/components/notebookViewer/BlockSource.vue";
 import BlockOutput from "@/components/notebookViewer/BlockOutput.vue";
+import BlockSourceEditor from "@/components/notebookViewer/BlockSourceEditor.vue";
 
 @Component({
-  components: {BlockOutput, BlockSource}
+  components: {BlockOutput, BlockSourceEditor}
 })
-export default class JupyterViewer extends Vue {
-  name = "JupyterViewer"
-  @Prop(Object) readonly notebook!: Notebook;
+export default class JupyterEditor extends Vue {
+  name = "JupyterEditor"
+  @VModel({type: Object}) readonly notebook!: Notebook;
   @Prop({default: "python"}) readonly language!: string;
   graphic = true;
   plain = false;

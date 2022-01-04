@@ -107,6 +107,16 @@
     <v-main>
       <router-view/>
     </v-main>
+    <v-footer padless>
+      <v-col class="text-center pb-0" cols="12">
+        <img :src="dark?'/images/appventure_logo.svg':'/images/appventure_logo_nobg.svg'" class="pa-0 mr-1" height="40"
+             alt=""/>
+        <img id="school_logo" src="/images/nush_logo_color.svg" class="pa-1 ml-1" height="40" alt=""/>
+      </v-col>
+      <v-col class="text-center pt-0 pb-1 font-weight-light" cols="12">
+        Developed by Zhao Yun
+      </v-col>
+    </v-footer>
   </v-app>
 </template>
 
@@ -304,4 +314,11 @@ body.rb.rb-lock-off {
 .no-transition * {
   transition: none !important;
 }
+
+.v-application.theme--dark {
+  #school_logo {
+    filter: brightness(0) invert(1);
+  }
+}
+
 </style>

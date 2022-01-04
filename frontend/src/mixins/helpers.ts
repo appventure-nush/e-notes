@@ -96,3 +96,7 @@ export function normaliseJupyterOutput(input: string | string[]): string {
     if (typeof input === 'string') return input;
     else return input.join('');
 }
+
+export function denormaliseJupyterOutput(input: string): string[] {
+    return input.split("\n").map((s, i, a) => i === a.length - 1 ? s : s + "\n")
+}

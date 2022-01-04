@@ -1,9 +1,8 @@
 <template>
-  <v-card flat tile :loading="loading" :disabled="loading" class="editor-window">
-    <h1 v-show="note.type==='jupyter'">Jupyter editor not implemented</h1>
-    <markdown-editor v-if="note.type==='markdown'" v-model="content"></markdown-editor>
-    <prism-editor class="editor" v-show="!note.type||note.type==='html'" v-model="content" :highlight="highlighter"
-                  line-numbers></prism-editor>
+  <v-card flat tile :loading="loading" :disabled="loading" :class="{'editor-window':note.type!=='jupyter'}">
+    <JupyterEditor v-if="note.type==='jupyter'" v-model="notebook"></JupyterEditor>
+    <markdown-editor v-else-if="note.type==='markdown'" v-model="doc"></markdown-editor>
+    <prism-editor class="editor" v-else v-model="doc" :highlight="highlighter" line-numbers></prism-editor>
   </v-card>
 </template>
 
@@ -13,6 +12,7 @@ import {Note} from "@/types/note";
 import {PrismEditor} from 'vue-prism-editor';
 import hljs from 'highlight.js/lib/common';
 import pretty from "pretty";
+import {formatFromString} from "@quilicicf/markdown-formatter";
 
 import 'vue-prism-editor/dist/prismeditor.min.css';
 import '@/styles/github-dark.scss';
@@ -20,9 +20,14 @@ import {EventBus} from "@/event";
 import {post} from "@/mixins/api";
 import Data from "@/store/data"
 import MarkdownEditor from "@/components/MarkdownEditor.vue";
+import JupyterEditor from "@/components/notebookViewer/JupyterEditor.vue";
+import {Notebook} from "@/types/shims/shims-nbformat-v4";
+import {denormaliseJupyterOutput, normaliseJupyterOutput} from "@/mixins/helpers";
+
 
 @Component({
   components: {
+    JupyterEditor,
     PrismEditor,
     MarkdownEditor
   }
@@ -32,10 +37,9 @@ export default class NoteEditor extends Vue {
   @Prop(String) readonly nid?: string;
   @Prop(Array) readonly notes!: Note[];
   name = "NoteEditor";
-  doc?: any;
+  doc = '';
+  notebook: Notebook = {metadata: {}, cells: [], nbformat_minor: 0, nbformat: 0}
   loading = false;
-
-  content = "";
 
   created() {
     EventBus.$on('appbar-action', (action: string) => this.handle(action));
@@ -45,19 +49,21 @@ export default class NoteEditor extends Vue {
     if (!this.cid || !this.nid) return;
     if (!this.note) return;
     if (action === 'format') {
-      if (this.note.type === 'jupyter') this.content = JSON.stringify(JSON.parse(this.content), null, 4);
-      // else if (this.note.type === 'markdown') this.markdown.invoke('setHTML', pretty(this.markdown.invoke('getHTML'), {ocd: true}));
-      else this.content = pretty(this.content, {ocd: true});
+      if (this.note.type === 'jupyter') this.notebook.cells.forEach(cell => {
+        if (cell.cell_type === 'markdown') formatFromString(pretty(normaliseJupyterOutput(cell.source))).then(res => cell.source = denormaliseJupyterOutput(res.value.toString()));
+      })
+      else if (this.note.type === 'markdown') formatFromString(pretty(this.doc)).then(res => this.doc = res.value.toString());
+      else this.doc = pretty(this.doc, {ocd: true});
     } else if (action === 'save') {
       this.loading = true;
 
       const formData = new FormData();
       if (this.note.type === 'jupyter') formData.append('note_source',
-          new Blob([JSON.stringify(this.doc)], {type: 'application/x-ipynb+json'}), 'note_source.ipynb');
+          new Blob([JSON.stringify(this.notebook)], {type: 'application/x-ipynb+json'}), 'note_source.ipynb');
       else if (this.note.type === 'markdown') formData.append('note_source',
-          new Blob([this.content], {type: 'text/markdown'}), 'note_source.md');
+          new Blob([this.doc], {type: 'text/markdown'}), 'note_source.md');
       else formData.append('note_source',
-            new Blob([this.content], {type: 'text/html'}), 'note_source.html');
+            new Blob([this.doc], {type: 'text/html'}), 'note_source.html');
       if (!this.cid) return;
       post<{ note: Note }>(`/api/collections/${this.cid}/notes/${this.nid}/upload`, formData).then(() => {
         this.loading = false;
@@ -78,20 +84,21 @@ export default class NoteEditor extends Vue {
   }
 
   @Watch('nid', {immediate: true})
-  onNoteChange() {
-    this.doc = "";
+  onNIDChange() {
     if (!this.cid) return;
     let note = this.notes.find(n => n.nid === this.nid)
     if (!note) return this.$router.push({name: 'Collection', params: {cid: this.cid || ''}});
     Data.setCurrentNote(note);
-    if (note.url) fetch(note.url).then(res => res.text()).then(text => {
-      if (!note) return;
-      this.doc = note.type === "jupyter" ? JSON.parse(text) : text;
-      if (note.type === "jupyter") return;
-      else if (note.type === 'markdown') {
-        this.content = this.doc;
-      } else this.content = this.doc;
-    }); else this.content = this.doc = "";
+  }
+
+  @Watch('note', {immediate: true, deep: true})
+  onNoteChange() {
+    this.doc = "";
+    if (this.note?.url) fetch(this.note.url).then(res => res.text()).then(text => {
+      if (!this.note) return;
+      this.doc = text;
+      if (this.note.type === "jupyter") this.notebook = JSON.parse(text);
+    });
   }
 }
 </script>
