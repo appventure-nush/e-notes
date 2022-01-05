@@ -23,9 +23,14 @@ import MarkdownEditor from "@/components/MarkdownEditor.vue";
 import JupyterEditor from "@/components/notebookViewer/JupyterEditor.vue";
 import {Notebook} from "@/types/shims/shims-nbformat-v4";
 import {denormaliseJupyterOutput, normaliseJupyterOutput} from "@/mixins/helpers";
+import {NavigationGuardNext, Route} from "vue-router";
 
 
 @Component({
+  beforeRouteLeave(to: Route, from: Route, next: NavigationGuardNext) {
+    if (window.confirm('Do you really want to leave? You may have unsaved changes!')) next()
+    else next(false)
+  },
   components: {
     JupyterEditor,
     PrismEditor,
