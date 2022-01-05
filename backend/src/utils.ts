@@ -280,3 +280,20 @@ export function difference(a: any, b: any) {
 export function sortHandler<T>(key: keyof T): (a: T, b: T) => number {
     return (a: T, b: T) => (a[key] > b[key]) ? 1 : ((b[key] > a[key]) ? -1 : 0)
 }
+
+
+/**
+ * Returns the last element in the array where predicate is true, and undefined
+ * otherwise.
+ * @param array The source array to search in
+ * @param predicate find calls predicate once for each element of the array, in descending
+ * order, until it finds one where predicate returns true. If such an element is found,
+ * findLastIndex immediately returns that element index. Otherwise, findLastIndex returns -1.
+ */
+export function findLast<T>(array: T[], predicate: (value: T, index: number, obj: T[]) => boolean): T | undefined {
+    let l = array.length;
+    while (l--) {
+        if (predicate(array[l], l, array))
+            return array[l];
+    }
+}

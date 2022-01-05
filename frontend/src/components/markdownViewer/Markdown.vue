@@ -176,5 +176,12 @@ export default class Markdown extends Vue {
       background: var(--v-background-darken1);
     }
   }
+
+  .katex {
+    .accent {
+      background-color: inherit !important;
+      border-color: inherit !important;
+    }
+  }
 }
 </style>

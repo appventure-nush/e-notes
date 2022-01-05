@@ -8,7 +8,6 @@ import {failed, success} from "../../response";
 import fileUpload from "express-fileupload";
 import {COLLECTION_NOTE_PATH, COLLECTION_NOTE_PATH_VER, COLLECTION_NOTE_URL} from "./collections";
 import {COLLECTION_NOTES_STORE} from "../../storage";
-import streamToPromise from "stream-to-promise";
 
 const notes = Router();
 
@@ -24,6 +23,7 @@ notes.get("/:nid", async (req, res) => {
     else res.json(note);
 });
 
+const IS_EXTERNAL_NOTE_REGEX = /^https?:\/\//g
 notes.post("/:nid", checkUser, async (req, res) => {
     if (!await checkEditPermissions(req, req.body.cid)) return res.json(failed("not_authorised"));
     let note = await getNote(req.body.cid, req.params.nid);
@@ -40,7 +40,7 @@ notes.post("/:nid", checkUser, async (req, res) => {
         if (old.nid !== note.nid) {
             await renameNote(note.cid, old.nid, note.nid);
             // if url follows convention
-            if (note.url?.startsWith('/')) note.url = COLLECTION_NOTE_PATH(note.cid, note.nid);
+            if (note.url && !IS_EXTERNAL_NOTE_REGEX.test(note.url)) note.url = COLLECTION_NOTE_URL(note.cid, note.nid);
         }
     } else {
         note = makeNote(-1, req.params.nid, req.body.cid, req.uid!, req.body.name, req.body.desc);
@@ -83,8 +83,8 @@ notes.post("/:nid/upload", checkUser, fileUpload({limits: {fileSize: 64 * 1024 *
         }
 
         const path = COLLECTION_NOTE_PATH(req.body.cid, req.params.nid);
-        const r = COLLECTION_NOTES_STORE.read(path);
-        if (r) await streamToPromise(r.pipe(COLLECTION_NOTES_STORE.write(COLLECTION_NOTE_PATH_VER(req.body.cid, req.params.nid, Date.now()))));
+
+        COLLECTION_NOTES_STORE.rename(path, COLLECTION_NOTE_PATH_VER(req.body.cid, req.params.nid, Date.now()));
         COLLECTION_NOTES_STORE.write(path).write(newNoteSource.data);
         note.url = COLLECTION_NOTE_URL(req.body.cid, req.params.nid);
 

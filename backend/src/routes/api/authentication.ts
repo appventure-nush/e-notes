@@ -46,10 +46,9 @@ authentication.post('/profile', checkUser, async (req, res) => {
 authentication.post('/pfp', checkUser, fileUpload({limits: {fileSize: 16 * 1024 * 1024}}), filterBadImageUpload, async (req, res) => {
     try {
         const path = PFP_PATH(req.uid!, extname(req.approvedImage!.name));
-        await sharp(req.approvedImage!.data, {animated: true}).resize(512, 512)
+        await sharp(req.approvedImage!.data).resize(512, 512)
             .pipe(USERS_STORE.write(path));
         const url = PFP_URL(req.uid!, extname(req.approvedImage!.name)) + "?" + Date.now();
-        console.log(path, url);
         const user = await auth.updateUser(req.uid!, {photoURL: url});
         userCache.set(user.uid, user);
         res.json(success({

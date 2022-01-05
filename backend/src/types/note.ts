@@ -1,7 +1,6 @@
 import {updateNote} from "../utils";
-import {COLLECTION_IMAGE_STORE, COLLECTION_NOTES_STORE} from "../storage";
+import {COLLECTION_NOTES_STORE} from "../storage";
 import {COLLECTION_NOTE_PATH} from "../routes/api/collections";
-import streamToPromise from "stream-to-promise";
 
 export interface Note {
     index: number;
@@ -31,12 +30,9 @@ export function makeNote(i: number, nid: string, cid: string, owner: string, nam
 }
 
 export function renameNote(cid: string, nid: string, newNid: string) {
-    const stream = COLLECTION_IMAGE_STORE.read(COLLECTION_NOTE_PATH(cid, nid))
-        ?.pipe(COLLECTION_IMAGE_STORE.write(COLLECTION_NOTE_PATH(cid, newNid)));
+    COLLECTION_NOTES_STORE.rename(COLLECTION_NOTE_PATH(cid, nid), COLLECTION_NOTE_PATH(cid, newNid));
     return Promise.all([
-        stream ? streamToPromise(stream)
-            .then(() => COLLECTION_NOTES_STORE.delete(COLLECTION_NOTE_PATH(cid, nid))) : null,
-        deleteNote(cid, nid)
+        updateNote(cid, nid, undefined)
     ]);
 }
 

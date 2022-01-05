@@ -10,6 +10,7 @@ import {basename, join} from "path";
 import {CsvFormatterStream, CsvParserStream, format, parse} from 'fast-csv';
 import EventEmitter from "events";
 import {v4 as uuidv4} from 'uuid';
+import {findLast} from "./utils"
 
 const ROOT_DIR = "/data";
 
@@ -22,7 +23,7 @@ type IndexRow = {
     uuid: IndexUUID;
     name: IndexName;
     path: IndexPath;
-}
+};
 
 class IndexerStorage extends EventEmitter {
     readonly _readStream!: CsvParserStream<IndexRow, IndexRow>;
@@ -32,10 +33,12 @@ class IndexerStorage extends EventEmitter {
     readonly FOLDER_DIR: string;
 
     _index: IndexRow[];
+    readonly _indexName: string;
 
     constructor(folderDir: string, indexName = 'index.csv') {
         super();
         this._index = [];
+        this._indexName = indexName;
         this.FOLDER_DIR = folderDir;
         this.INDEX_PATH = join(this.FOLDER_DIR, indexName);
         if (!fs.existsSync(this.FOLDER_DIR)) fs.mkdirSync(this.FOLDER_DIR);
@@ -60,9 +63,38 @@ class IndexerStorage extends EventEmitter {
         return fs.createWriteStream(this._write(path));
     }
 
-    delete(path: string): Promise<void> | undefined {
+    /**
+     * AB are paths, ab are uuids
+     * A->a B->b
+     *
+     * Rename A to B
+     * remove index A
+     * A->a
+     * B->b
+     * A->nil
+     * B->a
+     *
+     * @param oldPath
+     * @param newPath
+     */
+    rename(oldPath: string, newPath: string) {
+        let o = this._find(oldPath);
+        if (!o) return;
+        this.deleteIndex(oldPath);
+        o.name = basename(o.path = newPath);
+        this._writeIndex(o);
+    }
+
+    delete(path: string) {
         const loc = this._read(path);
-        if (loc && fs.existsSync(loc)) return fs.promises.unlink(loc);
+        if (loc && fs.existsSync(loc)) {
+            this.deleteIndex(path);
+            return fs.unlinkSync(loc);
+        }
+    }
+
+    deleteIndex(path: string) {
+        this._writeIndex({name: 'delete', path: path, uuid: 'null'})
     }
 
     find(path: string): IndexRow[] {
@@ -75,18 +107,23 @@ class IndexerStorage extends EventEmitter {
 
     _read(path: string): FilePath | undefined {
         if (path.endsWith('/')) throw new Error('path can not end with "/"');
-        const row = this._index.find(i => i.path === path);
+        const row = this._find(path);
         if (row) return this._file(row);
         else return undefined;
     }
 
     _write(path: string): FilePath {
         if (path.endsWith('/')) throw new Error('path can not end with "/"');
-        const row = this._index.find(i => i.path === path);
+        const row = this._find(path);
         if (row) return this._file(row);
         const newRow: IndexRow = {path: path, uuid: uuidv4(), name: basename(path)};
         this._writeIndex(newRow);
         return this._file(newRow);
+    }
+
+    _find(path: string) {
+        let file = findLast(this._index, i => i.path === path); // new ones are more accurate
+        if (file?.uuid !== 'null') return file;
     }
 
     query(func: (row: IndexRow, index: number) => boolean): IndexRow[] {
@@ -108,6 +145,25 @@ class IndexerStorage extends EventEmitter {
 
     _file(row: IndexRow): FilePath {
         return join(this.FOLDER_DIR, row.uuid);
+    }
+
+    async prune() {
+        const files = (await fs.promises.readdir(this.FOLDER_DIR)).filter(f => f !== this._indexName); // uuid
+        const mapping: { [path: string]: IndexUUID } = {};
+        for (const row of this._index) mapping[row.path] = row.uuid;
+        let exists = Object.entries(mapping).filter(s => {
+            return s[1] !== 'null' && fs.existsSync(join(this.FOLDER_DIR, s[1])); // uuid not null and uuid file exist
+        });
+        let mappedFiles = exists.map(s => s[1]); // uuid
+        const unmappedFiles = files.filter(p => !mappedFiles.includes(p)); // uuid
+        unmappedFiles.forEach(f => fs.unlinkSync(join(this.FOLDER_DIR, f)));
+        this._index = [];
+        fs.writeFileSync(this.INDEX_PATH, '');
+        exists.filter(e => !unmappedFiles.includes(e[0])).forEach(t => this._writeIndex({
+            name: basename(t[0]),
+            path: t[0],
+            uuid: t[1]
+        }));
     }
 
     clear() {
