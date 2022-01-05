@@ -6,9 +6,10 @@ import {error, failed, success} from "../../response";
 import {middleware} from "apicache";
 import {auth} from "../../app";
 import {teachers} from "../../config";
+import {RAW_BASE_URL} from "../raw";
 
 const users = Router();
-export const PFP_URL = (uid: string, ext: string) => `http://localhost:8080/raw/u/${PFP_PATH(uid, ext)}`;
+export const PFP_URL = (uid: string, ext: string) => `${RAW_BASE_URL}/u/${PFP_PATH(uid, ext)}`;
 export const PFP_PATH = (uid: string, ext: string) => `${encodeURIComponent(uid)}/pfp${ext}`;
 users.get("/", checkUser, middleware('1 min'), (req, res) => {
     let users = [...profileCache.values()];

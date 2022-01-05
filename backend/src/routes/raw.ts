@@ -3,6 +3,8 @@ import {checkUser, hasPermissions} from "../utils";
 import {COLLECTION_IMAGE_STORE, COLLECTION_NOTES_STORE, USERS_STORE} from "../storage";
 import {COLLECTION_IMAGE_PATH, COLLECTION_NOTE_PATH} from "./api/collections";
 
+export const RAW_BASE_URL = "https://enotes.nush.app/raw";
+
 // All user provided content are free to access by anyone
 export async function userHandler(req: express.Request, res: express.Response) {
     const r = USERS_STORE.read(req.params[0]);
