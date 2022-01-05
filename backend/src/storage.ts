@@ -42,10 +42,10 @@ class IndexerStorage extends EventEmitter {
         if (!fs.existsSync(this.INDEX_PATH)) fs.writeFileSync(this.INDEX_PATH, '');
         this._readStream = parse<IndexRow, IndexRow>({headers: false, ignoreEmpty: true});
         this._writeStream = format<IndexRow, IndexRow>({headers: false, includeEndRowDelimiter: true});
-        fs.createReadStream(this.INDEX_PATH).pipe(this._readStream).on('data', r => this._readIndex(r)).on('end', () => {
-            this.emit('loaded');
-            this._writeStream.pipe(fs.createWriteStream(this.INDEX_PATH, {flags: "a"}));
-        });
+        fs.createReadStream(this.INDEX_PATH).pipe(this._readStream)
+            .on('data', r => this._readIndex(r))
+            .on('end', () => this._writeStream.pipe(fs.createWriteStream(this.INDEX_PATH, {flags: "a"})));
+        process.on('exit', () => this._writeStream.end());
     }
 
     read(path: string): fs.ReadStream | undefined {
