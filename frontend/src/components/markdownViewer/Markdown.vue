@@ -9,6 +9,7 @@ import MarkdownItKatex from '@traptitech/markdown-it-katex';
 import MarkdownItTasklists from '@hedgedoc/markdown-it-task-lists';
 import MarkdownItHighlightJS from "markdown-it-highlightjs";
 import MarkdownItAttrs from "markdown-it-attrs";
+import MarkdownItFrontMatters from "markdown-it-front-matter";
 import sanitizeHtml from 'sanitize-html';
 // @ts-ignore
 import TOC from "markdown-it-table-of-contents";
@@ -22,7 +23,6 @@ import Config from "@/store/config";
 import {EventBus} from "@/event";
 import {uwuifier} from "@/plugins/others";
 import {modifyText} from "@/plugins/uwu/utils";
-
 // why not lol
 if (Config.settings.animationCss) require('@/styles/animate.compat.css');
 
@@ -56,7 +56,7 @@ export default class Markdown extends Vue {
   }) readonly options!: MarkdownItVueOptions;
 
 
-  @Watch('uwufy', {immediate: true})
+  @Watch('uwufy')
   onUwufy() {
     this.onContentChange(this.content);
   }
@@ -74,6 +74,7 @@ export default class Markdown extends Vue {
 
   created() {
     this.md = new MarkdownIt(this.options.markdownIt || {})
+        .use(MarkdownItFrontMatters, (fm: string) => console.log(fm))
         .use(MarkdownItAttrs, {})
         .use(MarkdownItKatex, this.options.katex || {})
         .use(MarkdownItTasklists, this.options.tasklists || {})

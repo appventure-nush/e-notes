@@ -6,8 +6,9 @@ import iconv from "iconv-lite";
 
 import {failed, success} from "../../response";
 import fileUpload from "express-fileupload";
-import {COLLECTION_NOTE_PATH, COLLECTION_NOTE_URL} from "./collections";
+import {COLLECTION_NOTE_PATH, COLLECTION_NOTE_PATH_VER, COLLECTION_NOTE_URL} from "./collections";
 import {COLLECTION_NOTES_STORE} from "../../storage";
+import streamToPromise from "stream-to-promise";
 
 const notes = Router();
 
@@ -80,7 +81,11 @@ notes.post("/:nid/upload", checkUser, fileUpload({limits: {fileSize: 64 * 1024 *
             if (match && match[1] && iconv.encodingExists(match[1]))
                 newNoteSource.data = iconv.encode(iconv.decode(newNoteSource.data, match[1]), 'UTF-8')
         }
-        COLLECTION_NOTES_STORE.write(COLLECTION_NOTE_PATH(req.body.cid, req.params.nid)).write(newNoteSource.data);
+
+        const path = COLLECTION_NOTE_PATH(req.body.cid, req.params.nid);
+        const r = COLLECTION_NOTES_STORE.read(path);
+        if (r) await streamToPromise(r.pipe(COLLECTION_NOTES_STORE.write(COLLECTION_NOTE_PATH_VER(req.body.cid, req.params.nid, Date.now()))));
+        COLLECTION_NOTES_STORE.write(path).write(newNoteSource.data);
         note.url = COLLECTION_NOTE_URL(req.body.cid, req.params.nid);
 
         if (!note.type) note.type = type;

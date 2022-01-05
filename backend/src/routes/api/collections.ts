@@ -30,6 +30,7 @@ const collections = Router();
 
 export const COLLECTION_NOTE_URL = (cid: string, nid?: string) => `/raw/c/${encodeURIComponent(cid)}/notes/${nid && encodeURIComponent(nid) || ''}`;
 export const COLLECTION_NOTE_PATH = (cid: string, nid?: string) => `${encodeURIComponent(cid)}/${nid && encodeURIComponent(nid) || ''}`;
+export const COLLECTION_NOTE_PATH_VER = (cid: string, nid: string, date: number) => `${encodeURIComponent(cid)}/${encodeURIComponent(nid)}/${date}`;
 export const COLLECTION_IMAGE_URL = (cid: string, image?: string) => `/raw/c/${encodeURIComponent(cid)}/images/${image && encodeURIComponent(image) || ''}`;
 export const COLLECTION_IMAGE_PATH = (cid: string, image?: string) => `${encodeURIComponent(cid)}/${image && encodeURIComponent(image) || ''}`;
 

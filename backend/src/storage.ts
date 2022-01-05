@@ -10,7 +10,6 @@ import {basename, join} from "path";
 import {CsvFormatterStream, CsvParserStream, format, parse} from 'fast-csv';
 import EventEmitter from "events";
 import {v4 as uuidv4} from 'uuid';
-import {Transform, WritableOptions} from "stream";
 
 const ROOT_DIR = "/data";
 
@@ -23,16 +22,6 @@ type IndexRow = {
     uuid: IndexUUID;
     name: IndexName;
     path: IndexPath;
-}
-
-class CSVWriterWrapper extends Transform {
-    constructor(options?: WritableOptions) {
-        super(options);
-    }
-
-    _write(chunk: any, encoding: BufferEncoding, callback: (error?: Error | null) => void): void {
-        console.log(chunk);
-    }
 }
 
 class IndexerStorage extends EventEmitter {
