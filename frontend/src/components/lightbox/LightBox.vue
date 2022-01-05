@@ -7,7 +7,6 @@
       v-model="lightBoxOn"
       max-width="977px"
       v-touch="{left: () => previousImage(),right: () => nextImage()}">
-    <v-spacer></v-spacer>
     <v-img
         contain
         class="vue-lb-modal-image"
@@ -15,7 +14,6 @@
         :src="media[select].src"
         :alt="media[select].caption">
     </v-img>
-    <v-spacer></v-spacer>
     <span v-show="showCaption"
           class="vue-lb-info"
           v-html="media[select].caption"/>
@@ -48,6 +46,16 @@
         class="vue-lb-button-close">
       <v-icon dark>
         mdi-close
+      </v-icon>
+    </v-btn>
+    <v-btn
+        icon
+        type="button"
+        :href="media[select].src"
+        download
+        class="vue-lb-button-download">
+      <v-icon dark>
+        mdi-download
       </v-icon>
     </v-btn>
     <div
@@ -164,17 +172,23 @@ export default class LightBox extends Vue {
 }
 
 .vue-lb-left {
-  left: 2.5em;
+  left: 2em;
 }
 
 .vue-lb-right {
-  right: 2.5em;
+  right: 2em;
 }
 
 .vue-lb-button-close {
   position: fixed !important;;
-  top: 2.5em;
-  right: 2.5em;
+  top: 2em;
+  right: 2em;
+}
+
+.vue-lb-button-download {
+  position: fixed !important;;
+  top: 2em;
+  right: calc(2em + 36px + 1em);
 }
 
 .vue-lb-modal-image {
