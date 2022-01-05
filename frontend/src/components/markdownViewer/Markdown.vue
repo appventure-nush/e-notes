@@ -107,8 +107,6 @@ export default class Markdown extends Vue {
   img {
     max-width: 100%;
     height: auto;
-    display: block;
-    margin: 0 auto;
   }
 
   blockquote {
