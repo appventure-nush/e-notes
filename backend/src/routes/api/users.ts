@@ -9,12 +9,17 @@ import {teachers} from "../../config";
 import {USERS_STORE} from "../../storage";
 
 const users = Router();
-export const PFP_URL = (uid: string) => `https://enotes.nush.app/users/pfp/${encodeURIComponent(uid)}`;
+export const PFP_URL = (uid: string) => `https://enotes.nush.app/raw/u/pfp/${encodeURIComponent(uid)}`;
 export const PFP_PATH = (uid: string) => `${encodeURIComponent(uid)}/pfp`;
 users.get("/", checkUser, middleware('1 min'), (req, res) => {
     let users = [...profileCache.values()];
     if (!req.user?.admin && !req.user?.teacher) users = users.filter(u => u.teacher);
     res.json(users.sort(sortHandler('uid')));
+});
+users.get("/pfp/:uid", (req, res) => {
+    const r = USERS_STORE.read(PFP_PATH(req.params.uid));
+    if (r) return r?.pipe(res);
+    else return res.sendStatus(404);
 });
 users.get("/:uid", checkUser, async (req, res) => {
     try {
@@ -32,11 +37,6 @@ users.get("/:uid", checkUser, async (req, res) => {
     } catch (e) {
         res.json(error("failed_to_get_user"));
     }
-});
-users.get("/pfp/:uid", (req, res) => {
-    const r = USERS_STORE.read(PFP_PATH(req.params.uid));
-    if (r) return r?.pipe(res);
-    else return res.sendStatus(404);
 });
 users.post("/:uid", checkUser, checkAdmin, async (req, res) => {
     try {
