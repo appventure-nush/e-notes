@@ -16,31 +16,21 @@
                   </v-avatar>
                 </v-btn>
               </template>
-              <v-card :disabled="upload&&upload.active" :loading="upload&&upload.active">
+              <v-card :disabled="uploading" :loading="uploading">
                 <v-card-title>Upload Image</v-card-title>
-                <v-card @click="upload.$el.children[0].click()" flat tile>
-                  <v-img aspect-ratio="1" :src="files.length>0?createObjectURL(files[0].file):user.pfp">
-                    <v-list-item-content v-if="files.length===0"
-                                         style="background:rgba(0,0,0,0.4);width:100%;height:100%;">
-                      <v-card-text class="white--text text-center text-h5">Select Image</v-card-text>
-                    </v-list-item-content>
-                  </v-img>
-                  <file-upload ref="upload"
-                               :headers="{'x-xsrf-token': getToken()}"
-                               v-show="false"
-                               v-model="files"
-                               accept="image/*"
-                               :size="16 * 1024 * 1024"
-                               :timeout="60 * 1000"
-                               :multiple="false"
-                               @input-file="inputFile"
-                               post-action="/api/auth/pfp">
-                  </file-upload>
-                </v-card>
+                <croppa v-model="croppa"
+                        :disabled="uploading"
+                        prevent-white-space
+                        :show-remove-button="false"
+                        :zoom-speed="5"
+                        :width="400"
+                        :height="400"
+                        :quality="512/400"
+                        :initial-image="user.pfp"></croppa>
                 <v-card-actions>
-                  <v-btn text color="primary" @click="upload.$el.children[0].click()">Select Image</v-btn>
-                  <v-btn text color="primary" :disabled="files.length===0||(upload&&upload.active)"
-                         @click="upload.active=true">Upload
+                  <v-btn text color="primary" @click="croppa.chooseFile()">Select Image</v-btn>
+                  <v-btn text color="primary" :disabled="croppa&&croppa.hasImage&&!croppa.hasImage()"
+                         @click="upload">Upload
                   </v-btn>
                 </v-card-actions>
               </v-card>
@@ -112,16 +102,17 @@
 </template>
 
 <script lang="ts">
-import {Component, Ref, Vue, Watch} from "vue-property-decorator"
+import {Component, Vue, Watch} from "vue-property-decorator"
 import {User} from "@/types/user";
-import VueUploadComponent from "vue-upload-component";
-import {VUFile} from "@/types/shims/shims-others";
 import {getToken, post} from "@/mixins/api";
 import {linkWithPopup, OAuthProvider, sendEmailVerification} from "firebase/auth";
 import {FirebaseUser} from "@/types/shims/shims-firebase-user";
 import {auth} from "@/plugins/firebase";
 import Config from "@/store/config"
 import PermissionEditor from "@/components/PermissionEditor.vue";
+import 'vue-croppa/dist/vue-croppa.css'
+// @ts-ignore
+import Croppa from 'vue-croppa'
 
 @Component({
   methods: {
@@ -129,12 +120,12 @@ import PermissionEditor from "@/components/PermissionEditor.vue";
   },
   components: {
     PermissionEditor,
-    FileUpload: VueUploadComponent,
+    croppa: Croppa.component
   }
 })
 export default class Profile extends Vue {
-  @Ref('upload') upload!: VueUploadComponent;
-  files: VUFile[] = [];
+  croppa: any = {};
+  uploading = false;
 
   editing = false;
   saving = false;
@@ -145,17 +136,6 @@ export default class Profile extends Vue {
   verifying = false;
 
   emailSnackbar = false;
-
-  inputFile(newFile: VUFile, oldFile: VUFile) {
-    if (newFile && oldFile && !newFile.active && oldFile.active) {
-      if (newFile.success) {
-        let res = newFile.response as any;
-        if (res.status !== 'success') alert(res.reason);
-        else Config.fetchProfile();
-        this.upload.remove(newFile);
-      }
-    }
-  }
 
   createObjectURL(object: File) {
     if (this.blobs[object.name]) return this.blobs[object.name];
@@ -190,6 +170,18 @@ export default class Profile extends Vue {
   cancel() {
     this.editing = false;
     if (this.user) this.localCopy = {...this.user};
+  }
+
+  upload() {
+    this.uploading = true;
+    this.croppa.generateBlob((blob: Blob) => {
+      const fd = new FormData();
+      fd.append('file', blob, 'payload.png');
+      post<{ status: string, reason: string }>('/api/auth/pfp', fd).then(res => {
+        if (res.status === 'success') Config.fetchProfile();
+        else alert("Failed " + res.reason);
+      }).finally(() => this.uploading = false)
+    }, 'image/png');
   }
 
   get permissions() {
