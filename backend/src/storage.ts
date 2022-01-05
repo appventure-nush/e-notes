@@ -10,6 +10,7 @@ import {basename, join} from "path";
 import {CsvFormatterStream, CsvParserStream, format, parse} from 'fast-csv';
 import EventEmitter from "events";
 import {v4 as uuidv4} from 'uuid';
+import {Transform, WritableOptions} from "stream";
 
 const ROOT_DIR = "/data";
 
@@ -22,6 +23,16 @@ type IndexRow = {
     uuid: IndexUUID;
     name: IndexName;
     path: IndexPath;
+}
+
+class CSVWriterWrapper extends Transform {
+    constructor(options?: WritableOptions) {
+        super(options);
+    }
+
+    _write(chunk: any, encoding: BufferEncoding, callback: (error?: Error | null) => void): void {
+        console.log(chunk);
+    }
 }
 
 class IndexerStorage extends EventEmitter {
@@ -44,8 +55,11 @@ class IndexerStorage extends EventEmitter {
         this._writeStream = format<IndexRow, IndexRow>({headers: false, includeEndRowDelimiter: true});
         fs.createReadStream(this.INDEX_PATH).pipe(this._readStream)
             .on('data', r => this._readIndex(r))
-            .on('end', () => this._writeStream.pipe(fs.createWriteStream(this.INDEX_PATH, {flags: "a"})));
-        process.on('exit', () => this._writeStream.end());
+            .on('end', () => {
+                const out = fs.createWriteStream(this.INDEX_PATH, {flags: "a"});
+                out.write('\n'); // why, just why, fast-csv, do i have to do this to avoid line overlapping
+                this._writeStream.pipe(out);
+            });
     }
 
     read(path: string): fs.ReadStream | undefined {
