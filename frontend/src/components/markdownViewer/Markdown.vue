@@ -117,10 +117,22 @@ export default class Markdown extends Vue {
     margin: 1em 0;
   }
 
-  p:not(table p), ul:not(table ul), ol:not(table ol) {
+  p {
+    margin-bottom: 0;
+  }
+
+  p:not(table p, li p), ul:not(table ul), ol:not(table ol) {
     margin-bottom: 1em;
 
-    &:last-child {
+    &:last-of-type {
+      margin-bottom: 0 !important;
+    }
+  }
+
+  li {
+    margin-bottom: 0.2em;
+
+    &:last-of-type {
       margin-bottom: 0 !important;
     }
   }

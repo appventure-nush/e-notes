@@ -94,6 +94,10 @@ pre {
     .block-output-content {
       width: 100%;
       overflow-y: auto;
+
+      .output-std {
+        padding-left: 10px;
+      }
     }
   }
 

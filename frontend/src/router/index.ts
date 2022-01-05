@@ -36,6 +36,7 @@ const routes: Array<RouteConfig> = [
             },
             {
                 meta: {
+                    hideFooter: true,
                     title: "{{uid}}"
                 },
                 props: true,
@@ -56,6 +57,7 @@ const routes: Array<RouteConfig> = [
             appbar: true
         },
         meta: {
+            hideFooter: true,
             icon: "mdi-tag-multiple",
             title: "Roles",
             public: true,
@@ -64,6 +66,7 @@ const routes: Array<RouteConfig> = [
         children: [
             {
                 meta: {
+                    hideFooter: true,
                     title: "New"
                 },
                 props: true,
@@ -73,6 +76,7 @@ const routes: Array<RouteConfig> = [
             },
             {
                 meta: {
+                    hideFooter: true,
                     title: "{{rid}}"
                 },
                 props: true,
@@ -126,6 +130,7 @@ const routes: Array<RouteConfig> = [
                 name: "Edit Note",
                 path: ':nid/edit',
                 meta: {
+                    hideFooter: true,
                     title: "Edit {{nid}}",
                     hideTitle: true
                 },
