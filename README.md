@@ -4,6 +4,10 @@
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/appventure-nush/e-notes/Node.js%20CI)
 [![GitHub stars](https://img.shields.io/github/stars/appventure-nush/e-notes)](https://github.com/appventure-nush/e-notes/stargazers)
 ![Typescript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1?logo=TypeScript&logoColor=white)
+![Activity](https://img.shields.io/github/commit-activity/w/appventure-nush/e-notes)
+![Activity](https://img.shields.io/github/last-commit/appventure-nush/e-notes)
+![Repo Size](https://img.shields.io/github/repo-size/appventure-nush/e-notes)
+[![website](https://img.shields.io/website?url=https%3A%2F%2Fenotes.nush.app%2F)](https://enotes.nush.app/)
 
 **E**lectronic **Notes** management system.
 
