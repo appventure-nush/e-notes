@@ -26,7 +26,7 @@ roles.get("/:rid/users", checkUser, (req, res) => {
 roles.post("/:rid/users", checkUser, checkAdmin, async (req, res) => {
     let foundUsers: User[] = [];
     if (req.body.uids) foundUsers = (req.body.uids as string[]).map(e => profileCache.get(e)).filter(u => Boolean(u)) as User[];
-    if (req.body.emails) foundUsers = (req.body.emails as string[]).map(e => profileCache.values().find(u => u.email === e)).filter(u => Boolean(u)) as User[];
+    if (req.body.emails) foundUsers = (req.body.emails as string[]).map(e => profileCache.values().find(u => u.email?.toLowerCase() === e.toLowerCase())).filter(u => Boolean(u)) as User[];
     if (foundUsers.length === 0) res.json(failed({
         reason: "no users specified",
         rid: req.params.rid

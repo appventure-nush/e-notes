@@ -94,10 +94,9 @@ export default class RoleViewer extends Vue {
           action: this.usersPopup.action,
           emails: emails
         }).then(json => {
-          this.saving = false;
           console.log("Updated users count", json.updated);
           this.usersWithRole = json.users;
-        });
+        }).catch(e => alert(e)).finally(() => this.saving = false)
       } else {
         console.log(emails);
         this.emailsWithRoles = emails;
