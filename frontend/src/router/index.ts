@@ -127,6 +127,16 @@ const routes: Array<RouteConfig> = [
             },
             {
                 props: true,
+                name: "Note History",
+                path: ':nid/:date',
+                meta: {
+                    title: "{{nid}}",
+                    hideTitle: true
+                },
+                component: () => import(/* webpackChunkName: "note" */'@/components/viewer/NoteViewer.vue')
+            },
+            {
+                props: true,
                 name: "Edit Note",
                 path: ':nid/edit',
                 meta: {

@@ -8,6 +8,8 @@
     </div>
     <v-card :loading="loading" outlined>
       <v-card-title>{{ note.name }}</v-card-title>
+      <v-card-subtitle v-if="date" v-text="moment(date).format('dddd, MMMM Do YYYY, h:mm:ss a')">
+      </v-card-subtitle>
       <v-card-subtitle>{{ note.nid }}<br>
         <v-chip label color="primary" small outlined>
           {{ !note.type ? "auto" : note.type }}
@@ -37,22 +39,30 @@
         </v-expansion-panels>
       </v-card-text>
       <v-card-actions v-if="canEdit(currentCollection)">
-        <!--        <v-btn text color="primary" @click="download">-->
-        <!--          Download-->
-        <!--        </v-btn>-->
-        <NotePopup editing :preset="note" :cid="cid">
-          <template v-slot:activator="{on}">
-            <v-btn text color="primary" v-on="on" :disabled="loading">
-              Edit
-            </v-btn>
-          </template>
-        </NotePopup>
-        <v-btn text color="primary" class="ml-4" :to="{name:'Edit Note', params:{cid:cid,nid:nid}}" :disabled="loading">
-          Edit Source
-        </v-btn>
-        <v-btn text color="error" class="ml-4" @click="deleteNote" :disabled="loading">
-          Delete
-        </v-btn>
+        <template v-if="!date">
+          <v-btn text color="error" @click="revert" :disabled="loading">
+            Revert
+          </v-btn>
+          <v-btn text class="ml-4" @click="compare" :disabled="loading">
+            Compare
+          </v-btn>
+        </template>
+        <template v-else>
+          <NotePopup editing :preset="note" :cid="cid">
+            <template v-slot:activator="{on}">
+              <v-btn text color="primary" v-on="on" :disabled="loading">
+                Edit
+              </v-btn>
+            </template>
+          </NotePopup>
+          <v-btn text color="primary" class="ml-4" :to="{name:'Edit Note', params:{cid:cid,nid:nid}}"
+                 :disabled="loading">
+            Edit Source
+          </v-btn>
+          <v-btn text color="error" class="ml-4" @click="deleteNote" :disabled="loading">
+            Delete
+          </v-btn>
+        </template>
       </v-card-actions>
     </v-card>
     <v-divider class="my-3"/>
@@ -111,6 +121,7 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
 export default class NoteViewer extends Vue {
   @Ref('shadowRoot') readonly shadowRoot!: HTMLDivElement
 
+  @Prop(Number) readonly date?: number;
   @Prop(String) readonly cid!: string;
   @Prop(String) readonly nid!: string;
   @Prop(Array) readonly notes!: Note[];
@@ -175,7 +186,8 @@ export default class NoteViewer extends Vue {
       if (this.note.url === this.last_url) return;
       this.doc_loading = true;
       this.last_url = this.note.url;
-      fetch(this.note.url).then(res => res.text()).then(text => {
+      fetch(`/raw/c/${encodeURIComponent(this.cid)}/notes/${encodeURIComponent(this.nid)}`
+          + (this.date ? '/' + this.date : '')).then(res => res.text()).then(text => {
         if (!this.note) return;
         this.doc = this.note.type === "jupyter" ? JSON.parse(text) : text;
         this.doc_loading = false;
@@ -188,6 +200,14 @@ export default class NoteViewer extends Vue {
     if (!this.shadow) return;
     let elementToFocus = this.shadow.getElementById(window.location.hash.slice(1)) || this.shadow.querySelector(`[name='${window.location.hash.slice(1)}']`);
     if (elementToFocus) elementToFocus.scrollIntoView();
+  }
+
+  revert() {
+    //
+  }
+
+  compare() {
+    //
   }
 
   deleteNote() {

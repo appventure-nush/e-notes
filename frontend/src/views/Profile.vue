@@ -63,8 +63,24 @@
         </v-list-item>
       </v-card-text>
       <v-card-text class="px-10">
-        <v-textarea v-if="editing" v-model="localCopy.desc" label="Description"></v-textarea>
+        <v-textarea v-if="editing" v-model="localCopy.desc" label="Description" hide-details="auto"></v-textarea>
         <span v-else v-text="user.desc"></span>
+      </v-card-text>
+      <v-card-text v-show="editing" class="px-10">
+        <v-form ref="form">
+          <v-text-field label="Current password" v-model="password" hide-details="auto"
+                        :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                        @click:append="showPassword = !showPassword" :rules="[...passwordRules]"
+                        :type="showPassword?'text':'password'"></v-text-field>
+          <v-text-field label="New password" v-model="newPassword" hide-details="auto"
+                        :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                        @click:append="showPassword = !showPassword" :rules="[...passwordRules, confirmPasswordRule]"
+                        :type="showPassword?'text':'password'"></v-text-field>
+          <v-text-field label="Confirm password" v-model="confirmPassword" hide-details="auto"
+                        :append-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                        @click:append="showPassword = !showPassword" :rules="[...passwordRules, confirmPasswordRule]"
+                        :type="showPassword?'text':'password'"></v-text-field>
+        </v-form>
       </v-card-text>
       <v-card-text>
         <PermissionEditor no-data="No permission overrides" v-model="permissions"></PermissionEditor>
@@ -102,10 +118,17 @@
 </template>
 
 <script lang="ts">
-import {Component, Vue, Watch} from "vue-property-decorator"
+import {Component, Ref, Vue, Watch} from "vue-property-decorator"
 import {User} from "@/types/user";
 import {getToken, post} from "@/mixins/api";
-import {linkWithPopup, OAuthProvider, sendEmailVerification} from "firebase/auth";
+import {
+  EmailAuthProvider,
+  linkWithPopup,
+  OAuthProvider,
+  reauthenticateWithCredential,
+  sendEmailVerification,
+  updatePassword
+} from "firebase/auth";
 import {FirebaseUser} from "@/types/shims/shims-firebase-user";
 import {auth} from "@/plugins/firebase";
 import Config from "@/store/config"
@@ -113,6 +136,7 @@ import PermissionEditor from "@/components/PermissionEditor.vue";
 import 'vue-croppa/dist/vue-croppa.css'
 // @ts-ignore
 import Croppa from 'vue-croppa'
+import {VForm} from "@/types/shims/shims-vuetify";
 
 @Component({
   methods: {
@@ -124,12 +148,12 @@ import Croppa from 'vue-croppa'
   }
 })
 export default class Profile extends Vue {
+  @Ref('form') form!: VForm;
   croppa: any = {};
   uploading = false;
 
   editing = false;
   saving = false;
-  blobs: { [name: string]: string } = {};
   localCopy?: User;
 
   linking = false;
@@ -137,20 +161,46 @@ export default class Profile extends Vue {
 
   emailSnackbar = false;
 
-  createObjectURL(object: File) {
-    if (this.blobs[object.name]) return this.blobs[object.name];
-    return this.blobs[object.name] = URL.createObjectURL(object);
+  showPassword = false
+  password = ""
+  newPassword = ""
+  confirmPassword = ""
+
+  readonly passwordRules = [
+    (v: string) => !!v || "Password is required",
+    (v: string) => v.length >= 8 || "Password must be >=8 char long",
+  ]
+
+  confirmPasswordRule() {
+    return (this.newPassword === this.confirmPassword) || 'Password must match'
   }
 
-  save() {
+
+  async save() {
     this.saving = true;
-    post('/api/auth/profile', {
-      nickname: this.localCopy?.nickname,
-      desc: this.localCopy?.desc
-    }).then(() => {
-      Config.fetchProfile();
+    try {
+      if (auth.currentUser && auth.currentUser.email && this.newPassword) {
+        if (!this.form.validate()) return this.saving = false;
+        const credential = EmailAuthProvider.credential(
+            auth.currentUser.email,
+            this.password
+        );
+        await reauthenticateWithCredential(auth.currentUser, credential);
+        await updatePassword(auth.currentUser, this.newPassword)
+        this.form.reset();
+        await Config.fetchProfile();
+      }
+      await post('/api/auth/profile', {
+        nickname: this.localCopy?.nickname,
+        desc: this.localCopy?.desc
+      });
+      await Config.fetchProfile();
       this.editing = false;
-    }).finally(() => this.saving = false);
+    } catch (e) {
+      alert(e.message);
+      console.error(e);
+    }
+    this.saving = false;
   }
 
   link() {
