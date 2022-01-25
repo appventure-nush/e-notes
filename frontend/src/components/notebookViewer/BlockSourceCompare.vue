@@ -2,24 +2,12 @@
   <div class="block-source">
     <div :class='{"block-light-selected":highlighted,"block-light":!highlighted}'/>
     <div style="width:100%">
-      <code-diff :old-string="oldCell.source.join('')" :new-string="newCell.source.join('')" :context="10"
+      <code-diff :old-string="oldCell?oldCell.source.join(''):''" :new-string="newCell?newCell.source.join(''):''"
+                 :context="10"
                  :renderNothingWhenEmpty="renderNothingWhenEmpty"
                  :isShowNoChange="isShowNoChange"
                  :output-format="outputFormat"
-                 :diff-style="diffStyle"
-                 v-if="oldCell&&newCell"/>
-      <code-diff :old-string="oldCell.source.join('')" new-string="" :context="10"
-                 :renderNothingWhenEmpty="renderNothingWhenEmpty"
-                 :isShowNoChange="isShowNoChange"
-                 :output-format="outputFormat"
-                 :diff-style="diffStyle"
-                 v-else-if="oldCell"/>
-      <code-diff old-string="" :new-string="newCell.source.join('')" :context="10"
-                 :renderNothingWhenEmpty="renderNothingWhenEmpty"
-                 :isShowNoChange="isShowNoChange"
-                 :output-format="outputFormat"
-                 :diff-style="diffStyle"
-                 v-else-if="newCell"/>
+                 :diff-style="diffStyle"/>
     </div>
   </div>
 </template>
@@ -47,3 +35,14 @@ export default class BlockSourceCompare extends Vue {
   @Prop({type: Boolean, default: false}) highlighted!: boolean;
 }
 </script>
+<style>
+.d2h-wrapper .d2h-code-side-line,
+.d2h-wrapper .d2h-code-line {
+  display: inline-block !important;
+  width: auto !important;
+}
+
+.d2h-wrapper code {
+  padding: 0 0 !important;
+}
+</style>

@@ -137,11 +137,11 @@ export default class NoteCompare extends Vue {
 <style>
 .d2h-wrapper .d2h-code-side-line,
 .d2h-wrapper .d2h-code-line {
-  display: inline-block;
-  width: auto;
+  display: inline-block !important;
+  width: auto !important;
 }
 
-code {
+.d2h-wrapper code {
   padding: 0 0 !important;
 }
 </style>
