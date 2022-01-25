@@ -25,12 +25,7 @@ import {Notebook} from "@/types/shims/shims-nbformat-v4";
 import {denormaliseJupyterOutput, normaliseJupyterOutput} from "@/mixins/helpers";
 import {NavigationGuardNext, Route} from "vue-router";
 
-
 @Component({
-  beforeRouteLeave(to: Route, from: Route, next: NavigationGuardNext) {
-    if (window.confirm('Do you really want to leave? You may have unsaved changes!')) next()
-    else next(false)
-  },
   components: {
     JupyterEditor,
     PrismEditor,
@@ -45,6 +40,7 @@ export default class NoteEditor extends Vue {
   doc = '';
   notebook: Notebook = {metadata: {}, cells: [], nbformat_minor: 0, nbformat: 0}
   loading = false;
+  saved = false;
 
   created() {
     EventBus.$on('appbar-action', (action: string) => this.handle(action));
@@ -75,8 +71,9 @@ export default class NoteEditor extends Vue {
         if (!this.cid) return;
         Data.fetchNotes(this.cid);
         if (!this.cid || !this.nid) return;
+        this.saved = true;
         this.$router.push({name: 'Note', params: {cid: this.cid, nid: this.nid}});
-      });
+      }).catch(e => alert(e.message));
     }
   }
 
@@ -103,7 +100,19 @@ export default class NoteEditor extends Vue {
       if (!this.note) return;
       this.doc = text;
       if (this.note.type === "jupyter") this.notebook = JSON.parse(text);
+      this.saved = true;
     });
+  }
+
+  @Watch('doc')
+  @Watch('notebook', {deep: true})
+  onContentChange() {
+    this.saved = false;
+  }
+
+  beforeRouteLeave(to: Route, from: Route, next: NavigationGuardNext) {
+    if (this.saved || window.confirm('Do you really want to leave? You may have unsaved changes!')) next()
+    else next(false)
   }
 }
 </script>

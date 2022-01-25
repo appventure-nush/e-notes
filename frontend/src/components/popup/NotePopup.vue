@@ -107,6 +107,7 @@ import {post} from "@/mixins/api";
 import {Note, NoteType} from "@/types/note";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
 import Data from "@/store/data"
+import {VForm} from "@/types/shims/shims-vuetify";
 
 @Component({
   name: "NotePopup",
@@ -118,7 +119,7 @@ export default class NotePopup extends Vue {
   @Prop(Object) preset!: Note;
   @Prop(Boolean) editing!: boolean;
   @Prop(String) readonly cid!: string;
-  @Ref('form') form!: Vue & { validate: () => boolean };
+  @Ref('form') form!: VForm;
 
   nid = "";
   url = "";
@@ -168,12 +169,15 @@ export default class NotePopup extends Vue {
       this.type = this.preset.type || "auto";
       this.desc = this.preset.desc || "";
     } else {
-      this.nid = "";
-      this.url = "";
-      this.name = "";
-      this.type = "auto";
-      this.desc = "";
+      if (this.form) this.form.reset();
     }
+  }
+
+  @Watch('file')
+  onFileChanged() {
+    if (!this.file) return;
+    if (!this.name) this.name = this.file.name.replace(/\.[^/.]+$/, '');
+    if (!this.nid) this.nid = this.name.replace(/[^\w]+/g, '-').toLowerCase();
   }
 }
 </script>

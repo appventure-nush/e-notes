@@ -1,6 +1,5 @@
 import Vue from 'vue'
 import VueRouter, {Route, RouteConfig} from 'vue-router'
-import {FIREBASE_INITIALIZED} from "@/pages/Index/main";
 import Config from "@/store/config";
 
 Vue.use(VueRouter)
@@ -127,16 +126,6 @@ const routes: Array<RouteConfig> = [
             },
             {
                 props: true,
-                name: "Note History",
-                path: ':nid/:date',
-                meta: {
-                    title: "{{nid}}",
-                    hideTitle: true
-                },
-                component: () => import(/* webpackChunkName: "note" */'@/components/viewer/NoteViewer.vue')
-            },
-            {
-                props: true,
                 name: "Edit Note",
                 path: ':nid/edit',
                 meta: {
@@ -145,6 +134,36 @@ const routes: Array<RouteConfig> = [
                     hideTitle: true
                 },
                 component: () => import(/* webpackChunkName: "note.edit" */'@/views/NoteEditor.vue')
+            },
+            {
+                props: (route) => {
+                    let date = parseInt(route.params.date, 10);
+                    if (Number.isNaN(date)) date = 0
+                    return {date, nid: route.params.nid, cid: route.params.cid}
+                },
+                name: "Note History",
+                path: ':nid/view/:date',
+                meta: {
+                    title: "{{nid}}",
+                    hideTitle: true
+                },
+                component: () => import(/* webpackChunkName: "note" */'@/components/viewer/NoteViewer.vue')
+            },
+            {
+                props: (route) => {
+                    let o = parseInt(route.params.old, 10);
+                    let n = parseInt(route.params.new, 10);
+                    if (Number.isNaN(o)) o = 0
+                    if (Number.isNaN(n)) n = 0
+                    return {old: o, new: n, nid: route.params.nid, cid: route.params.cid}
+                },
+                name: "Note Compare",
+                path: ':nid/compare/:old/:new',
+                meta: {
+                    title: "{{nid}}",
+                    hideTitle: true
+                },
+                component: () => import(/* webpackChunkName: "note" */'@/components/viewer/NoteCompare.vue')
             },
             {
                 props: true,
@@ -215,10 +234,10 @@ export function shouldAllow(to: Route): boolean {
 }
 
 const DEFAULT_TITLE = 'Enotes';
-router.beforeEach((to, from, next) => {
-    if (FIREBASE_INITIALIZED && !shouldAllow(to)) history.back();
-    else next();
-})
+// router.beforeEach((to, from, next) => {
+//     if (FIREBASE_INITIALIZED && !shouldAllow(to)) history.back();
+//     else next();
+// })
 router.afterEach(to => Vue.nextTick(() => {
     let title = to.meta?.title || DEFAULT_TITLE;
     title = title.replace(/{{uid}}/g, to.params.uid);

@@ -127,7 +127,7 @@ export default class RoleViewer extends Vue {
     this.onRIDChange();
   }
 
-  @Watch('role')
+  @Watch('role', {immediate: true})
   onRoleChange() {
     if (this.creating) return;
     if (!this.role) return;

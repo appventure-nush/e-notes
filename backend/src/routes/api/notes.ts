@@ -58,6 +58,17 @@ notes.delete("/:nid", checkUser, async (req, res) => {
     ]);
     res.json(success());
 });
+notes.get("/:nid/history", checkUser, async (req, res) => {
+    if (!await checkEditPermissions(req, req.body.cid)) return res.json(failed("not_authorised"));
+    const prefix = COLLECTION_NOTE_PATH(req.body.cid, req.params.nid) + '/';
+    const notes = COLLECTION_NOTES_STORE.query(p => p.path.startsWith(prefix));
+    res.json(success({
+        notes: notes.map(n => ({
+            date: parseInt(n.path.substring(prefix.length), 10),
+            uuid: n.uuid
+        })).sort((a, b) => b.date - a.date)
+    }));
+});
 notes.post("/:nid/upload", checkUser, fileUpload({limits: {fileSize: 64 * 1024 * 1024}}), async (req, res) => {
     if (!await checkEditPermissions(req, req.body.cid)) return res.json(failed("not_authorised"));
     if (!req.files) return res.json(failed('where is the file'));

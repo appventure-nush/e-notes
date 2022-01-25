@@ -1,0 +1,1 @@
+export type QuizDef = { Q: string, A: number, C: string[] };

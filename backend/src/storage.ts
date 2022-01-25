@@ -8,9 +8,7 @@
 import fs from "fs";
 import {basename, join} from "path";
 import {CsvFormatterStream, CsvParserStream, format, parse} from 'fast-csv';
-import EventEmitter from "events";
 import {v4 as uuidv4} from 'uuid';
-import {findLast} from "./utils"
 
 const ROOT_DIR = "/data";
 
@@ -25,7 +23,7 @@ type IndexRow = {
     path: IndexPath;
 };
 
-class IndexerStorage extends EventEmitter {
+class IndexerStorage {
     readonly _readStream!: CsvParserStream<IndexRow, IndexRow>;
     readonly _writeStream!: CsvFormatterStream<IndexRow, IndexRow>;
 
@@ -33,10 +31,11 @@ class IndexerStorage extends EventEmitter {
     readonly FOLDER_DIR: string;
 
     _index: IndexRow[];
+    index: { [path: string]: IndexRow };
     readonly _indexName: string;
 
     constructor(folderDir: string, indexName = 'index.csv') {
-        super();
+        this.index = {};
         this._index = [];
         this._indexName = indexName;
         this.FOLDER_DIR = folderDir;
@@ -122,20 +121,23 @@ class IndexerStorage extends EventEmitter {
     }
 
     _find(path: string) {
-        let file = findLast(this._index, i => i.path === path); // new ones are more accurate
-        if (file?.uuid !== 'null') return file;
+        return Object.values(this.index).find(p => p.path === path);
     }
 
     query(func: (row: IndexRow, index: number) => boolean): IndexRow[] {
-        return this._index.filter(func);
+        return Object.values(this.index).filter(func);
     }
 
     _writeIndex(row: IndexRow) {
+        if (row.uuid === "null") delete this.index[row.path];
+        else this.index[row.path] = row;
+
         this._index.push(row);
         this._writeStream.write([row.uuid, row.path, row.name]);
     }
 
     _readIndex(row: string[3]) {
+        this.index[row[1]] = {uuid: row[0], path: row[1], name: row[2]};
         this._index.push({
             uuid: row[0],
             path: row[1],

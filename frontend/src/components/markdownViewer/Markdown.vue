@@ -3,7 +3,7 @@
   </div>
 </template>
 <script lang="ts">
-import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
+import {Component, Prop, PropSync, Ref, Vue, Watch} from "vue-property-decorator";
 import MarkdownIt from 'markdown-it';
 import MarkdownItKatex from '@traptitech/markdown-it-katex';
 import MarkdownItTasklists from '@hedgedoc/markdown-it-task-lists';
@@ -54,6 +54,7 @@ export default class Markdown extends Vue {
       katex: {}
     })
   }) readonly options!: MarkdownItVueOptions;
+  @PropSync('fms', {type: Array, default: () => []}) frontMatters!: string[];
 
 
   @Watch('uwufy')
@@ -74,7 +75,7 @@ export default class Markdown extends Vue {
 
   created() {
     this.md = new MarkdownIt(this.options.markdownIt || {})
-        .use(MarkdownItFrontMatters, (fm: string) => console.log(fm))
+        .use(MarkdownItFrontMatters, (fm: string) => this.frontMatters.push(fm))
         .use(MarkdownItAttrs, {})
         .use(MarkdownItKatex, this.options.katex || {})
         .use(MarkdownItTasklists, this.options.tasklists || {})

@@ -7,9 +7,7 @@
       ></v-pagination>
     </div>
     <v-card :loading="loading" outlined>
-      <v-card-title>{{ note.name }}</v-card-title>
-      <v-card-subtitle v-if="date" v-text="moment(date).format('dddd, MMMM Do YYYY, h:mm:ss a')">
-      </v-card-subtitle>
+      <v-card-title>{{ note.name }}{{ date ? `@${date}` : '' }}</v-card-title>
       <v-card-subtitle>{{ note.nid }}<br>
         <v-chip label color="primary" small outlined>
           {{ !note.type ? "auto" : note.type }}
@@ -18,32 +16,58 @@
       <v-card-text>
         <div><strong>Last Edited</strong></div>
         <UserAvatar :uid="note.lastEditBy" admin classes="ma-1">
-          <template v-slot:additional>{{ note.lastEdit | moment("MMMM Do YYYY, hh:mm a") }}</template>
+          <template v-slot:additional>{{ moment(note.lastEdit).format("MMMM Do YYYY, hh:mm a") }}</template>
         </UserAvatar>
       </v-card-text>
-      <v-card-text v-if="note.desc">
-        <v-expansion-panels flat>
-          <v-expansion-panel>
-            <v-expansion-panel-header expand-icon="mdi-menu-down">
+      <v-expansion-panels flat>
+        <v-expansion-panel v-if="note.desc">
+          <v-expansion-panel-header expand-icon="mdi-menu-down">
                 <span>
                 <v-icon small>
                   mdi-text-long
                 </v-icon>
                 Description
                 </span>
-            </v-expansion-panel-header>
-            <v-expansion-panel-content>
-              <markdown :content="note.desc"></markdown>
-            </v-expansion-panel-content>
-          </v-expansion-panel>
-        </v-expansion-panels>
-      </v-card-text>
+          </v-expansion-panel-header>
+          <v-expansion-panel-content>
+            <markdown :content="note.desc"></markdown>
+          </v-expansion-panel-content>
+        </v-expansion-panel>
+        <v-expansion-panel>
+          <v-expansion-panel-header expand-icon="mdi-menu-down">
+                <span>
+                <v-icon small>
+                  mdi-clock-outline
+                </v-icon>
+                History
+                </span>
+          </v-expansion-panel-header>
+          <v-expansion-panel-content>
+            <v-list dense two-line>
+              <v-list-item :to="{name:'Note',params:{nid:nid}}" exact>
+                <v-list-item-content class="pa-0">
+                  <v-list-item-title>Latest</v-list-item-title>
+                  <span>now</span>
+                </v-list-item-content>
+              </v-list-item>
+              <v-list-item v-for="(h,i) in history" :key="i" :to="{name:'Note History',params:{nid:nid,date:h.date}}"
+                           exact>
+                <v-list-item-content class="pa-0">
+                  <v-list-item-title v-text="h.uuid"></v-list-item-title>
+                  <span v-text="moment(h.date).format('YYYY MMM DD, HH:mm:ss')"></span>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+          </v-expansion-panel-content>
+        </v-expansion-panel>
+      </v-expansion-panels>
       <v-card-actions v-if="canEdit(currentCollection)">
-        <template v-if="!date">
-          <v-btn text color="error" @click="revert" :disabled="loading">
+        <template v-if="date">
+          <v-btn text color="error" @click="revert" disabled>
             Revert
           </v-btn>
-          <v-btn text class="ml-4" @click="compare" :disabled="loading">
+          <v-btn text class="ml-4" :disabled="loading"
+                 :to="{name:'Note Compare', params:{old:date, new:'now', nid:nid}}">
             Compare
           </v-btn>
         </template>
@@ -66,10 +90,12 @@
       </v-card-actions>
     </v-card>
     <v-divider class="my-3"/>
+    <blockquote class="red--text" v-if="errorJSON">JSON Parse Error</blockquote>
+    <pre v-show="errorJSON" v-text="doc"></pre>
     <v-card class="pb-2" flat :loading="doc_loading" :disabled="doc_loading"
-            :class="{'px-5':$vuetify.breakpoint.mdAndUp}">
+            :class="{'px-5':$vuetify.breakpoint.mdAndUp}" v-show="!errorJSON">
       <template v-if="this.doc">
-        <JupyterViewer v-if="note.type==='jupyter'" :notebook="doc"></JupyterViewer>
+        <JupyterViewer v-if="note.type==='jupyter'&&!errorJSON" :notebook="doc"></JupyterViewer>
         <markdown v-else-if="note.type==='markdown'" :content="doc"></markdown>
       </template>
       <div ref="shadowRoot" v-show="note.type!=='markdown'&&note.type!=='jupyter'"></div>
@@ -91,7 +117,7 @@
 <script lang="ts">
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
 import NotePopup from "@/components/popup/NotePopup.vue";
-import {del} from "@/mixins/api";
+import {del, get} from "@/mixins/api";
 import JupyterViewer from "@/components/notebookViewer/JupyterViewer.vue";
 import {Note} from "@/types/note";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
@@ -129,10 +155,13 @@ export default class NoteViewer extends Vue {
   doc: any = "";
   loading = false;
   doc_loading = false;
+  errorJSON = false;
   shadow?: ShadowRoot;
+  history: { date: number; uuid: string }[] = [];
 
   @Watch('doc', {immediate: true})
   onDocChange() {
+    console.log("doc change")
     if (!this.shadow && this.shadowRoot) this.shadow = this.shadowRoot.attachShadow({mode: 'open'});
     if (this.shadow && (!this.note.type || this.note.type === 'html')) this.shadow.innerHTML = sanitizeHtml(this.doc, SANITIZE_OPTIONS);
   }
@@ -165,6 +194,8 @@ export default class NoteViewer extends Vue {
   @Watch('nid', {immediate: true})
   onNIDChange() {
     window.scrollTo(0, 0);
+    get<{ notes: { date: number, uuid: string }[] }>(`/api/collections/${this.cid}/notes/${this.nid}/history`)
+        .then(res => this.history = res.notes).catch(e => alert(e.message));
     Data.fetchNotes(this.cid);
     this.updateNote();
   }
@@ -179,17 +210,26 @@ export default class NoteViewer extends Vue {
   }
 
   last_url = "";
+  last_date?: number = undefined;
 
+  @Watch('date')
   @Watch('note', {immediate: true, deep: true})
   onNoteChanged() {
     if (this.note && this.note.url) {
-      if (this.note.url === this.last_url) return;
+      if (this.note.url === this.last_url && (this.last_date && this.date === this.last_date)) return;
       this.doc_loading = true;
       this.last_url = this.note.url;
+      this.last_date = this.date;
       fetch(`/raw/c/${encodeURIComponent(this.cid)}/notes/${encodeURIComponent(this.nid)}`
           + (this.date ? '/' + this.date : '')).then(res => res.text()).then(text => {
         if (!this.note) return;
-        this.doc = this.note.type === "jupyter" ? JSON.parse(text) : text;
+        try {
+          this.errorJSON = false;
+          this.doc = this.note.type === "jupyter" ? JSON.parse(text) : text;
+        } catch (e) {
+          this.errorJSON = true;
+          this.doc = text;
+        }
         this.doc_loading = false;
       });
     } else this.doc = "";
@@ -203,10 +243,6 @@ export default class NoteViewer extends Vue {
   }
 
   revert() {
-    //
-  }
-
-  compare() {
     //
   }
 

@@ -187,7 +187,7 @@ export default class UserViewer extends Vue {
     })
   }
 
-  @Watch('user')
+  @Watch('user', {immediate: true})
   onUserChange() {
     if (!this.user) return;
     document.title = this.user.name || this.uid || 'Users';

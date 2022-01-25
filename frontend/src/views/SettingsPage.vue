@@ -173,6 +173,13 @@ export default class SettingsPage extends Vue {
         localStorage.removeItem('vuex');
         location.reload();
       }
+    }, {
+      name: "Reset questions",
+      desc: "It's always good to revise old topics",
+      color: "info",
+      action: () => {
+        Config.updateAnswers({});
+      }
     }]
   }, {
     name: "Layout",

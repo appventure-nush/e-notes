@@ -1,4 +1,5 @@
 import Vue from "vue";
+import moment from "moment";
 import {canCreate, canEdit, computeAccess, hasPermission, isAdmin} from "@/mixins/permission";
 import {
     b64ToUrl,
@@ -12,7 +13,7 @@ import {INPUT_ID_RULES, INPUT_NAME_RULES} from "@/mixins/inputRules";
 
 Vue.mixin({
     data: () => ({
-        INPUT_ID_RULES, INPUT_NAME_RULES
+        INPUT_ID_RULES, INPUT_NAME_RULES, moment
     }),
     methods: {
         isAdmin,
@@ -26,5 +27,8 @@ Vue.mixin({
         computeAccess,
         isCollectionRoute,
         initials
+    },
+    filters: {
+        moment
     }
 });

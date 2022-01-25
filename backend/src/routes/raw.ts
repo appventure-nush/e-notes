@@ -41,5 +41,6 @@ const raw = Router();
 raw.get("/u/*", userHandler);
 raw.get("/c/:cid/images/:file", checkUser, imageHandler);
 raw.get("/c/:cid/notes/:nid", checkUser, noteHandler);
+raw.get("/c/:cid/notes/:nid/0", checkUser, noteHandler);
 raw.get("/c/:cid/notes/:nid/:date", checkUser, noteHistoryHandler);
 export default raw;

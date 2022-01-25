@@ -1,4 +1,4 @@
-import {Module, Mutation, MutationAction, VuexModule, getModule} from 'vuex-module-decorators'
+import {getModule, Module, Mutation, MutationAction, VuexModule} from 'vuex-module-decorators'
 import {User} from "@/types/user";
 import {FirebaseUser} from "@/types/shims/shims-firebase-user";
 import {get, verifyToken} from "@/mixins/api";
@@ -19,6 +19,19 @@ class ConfigModule extends VuexModule {
 
     user: FirebaseUser | null = null;
     profile: User | null = null;
+
+    quizAnswers: { [key: string]: number } = {};
+
+    @Mutation
+    setAnswer({key, ans}: { key: string, ans: number }) {
+        if (!this.quizAnswers) this.quizAnswers = {};
+        Vue.set(this.quizAnswers, key, ans);
+    }
+
+    @Mutation
+    updateAnswers(ans: { [key: string]: number }) {
+        this.quizAnswers = ans;
+    }
 
     @Mutation
     setDark(dark: boolean) {
@@ -81,6 +94,7 @@ try {
         location.reload();
     }
     if (!config.settings) config.updateSettings({});
+    if (!config.quizAnswers) config.updateAnswers({});
 } catch (e) {
     localStorage.clear();
     location.reload();
