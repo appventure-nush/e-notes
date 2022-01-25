@@ -4,7 +4,7 @@ import {FirebaseUser} from "@/types/shims/shims-firebase-user";
 import {get, verifyToken} from "@/mixins/api";
 import {auth} from "@/plugins/firebase";
 import store from "@/store/index";
-import {signOut} from "@firebase/auth";
+import {signOut} from "firebase/auth";
 import {Settings} from "@/types/settings";
 import Vue from "vue";
 

@@ -41,7 +41,7 @@
 import {Component, Prop, Vue, Watch} from "vue-property-decorator";
 import {Note} from "@/types/note";
 import Data from "@/store/data";
-import CodeDiff from 'vue-code-diff'
+import {CodeDiff} from "v-code-diff";
 import JupyterCompare from "@/components/notebookViewer/JupyterCompare.vue";
 
 @Component({
@@ -134,14 +134,3 @@ export default class NoteCompare extends Vue {
   }
 }
 </script>
-<style>
-.d2h-wrapper .d2h-code-side-line,
-.d2h-wrapper .d2h-code-line {
-  display: inline-block !important;
-  width: auto !important;
-}
-
-.d2h-wrapper code {
-  padding: 0 0 !important;
-}
-</style>

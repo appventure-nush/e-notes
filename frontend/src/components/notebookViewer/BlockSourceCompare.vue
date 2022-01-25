@@ -16,7 +16,7 @@
 import {Component, Prop, Vue} from "vue-property-decorator";
 import {Cell} from "@/types/shims/shims-nbformat-v4";
 import QuizQuestion from "@/components/quiz/QuizQuestion.vue";
-import CodeDiff from 'vue-code-diff'
+import {CodeDiff} from "v-code-diff";
 
 @Component({
   components: {
@@ -35,14 +35,3 @@ export default class BlockSourceCompare extends Vue {
   @Prop({type: Boolean, default: false}) highlighted!: boolean;
 }
 </script>
-<style>
-.d2h-wrapper .d2h-code-side-line,
-.d2h-wrapper .d2h-code-line {
-  display: inline-block !important;
-  width: auto !important;
-}
-
-.d2h-wrapper code {
-  padding: 0 0 !important;
-}
-</style>

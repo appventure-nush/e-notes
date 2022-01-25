@@ -56,7 +56,6 @@ authentication.post('/pfp', checkUser, fileUpload({limits: {fileSize: 16 * 1024 
         }));
         await addAudit(simpleAudit(req.uid!, req.uid!, Category.USER, Action.EDIT, [{pfp: url}]));
     } catch (e) {
-        console.log(e);
         res.json(failed('please contact an admin'));
     }
 });

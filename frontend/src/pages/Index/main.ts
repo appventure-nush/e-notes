@@ -13,6 +13,7 @@ import '@/plugins/others'
 
 import Config from "@/store/config"
 import vuetify from '@/plugins/vuetify'
+import {FirebaseUser} from "@/types/shims/shims-firebase-user";
 
 const ASCII_NAME =
     `%c  _____             _              _   _ _   _ ____  _   _ \n` +
@@ -30,7 +31,7 @@ Vue.config.productionTip = false;
 
 export let FIREBASE_INITIALIZED = false;
 
-const unsubscribe = onAuthStateChanged(auth, user => {
+const unsubscribe = onAuthStateChanged(auth, (user: FirebaseUser | null) => {
     if (router.currentRoute.name === "404") return;
     FIREBASE_INITIALIZED = true;
     console.log("Firebase INIT")

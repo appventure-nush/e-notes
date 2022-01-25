@@ -10,11 +10,12 @@ import '@/plugins/others'
 
 import Config from "@/store/config"
 import vuetify from '@/plugins/vuetify'
+import {FirebaseUser} from "@/types/shims/shims-firebase-user";
 
 Vue.config.productionTip = false;
 
 export let FIREBASE_INITIALIZED = false;
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, (user: FirebaseUser | null) => {
     FIREBASE_INITIALIZED = true;
     Config.setUser(user);
 });
