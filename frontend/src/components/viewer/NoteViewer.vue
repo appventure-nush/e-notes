@@ -162,7 +162,7 @@ export default class NoteViewer extends Vue {
   @Watch('doc', {immediate: true})
   onDocChange() {
     if (!this.shadow && this.shadowRoot) this.shadow = this.shadowRoot.attachShadow({mode: 'open'});
-    if (this.shadow && (!this.note.type || this.note.type === 'html')) this.shadow.innerHTML = sanitizeHtml(this.doc, SANITIZE_OPTIONS);
+    if (this.shadow && (!this.note.type || this.note.type === 'html')) this.shadow.innerHTML = this.sanitize ? sanitizeHtml(this.doc, SANITIZE_OPTIONS) : this.doc;
   }
 
   updated() {
@@ -254,6 +254,10 @@ export default class NoteViewer extends Vue {
       if (!this.cid) return;
       this.$router.push({name: 'Collection', params: {cid: this.cid}});
     });
+  }
+
+  get sanitize() {
+    return !Config.settings.noSanitize;
   }
 }
 </script>
