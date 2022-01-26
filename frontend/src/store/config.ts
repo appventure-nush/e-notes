@@ -23,7 +23,7 @@ class ConfigModule extends VuexModule {
     quizAnswers: { [key: string]: number | number[] | string } = {};
 
     @Mutation
-    setAnswer({key, ans}: { key: string, ans?: number | number[] | string }) {
+    setAnswer({key, ans}: { key: string, ans?: number | number[] | string | null }) {
         if (!this.quizAnswers) this.quizAnswers = {};
         Vue.set(this.quizAnswers, key, ans);
     }

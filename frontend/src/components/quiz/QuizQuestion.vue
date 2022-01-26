@@ -44,7 +44,7 @@ export default class QuizQuestion extends Vue {
   name = "QuizQuestion"
   @Prop({type: Object}) def?: QuizDef;
   @Prop({type: Boolean, default: false}) viewOnly!: boolean;
-  buf?: number | number[] | string = this.submittedAnswer || (this.def?.type === 'mcq' ? -1 : this.def?.type === 'mrq' ? [] : "");
+  buf?: number | number[] | string | null = this.submittedAnswer || null;
 
   @Watch('def', {immediate: true, deep: true})
   onDefChange() {
