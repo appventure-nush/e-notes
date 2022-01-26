@@ -140,7 +140,8 @@ export async function updateNote(cid: string, nid: string, note?: Note) {
 // 3) role rejection (specified not allow)
 // 4) role acceptance (specified allow)
 // 5) role default (default allow) there is no default reject
-export async function hasPermissions(uid: string, cid: string): Promise<boolean> { // used in middleware
+export async function hasPermissions(uid?: string, cid?: string): Promise<boolean> { // used in middleware
+    if (!(uid && cid)) return false;
     const user = await getUser(uid);
     if (!user) return false;
     const collection = collectionCache.get(cid);

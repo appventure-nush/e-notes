@@ -59,7 +59,6 @@ notes.delete("/:nid", checkUser, async (req, res) => {
     res.json(success());
 });
 notes.get("/:nid/history", checkUser, async (req, res) => {
-    if (!await checkEditPermissions(req, req.body.cid)) return res.json(failed("not_authorised"));
     const prefix = COLLECTION_NOTE_PATH(req.body.cid, req.params.nid) + '/';
     const notes = COLLECTION_NOTES_STORE.query(p => p.path.startsWith(prefix));
     res.json(success({
