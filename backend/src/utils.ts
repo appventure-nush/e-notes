@@ -99,12 +99,13 @@ export function updateRoleCache(rid: string, value?: Role) {
     else roleCache.del(rid);
 }
 
-export async function getNote(cid: string, nid: string): Promise<Note | undefined> {
+export async function getNote(cid?: string, nid?: string): Promise<Note | undefined> {
     let notes = await getNotes(cid);
     if (notes) return notes.find(note => note.nid === nid);
 }
 
-export async function getNotes(cid: string): Promise<Note[] | undefined> {
+export async function getNotes(cid?: string): Promise<Note[] | undefined> {
+    if (!cid) return undefined;
     if (noteCache.has(cid)) return noteCache.get(cid);
     else {
         if (!collectionCache.get(cid)) return [];
