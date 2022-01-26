@@ -40,7 +40,7 @@ notes.post("/:nid", checkUser, async (req, res) => {
         if (old.nid !== note.nid) {
             await renameNote(note.cid, old.nid, note.nid);
             // if url follows convention
-            if (note.url && !IS_EXTERNAL_NOTE_REGEX.test(note.url)) note.url = COLLECTION_NOTE_URL(note.cid, note.nid);
+            if (note.url && !IS_EXTERNAL_NOTE_REGEX.test(note.url)) note.url = COLLECTION_NOTE_URL(note.cid, note.nid, note.lastEdit);
         }
     } else {
         note = makeNote(-1, req.params.nid, req.body.cid, req.uid!, req.body.name, req.body.desc);
@@ -94,13 +94,13 @@ notes.post("/:nid/upload", checkUser, fileUpload({limits: {fileSize: 64 * 1024 *
         }
 
         const path = COLLECTION_NOTE_PATH(req.body.cid, req.params.nid);
-
-        COLLECTION_NOTES_STORE.rename(path, COLLECTION_NOTE_PATH_VER(req.body.cid, req.params.nid, Date.now()));
+        const date = Date.now();
+        COLLECTION_NOTES_STORE.rename(path, COLLECTION_NOTE_PATH_VER(req.body.cid, req.params.nid, date));
         COLLECTION_NOTES_STORE.write(path).write(newNoteSource.data);
-        note.url = COLLECTION_NOTE_URL(req.body.cid, req.params.nid);
+        note.url = COLLECTION_NOTE_URL(req.body.cid, req.params.nid, date);
 
         if (!note.type) note.type = type;
-        note.lastEdit = Date.now();
+        note.lastEdit = date;
         note.lastEditBy = req.uid!;
         await updateNote(req.body.cid, req.params.nid, note);
         res.json(success({note}));

@@ -28,10 +28,10 @@ import WriteResult = admin.firestore.WriteResult;
 
 const collections = Router();
 
-export const COLLECTION_NOTE_URL = (cid: string, nid?: string) => `/raw/c/${encodeURIComponent(cid)}/notes/${nid && encodeURIComponent(nid) || ''}`;
+export const COLLECTION_NOTE_URL = (cid: string, nid?: string, date?: number) => `/raw/c/${encodeURIComponent(cid)}/notes/${nid && encodeURIComponent(nid) || ''}${date ? `?${date}` : ''}`;
 export const COLLECTION_NOTE_PATH = (cid: string, nid?: string) => `${encodeURIComponent(cid)}/${nid && encodeURIComponent(nid) || ''}`;
 export const COLLECTION_NOTE_PATH_VER = (cid: string, nid: string, date: number) => `${encodeURIComponent(cid)}/${encodeURIComponent(nid)}/${date}`;
-export const COLLECTION_IMAGE_URL = (cid: string, image?: string) => `/raw/c/${encodeURIComponent(cid)}/images/${image && encodeURIComponent(image) || ''}`;
+export const COLLECTION_IMAGE_URL = (cid: string, image?: string, date?: number) => `/raw/c/${encodeURIComponent(cid)}/images/${image && encodeURIComponent(image) || ''}${date ? `?${date}` : ''}`;
 export const COLLECTION_IMAGE_PATH = (cid: string, image?: string) => `${encodeURIComponent(cid)}/${image && encodeURIComponent(image) || ''}`;
 
 collections.get("/", checkUser, async (req, res) => {
@@ -106,7 +106,6 @@ collections.delete("/:cid", checkUser, async (req, res) => {
 collections.get('/:cid/img', checkUser, checkPermissions, async (req, res) => {
     if (!collectionCache.has(req.params.cid)) return res.json(failed('collection_not_found'));
     const files = COLLECTION_IMAGE_STORE.find(COLLECTION_IMAGE_PATH(req.params.cid))
-
     res.json(files.map(f => ({
         url: COLLECTION_IMAGE_URL(req.params.cid, f.name),
         name: f.name
@@ -121,7 +120,7 @@ collections.post('/:cid/img', checkUser, fileUpload({limits: {fileSize: 64 * 102
         COLLECTION_IMAGE_STORE.write(COLLECTION_IMAGE_PATH(req.params.cid, name)).write(payload.data);
         res.json(success({
             name: name,
-            url: COLLECTION_IMAGE_URL(req.params.cid, name)
+            url: COLLECTION_IMAGE_URL(req.params.cid, name, Date.now())
         }));
         await addAudit(simpleAudit(req.uid!, req.params.cid, Category.COLLECTION, Action.UPLOAD_FILE, [name]));
     } catch (e) {
