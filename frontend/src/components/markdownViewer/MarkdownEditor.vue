@@ -11,7 +11,7 @@
 import {Watch, Component, ModelSync, Vue} from "vue-property-decorator";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
 import {PrismEditor} from 'vue-prism-editor';
-import hljs from 'highlight.js/lib/common';
+import hljs from '@/plugins/hljs';
 import 'vue-prism-editor/dist/prismeditor.min.css';
 
 @Component({

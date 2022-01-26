@@ -1,5 +1,6 @@
 import Vue from "vue";
 import moment from "moment";
+import 'moment/locale/en-gb.js';
 import {canCreate, canEdit, computeAccess, hasPermission, isAdmin} from "@/mixins/permission";
 import {
     b64ToUrl,

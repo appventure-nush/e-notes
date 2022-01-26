@@ -24,11 +24,9 @@
 
 <script lang="ts">
 import {Component, Prop, Vue} from "vue-property-decorator";
-import hljs from 'highlight.js/lib/common';
+import hljs from '@/plugins/hljs';
 import {Cell} from "@/types/shims/shims-nbformat-v4";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
-import 'highlight.js/styles/github.css'
-import '@/styles/github-dark.scss';
 import {normaliseJupyterOutput} from "@/mixins/helpers";
 import QuizQuestion from "@/components/quiz/QuizQuestion.vue";
 import {parseQuiz} from "../quiz/quiz";

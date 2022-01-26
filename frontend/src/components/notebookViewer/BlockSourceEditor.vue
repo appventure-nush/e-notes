@@ -20,13 +20,11 @@
 <script lang="ts">
 import {Component, Prop, VModel, Vue} from "vue-property-decorator";
 import {PrismEditor} from 'vue-prism-editor';
-import hljs from 'highlight.js/lib/common';
+import hljs from '@/plugins/hljs';
 import {Cell} from "@/types/shims/shims-nbformat-v4";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
 
 import 'vue-prism-editor/dist/prismeditor.min.css';
-import 'highlight.js/styles/github.css'
-import '@/styles/github-dark.scss';
 import {denormaliseJupyterOutput, normaliseJupyterOutput} from "@/mixins/helpers";
 import QuizQuestion from "@/components/quiz/QuizQuestion.vue";
 import {parseQuiz} from "../quiz/quiz";

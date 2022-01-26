@@ -1,0 +1,45 @@
+.d2h-wrapper {
+  position: relative;
+  line-height: normal;
+
+  .d2h-file-header {
+    display: none;
+  }
+
+  .d2h-files-diff {
+    display: flex;
+  }
+
+  .d2h-file-side-diff {
+    margin-bottom: -5px;
+  }
+
+  .d2h-code-side-emptyplaceholder {
+    max-height: 19px;
+  }
+
+  .d2h-code-side-line,
+  .d2h-code-line {
+    width: auto;
+  }
+
+  .d2h-code-side-line .d2h-info {
+    height: 18px;
+  }
+
+  .d2h-cntx,
+  .d2h-del,
+  .d2h-ins {
+    height: 18px;
+  }
+
+  .d2h-code-linenumber,
+  .d2h-code-side-linenumber {
+    line-height: 20px;
+    height: 20px;
+  }
+
+  tr {
+    height: 20px;
+  }
+}

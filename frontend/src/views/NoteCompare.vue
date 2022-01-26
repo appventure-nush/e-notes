@@ -42,10 +42,8 @@
 import {Component, Prop, Vue, Watch} from "vue-property-decorator";
 import {Note} from "@/types/note";
 import Data from "@/store/data";
-import {CodeDiff} from "v-code-diff";
+import CodeDiff from "@/components/diff/CodeDiff.vue";
 import JupyterCompare from "@/components/notebookViewer/JupyterCompare.vue";
-
-import '@/styles/diff2html.dark.scss';
 
 @Component({
   components: {

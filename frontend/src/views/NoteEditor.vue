@@ -10,7 +10,7 @@
 import {Component, Prop, Vue, Watch} from "vue-property-decorator";
 import {Note} from "@/types/note";
 import {PrismEditor} from 'vue-prism-editor';
-import hljs from 'highlight.js/lib/common';
+import hljs from '@/plugins/hljs';
 import pretty from "pretty";
 import {formatFromString, MarkdownFormatterOptions, RemarkStringifyOptions} from "@quilicicf/markdown-formatter";
 

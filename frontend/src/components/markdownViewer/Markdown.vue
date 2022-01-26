@@ -7,13 +7,13 @@ import {Component, Prop, PropSync, Ref, Vue, Watch} from "vue-property-decorator
 import MarkdownIt from 'markdown-it';
 import MarkdownItKatex from '@traptitech/markdown-it-katex';
 import MarkdownItTasklists from '@hedgedoc/markdown-it-task-lists';
-import MarkdownItHighlightJS from "markdown-it-highlightjs";
+import MarkdownItHighlightJS from "@/plugins/markdown-highlight-js";
 import MarkdownItAttrs from "markdown-it-attrs";
 import MarkdownItFrontMatters from "markdown-it-front-matter";
 import sanitizeHtml from 'sanitize-html';
 // @ts-ignore
 import TOC from "markdown-it-table-of-contents";
-
+import hljs from '@/plugins/hljs';
 import {MarkdownItVueOptions} from "@/components/markdownViewer/markdown";
 import 'katex/dist/katex.min.css'
 import '@/styles/github-dark.scss';
@@ -81,7 +81,7 @@ export default class Markdown extends Vue {
         .use(MarkdownItAttrs, {})
         .use(MarkdownItKatex, this.options.katex || {})
         .use(MarkdownItTasklists, this.options.tasklists || {})
-        .use(MarkdownItHighlightJS, this.options.highlight || {auto: false})
+        .use(MarkdownItHighlightJS, this.options.highlight || {auto: false, hljs: hljs})
         .use(anchor, {
           permalink: anchor.permalink.ariaHidden({
             symbol: '<i aria-hidden="true" class="mdi mdi-link-variant perma-link"></i>',

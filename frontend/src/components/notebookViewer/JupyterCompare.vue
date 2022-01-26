@@ -1,11 +1,14 @@
 <template>
   <div class="jupyter-viewer">
     <div
+        v-show="!hidden[index]"
         class="block" :class="{selected:clickCellIndex === index}"
         v-for="(item, index) in Math.max(oldNotebook.cells.length, newNotebook.cells.length)"
         :key="index"
         @mousedown="clickCellIndex = index">
       <BlockSourceCompare
+          :index="index"
+          :hidden="hidden"
           :outputFormat="outputFormat"
           :diffStyle="diffStyle"
           :new-cell="newNotebook.cells[index]"
@@ -33,6 +36,7 @@ export default class JupyterCompare extends Vue {
   @Prop(String) readonly diffStyle!: string;
   @Prop(Boolean) readonly renderNothingWhenEmpty!: boolean;
   @Prop(Boolean) readonly isShowNoChange!: boolean;
+  hidden: boolean[] = []
   clickCellIndex = -1;
 }
 </script>

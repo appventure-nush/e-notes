@@ -1,5 +1,6 @@
 import {Collection} from "./coll";
 import moment from "moment";
+import 'moment/locale/en-gb.js';
 import {firestore} from "firebase-admin";
 import {db} from "../app";
 import DocumentReference = firestore.DocumentReference;

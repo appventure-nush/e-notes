@@ -143,33 +143,28 @@
 
 <script lang="ts">
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
-import draggable from 'vuedraggable'
 import {del, getToken, post} from "@/mixins/api";
-import {VUFile} from "@/types/shims/shims-others";
 import VueUploadComponent from "vue-upload-component";
-import CollectionPopup from "@/components/popup/CollectionPopup.vue";
 import Gallery from "@/components/Gallery.vue";
-import NotePopup from "@/components/popup/NotePopup.vue";
-import Markdown from "@/components/markdownViewer/Markdown.vue";
+
+import {VUFile} from "@/types/shims/shims-others";
 import {Collection} from "@/types/coll";
 import {Note} from "@/types/note";
-import UserAvatar from "@/components/UserAvatar.vue";
-import Data from "@/store/data"
 import {Role} from "@/types/role";
-import {Image} from "@/store/data";
+import Data, {Image} from "@/store/data"
 
 @Component({
   methods: {
     getToken
   },
   components: {
-    UserAvatar,
-    draggable,
-    NotePopup,
+    UserAvatar: () => import("@/components/UserAvatar.vue"),
+    draggable: () => import("vuedraggable"),
+    NotePopup: () => import("@/components/popup/NotePopup.vue"),
+    CollectionPopup: () => import("@/components/popup/CollectionPopup.vue"),
     Gallery,
     FileUpload: VueUploadComponent,
-    CollectionPopup,
-    Markdown
+    Markdown: () => import("@/components/markdownViewer/Markdown.vue")
   }
 })
 export default class CollectionInfo extends Vue {

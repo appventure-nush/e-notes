@@ -1,3 +1,8 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const webpack = require('webpack');
+const path = require("path");
 module.exports = {
     pages: {
         index: {
@@ -24,5 +29,12 @@ module.exports = {
     productionSourceMap: false,
     transpileDependencies: [
         'vuetify', 'vuex-persist', 'vuex-module-decorators'
-    ]
+    ],
+    configureWebpack: {
+        plugins: [
+            new MomentLocalesPlugin({
+                localesToKeep: ['en-gb'],
+            })
+        ]
+    }
 }

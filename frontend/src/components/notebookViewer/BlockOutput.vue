@@ -1,6 +1,6 @@
 <template>
   <div class="block-output">
-    <div :class='[highlighted?"block-light-selected":"block-light"]'/>
+    <div :class='{"block-light-selected":highlighted,"block-light":!highlighted}'/>
     <div class="block-hidden" v-if="hide"/>
     <div class="block-output-content" v-else>
       <v-row v-for="(output,index) of cell.outputs" no-gutters :key="index" class="cell-row">
@@ -11,7 +11,8 @@
         <v-col :style="{'min-width':$vuetify.breakpoint.xsOnly?'100%':'0'}">
           <v-row no-gutters>
             <v-col v-if="output.output_type === 'stream'">
-              <pre :class="[output.name==='stdout'?'output-std' : 'output-err']" v-text="output.text.join('')"></pre>
+              <pre class="cell-content" :class="[output.name==='stdout'?'output-std' : 'output-err']"
+                   v-text="output.text.join('')"></pre>
             </v-col>
             <template v-else-if="output.output_type === 'display_data'||output.output_type === 'execute_result'">
               <v-col cols="12" v-if="showPlaintext(output.data)">
