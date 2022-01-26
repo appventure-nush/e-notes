@@ -61,7 +61,7 @@
           </v-expansion-panel-content>
         </v-expansion-panel>
       </v-expansion-panels>
-      <v-card-actions v-if="canEdit(currentCollection)">
+      <v-card-actions>
         <template v-if="date">
           <v-btn text color="error" @click="revert" disabled>
             Revert
@@ -71,7 +71,7 @@
             Compare
           </v-btn>
         </template>
-        <template v-else>
+        <template v-else-if="canEdit(currentCollection)">
           <NotePopup editing :preset="note" :cid="cid">
             <template v-slot:activator="{on}">
               <v-btn text color="primary" v-on="on" :disabled="loading">

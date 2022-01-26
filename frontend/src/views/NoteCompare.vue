@@ -28,6 +28,7 @@
                       :output-format="format"
                       :diff-style="diff"></JupyterCompare>
       <code-diff v-else-if="note.type==='markdown'"
+                 language="markdown"
                  :file-name="note.name"
                  :old-string="oldDoc" :new-string="newDoc" :context="10"
                  :renderNothingWhenEmpty="renderNothingWhenEmpty"
@@ -43,6 +44,8 @@ import {Note} from "@/types/note";
 import Data from "@/store/data";
 import {CodeDiff} from "v-code-diff";
 import JupyterCompare from "@/components/notebookViewer/JupyterCompare.vue";
+
+import '@/styles/diff2html.dark.scss';
 
 @Component({
   components: {
@@ -134,3 +137,8 @@ export default class NoteCompare extends Vue {
   }
 }
 </script>
+<style>
+.d2h-file-wrapper {
+  margin-bottom: 0;
+}
+</style>

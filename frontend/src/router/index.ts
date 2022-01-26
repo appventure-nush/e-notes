@@ -163,7 +163,7 @@ const routes: Array<RouteConfig> = [
                     title: "{{nid}}",
                     hideTitle: true
                 },
-                component: () => import(/* webpackChunkName: "note" */'@/components/viewer/NoteCompare.vue')
+                component: () => import(/* webpackChunkName: "note" */'@/views/NoteCompare.vue')
             },
             {
                 props: true,

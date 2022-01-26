@@ -1,7 +1,12 @@
 import express, {Router} from "express";
 import {checkUser, hasPermissions, noteCache} from "../utils";
 import {COLLECTION_IMAGE_STORE, COLLECTION_NOTES_STORE, USERS_STORE} from "../storage";
-import {COLLECTION_IMAGE_PATH, COLLECTION_NOTE_PATH, COLLECTION_NOTE_PATH_VER} from "./api/collections";
+import {
+    COLLECTION_IMAGE_PATH,
+    COLLECTION_NOTE_PATH,
+    COLLECTION_NOTE_PATH_VER,
+    COLLECTION_NOTE_URL
+} from "./api/collections";
 
 const CACHE_TIME = 365 * 24 * 60 * 60;
 
@@ -28,8 +33,8 @@ export async function noteHandler(req: express.Request, res: express.Response) {
     const r = COLLECTION_NOTES_STORE.read(COLLECTION_NOTE_PATH(req.params.cid, req.params.nid));
     res.set('Cache-control', `public, max-age=${CACHE_TIME}`);
     if (r) return r?.pipe(res);
-    const url = noteCache.get(req.params.cid)?.find(n => n.nid === req.params.nid)?.url;
-    if (url) return res.redirect(url);
+    const note = noteCache.get(req.params.cid)?.find(n => n.nid === req.params.nid);
+    if (note?.url && note.url !== COLLECTION_NOTE_URL(note.cid, note.nid)) return res.redirect(note.url);
     else return res.sendStatus(404);
 }
 

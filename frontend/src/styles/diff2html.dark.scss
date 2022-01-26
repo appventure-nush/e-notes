@@ -1,0 +1,81 @@
+.v-application.theme--dark {
+  .d2h-file-header {
+    border-color: #333;
+  }
+
+  .d2h-code-linenumber, .d2h-code-side-linenumber {
+    background-color: #222;
+    color: rgba(255, 255, 255, 0.3);
+    border-color: #222;
+  }
+
+  .d2h-lines-added {
+    border-color: #475b47;
+    color: #297929;
+  }
+
+  .d2h-lines-deleted {
+    border-color: #755353;
+    color: #752222;
+  }
+
+  .d2h-file-collapse {
+    border-color: #333;
+  }
+
+  .d2h-file-collapse.d2h-selected {
+    background-color: #394049;
+  }
+
+  .d2h-code-line del,
+  .d2h-code-side-line del {
+    background-color: #722727;
+  }
+
+  .d2h-del {
+    border-color: #b06363;
+    background-color: #544040;
+  }
+
+  .d2h-code-line ins,
+  .d2h-code-side-line ins {
+    background-color: #376537;
+  }
+
+  .d2h-ins {
+    border-color: #5d8f5d;
+    background-color: #384438;
+  }
+
+  .d2h-code-side-emptyplaceholder,
+  .d2h-emptyplaceholder {
+    background-color: #343434;
+    border-color: #4f4f4f;
+  }
+
+  .d2h-info {
+    background-color: #222;
+    color: rgba(210, 210, 210, 0.3);
+    border-color: #222;
+  }
+
+  .d2h-file-diff .d2h-del.d2h-change {
+    background-color: #3b362f;
+  }
+
+  .d2h-file-diff .d2h-ins.d2h-change {
+    background-color: #464d46;
+  }
+
+  .d2h-file-list-wrapper a {
+    color: #102538;
+  }
+
+  .d2h-file-list-wrapper a:visited {
+    color: #102538;
+  }
+
+  .d2h-file-wrapper {
+    border-color: #666;
+  }
+}

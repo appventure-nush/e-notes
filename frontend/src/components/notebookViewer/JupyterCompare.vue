@@ -20,12 +20,10 @@
 <script lang="ts">
 import {Component, Prop, Vue} from "vue-property-decorator";
 import {Notebook} from "@/types/shims/shims-nbformat-v4";
-import BlockSource from "@/components/notebookViewer/BlockSource.vue";
-import BlockOutput from "@/components/notebookViewer/BlockOutput.vue";
 import BlockSourceCompare from "@/components/notebookViewer/BlockSourceCompare.vue";
 
 @Component({
-  components: {BlockSourceCompare, BlockOutput, BlockSource}
+  components: {BlockSourceCompare}
 })
 export default class JupyterCompare extends Vue {
   name = "JupyterCompare"

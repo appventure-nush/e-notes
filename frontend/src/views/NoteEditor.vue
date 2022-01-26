@@ -19,7 +19,7 @@ import '@/styles/github-dark.scss';
 import {EventBus} from "@/event";
 import {post} from "@/mixins/api";
 import Data from "@/store/data"
-import MarkdownEditor from "@/components/MarkdownEditor.vue";
+import MarkdownEditor from "@/components/markdownViewer/MarkdownEditor.vue";
 import JupyterEditor from "@/components/notebookViewer/JupyterEditor.vue";
 import {Notebook} from "@/types/shims/shims-nbformat-v4";
 import {denormaliseJupyterOutput, normaliseJupyterOutput} from "@/mixins/helpers";
