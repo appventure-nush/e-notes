@@ -120,7 +120,6 @@ import NotePopup from "@/components/popup/NotePopup.vue";
 import {del, get} from "@/mixins/api";
 import JupyterViewer from "@/components/notebookViewer/JupyterViewer.vue";
 import {Note} from "@/types/note";
-import Markdown from "@/components/markdownViewer/Markdown.vue";
 import UserAvatar from "@/components/UserAvatar.vue";
 import Data from "@/store/data"
 import Config from "@/store/config"
@@ -142,7 +141,7 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
     UserAvatar,
     JupyterViewer,
     NotePopup,
-    Markdown
+    Markdown: () => import(/* webpackChunkName: "markdown" */"@/components/markdownViewer/Markdown.vue")
   }
 })
 export default class NoteViewer extends Vue {

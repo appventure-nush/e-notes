@@ -105,14 +105,13 @@
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
 import {post} from "@/mixins/api";
 import {Note, NoteType} from "@/types/note";
-import Markdown from "@/components/markdownViewer/Markdown.vue";
 import Data from "@/store/data"
 import {VForm} from "@/types/shims/shims-vuetify";
 
 @Component({
   name: "NotePopup",
   components: {
-    Markdown
+    Markdown: () => import(/* webpackChunkName: "markdown" */"@/components/markdownViewer/Markdown.vue")
   }
 })
 export default class NotePopup extends Vue {

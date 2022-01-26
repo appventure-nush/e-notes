@@ -9,14 +9,13 @@
 
 <script lang="ts">
 import {Watch, Component, ModelSync, Vue} from "vue-property-decorator";
-import Markdown from "@/components/markdownViewer/Markdown.vue";
 import {PrismEditor} from 'vue-prism-editor';
 import hljs from '@/plugins/hljs';
 import 'vue-prism-editor/dist/prismeditor.min.css';
 
 @Component({
   components: {
-    PrismEditor, Markdown
+    PrismEditor, Markdown: () => import(/* webpackChunkName: "markdown" */"@/components/markdownViewer/Markdown.vue")
   }
 })
 export default class MarkdownEditor extends Vue {

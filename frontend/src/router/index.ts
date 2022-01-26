@@ -122,7 +122,7 @@ const routes: Array<RouteConfig> = [
                     title: "{{cid}}/{{nid}}",
                     hideTitle: true
                 },
-                component: () => import(/* webpackChunkName: "note" */'@/components/viewer/NoteViewer.vue')
+                component: () => import(/* webpackChunkName: "collection.note-viewer" */'@/components/viewer/NoteViewer.vue')
             },
             {
                 props: true,
@@ -133,7 +133,7 @@ const routes: Array<RouteConfig> = [
                     title: "Edit {{nid}}",
                     hideTitle: true
                 },
-                component: () => import(/* webpackChunkName: "note.edit" */'@/views/NoteEditor.vue')
+                component: () => import(/* webpackChunkName: "collection.note.edit" */'@/views/NoteEditor.vue')
             },
             {
                 props: (route) => {
@@ -147,7 +147,7 @@ const routes: Array<RouteConfig> = [
                     title: "{{nid}}",
                     hideTitle: true
                 },
-                component: () => import(/* webpackChunkName: "note" */'@/components/viewer/NoteViewer.vue')
+                component: () => import(/* webpackChunkName: "collection.note" */'@/components/viewer/NoteViewer.vue')
             },
             {
                 props: (route) => {
@@ -163,7 +163,7 @@ const routes: Array<RouteConfig> = [
                     title: "{{nid}}",
                     hideTitle: true
                 },
-                component: () => import(/* webpackChunkName: "note" */'@/views/NoteCompare.vue')
+                component: () => import(/* webpackChunkName: "collection.note.compare" */'@/views/NoteCompare.vue')
             },
             {
                 props: true,
@@ -202,7 +202,7 @@ const routes: Array<RouteConfig> = [
     {
         path: '/admin',
         name: 'Config',
-        component: () => import(/* webpackChunkName: "settings" */'@/views/Config.vue'),
+        component: () => import(/* webpackChunkName: "config" */'@/views/Config.vue'),
         meta: {
             title: "Config",
             admin: true

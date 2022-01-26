@@ -104,13 +104,12 @@
 import {Component, Prop, Ref, Vue, Watch} from "vue-property-decorator";
 import {Collection} from "@/types/coll";
 import {del, post} from "@/mixins/api";
-import Markdown from "@/components/markdownViewer/Markdown.vue";
 import Data from "@/store/data"
 
 @Component({
   name: "CollectionPopup",
   components: {
-    Markdown
+    Markdown: () => import(/* webpackChunkName: "markdown" */"@/components/markdownViewer/Markdown.vue")
   }
 })
 export default class CollectionPopup extends Vue {

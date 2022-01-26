@@ -26,7 +26,6 @@
 import {Component, Prop, Vue} from "vue-property-decorator";
 import hljs from '@/plugins/hljs';
 import {Cell} from "@/types/shims/shims-nbformat-v4";
-import Markdown from "@/components/markdownViewer/Markdown.vue";
 import {normaliseJupyterOutput} from "@/mixins/helpers";
 import QuizQuestion from "@/components/quiz/QuizQuestion.vue";
 import {parseQuiz} from "../quiz/quiz";
@@ -34,7 +33,7 @@ import {parseQuiz} from "../quiz/quiz";
 @Component({
   components: {
     QuizQuestion,
-    Markdown
+    Markdown: () => import(/* webpackChunkName: "markdown" */"@/components/markdownViewer/Markdown.vue")
   }
 })
 export default class BlockSource extends Vue {

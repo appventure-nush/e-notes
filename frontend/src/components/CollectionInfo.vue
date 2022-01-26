@@ -153,18 +153,23 @@ import {Note} from "@/types/note";
 import {Role} from "@/types/role";
 import Data, {Image} from "@/store/data"
 
+import CollectionPopup from "@/components/popup/CollectionPopup.vue";
+import NotePopup from "@/components/popup/NotePopup.vue";
+import UserAvatar from "@/components/UserAvatar.vue";
+import draggable from 'vuedraggable'
+
 @Component({
   methods: {
     getToken
   },
   components: {
-    UserAvatar: () => import("@/components/UserAvatar.vue"),
-    draggable: () => import("vuedraggable"),
-    NotePopup: () => import("@/components/popup/NotePopup.vue"),
-    CollectionPopup: () => import("@/components/popup/CollectionPopup.vue"),
+    UserAvatar,
+    draggable,
+    NotePopup,
     Gallery,
     FileUpload: VueUploadComponent,
-    Markdown: () => import("@/components/markdownViewer/Markdown.vue")
+    CollectionPopup,
+    Markdown: () => import(/* webpackChunkName: "markdown" */"@/components/markdownViewer/Markdown.vue")
   }
 })
 export default class CollectionInfo extends Vue {

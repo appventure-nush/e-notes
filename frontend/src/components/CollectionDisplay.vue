@@ -54,13 +54,12 @@
 import {Component, Prop, Vue} from "vue-property-decorator";
 import {Collection} from "@/types/coll";
 import CollectionPopup from "@/components/popup/CollectionPopup.vue";
-import Markdown from "@/components/markdownViewer/Markdown.vue";
 import Config from "@/store/config";
 
 @Component({
   components: {
     CollectionPopup,
-    Markdown
+    Markdown: () => import(/* webpackChunkName: "markdown" */"@/components/markdownViewer/Markdown.vue")
   }
 })
 export default class CollectionDisplay extends Vue {
