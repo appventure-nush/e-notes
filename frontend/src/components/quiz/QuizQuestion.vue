@@ -14,12 +14,13 @@
     </v-radio-group>
     <div v-else-if="def.type==='mrq'">
       <v-checkbox
-          :disabled="correct"
-          :readonly="viewOnly"
-          hide-details dense
           v-model="buf"
           v-for="(n,i) in def.C"
           :key="i"
+
+          :disabled="correct"
+          :readonly="viewOnly"
+          hide-details dense
           :label="n.text"
           :value="i"
       ></v-checkbox>
@@ -49,6 +50,7 @@ export default class QuizQuestion extends Vue {
   @Watch('def', {immediate: true, deep: true})
   onDefChange() {
     if (this.viewOnly) this.buf = this.correctAnswer;
+    if (this.def?.type === 'mrq' && !Array.isArray(this.buf)) this.buf = [];
   }
 
   submit() {
