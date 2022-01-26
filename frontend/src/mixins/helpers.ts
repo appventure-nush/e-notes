@@ -100,3 +100,20 @@ export function normaliseJupyterOutput(input: string | string[]): string {
 export function denormaliseJupyterOutput(input: string): string[] {
     return input.split("\n").map((s, i, a) => i === a.length - 1 ? s : s + "\n")
 }
+
+export function equals<T extends number | string>(a: T[], b: T[]) {
+    if (!(Array.isArray(a) && Array.isArray(b) && a.length === b.length)) return false;
+
+    const seen: { [key: string]: number } = {};
+    a.forEach(v => {
+        if (!seen[v]) seen[v] = 0;
+        seen[v]++;
+    });
+
+    return b.every(v => {
+        if (seen[v]) {
+            seen[v]--;
+            return true;
+        }
+    });
+}

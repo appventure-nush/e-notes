@@ -20,10 +20,10 @@ class ConfigModule extends VuexModule {
     user: FirebaseUser | null = null;
     profile: User | null = null;
 
-    quizAnswers: { [key: string]: number } = {};
+    quizAnswers: { [key: string]: number | number[] | string } = {};
 
     @Mutation
-    setAnswer({key, ans}: { key: string, ans: number }) {
+    setAnswer({key, ans}: { key: string, ans?: number | number[] | string }) {
         if (!this.quizAnswers) this.quizAnswers = {};
         Vue.set(this.quizAnswers, key, ans);
     }

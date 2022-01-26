@@ -40,7 +40,7 @@ notes.post("/:nid", checkUser, async (req, res) => {
         if (old.nid !== note.nid) {
             await renameNote(note.cid, old.nid, note.nid);
             // if url follows convention
-            if (note.url && !IS_EXTERNAL_NOTE_REGEX.test(note.url)) note.url = COLLECTION_NOTE_URL(note.cid, note.nid, note.lastEdit);
+            if (note.url && !IS_EXTERNAL_NOTE_REGEX.test(note.url)) note.url = COLLECTION_NOTE_URL(note.cid, note.nid);
         }
     } else {
         note = makeNote(-1, req.params.nid, req.body.cid, req.uid!, req.body.name, req.body.desc);
@@ -97,7 +97,7 @@ notes.post("/:nid/upload", checkUser, fileUpload({limits: {fileSize: 64 * 1024 *
         const date = Date.now();
         COLLECTION_NOTES_STORE.rename(path, COLLECTION_NOTE_PATH_VER(req.body.cid, req.params.nid, date));
         COLLECTION_NOTES_STORE.write(path).write(newNoteSource.data);
-        note.url = COLLECTION_NOTE_URL(req.body.cid, req.params.nid, date);
+        note.url = COLLECTION_NOTE_URL(req.body.cid, req.params.nid);
 
         if (!note.type) note.type = type;
         note.lastEdit = date;

@@ -12,7 +12,7 @@
         </v-card>
         <div class="cell-content source-markdown" v-else-if="type==='markdown'">
           <markdown :fms="fms" :content="cell.source.join('')"></markdown>
-          <QuizQuestion v-for="(f,i) in parsedFM[0]" :def="f" :key="i"></QuizQuestion>
+          <QuizQuestion v-for="(f,i) in parsedFM" :def="f" :key="i"></QuizQuestion>
         </div>
         <div v-else>
           Cell Type {{ type }} not supported...
@@ -27,11 +27,11 @@ import {Component, Prop, Vue} from "vue-property-decorator";
 import hljs from 'highlight.js/lib/common';
 import {Cell} from "@/types/shims/shims-nbformat-v4";
 import Markdown from "@/components/markdownViewer/Markdown.vue";
-import YAML from 'yaml'
 import 'highlight.js/styles/github.css'
 import '@/styles/github-dark.scss';
 import {normaliseJupyterOutput} from "@/mixins/helpers";
 import QuizQuestion from "@/components/quiz/QuizQuestion.vue";
+import {parseQuiz} from "../quiz/quiz";
 
 @Component({
   components: {
@@ -64,7 +64,13 @@ export default class BlockSource extends Vue {
   }
 
   get parsedFM() {
-    return this.fms.map(str => YAML.parse(str));
+    return this.fms.map(str => {
+      try {
+        return parseQuiz(str);
+      } catch (e) {
+        return null;
+      }
+    }).filter(Boolean)[0] || [];
   }
 }
 </script>

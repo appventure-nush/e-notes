@@ -92,8 +92,8 @@ export default class NoteCompare extends Vue {
   onNoteChanged() {
     this.doc_loading = true;
     this.newDoc = this.oldDoc = "";
-    let oldUrl = `/raw/c/${encodeURIComponent(this.cid)}/notes/${encodeURIComponent(this.nid)}/${this.old}`;
-    let newUrl = `/raw/c/${encodeURIComponent(this.cid)}/notes/${encodeURIComponent(this.nid)}/${this.new}`;
+    let oldUrl = `/raw/c/${encodeURIComponent(this.cid)}/notes/${encodeURIComponent(this.nid)}/${this.old}` + (this.old ? '' : "?" + this.note.lastEdit);
+    let newUrl = `/raw/c/${encodeURIComponent(this.cid)}/notes/${encodeURIComponent(this.nid)}/${this.new}` + (this.new ? '' : "?" + this.note.lastEdit);
     this.errorJSON = false;
     Promise.all([this.lastOldUrl === oldUrl ? null : fetch(oldUrl).then(res => res.text()).then(text => {
       if (!this.note) return;

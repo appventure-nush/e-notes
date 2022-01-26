@@ -128,6 +128,7 @@ import {Collection} from "@/types/coll";
 import sanitizeHtml from 'sanitize-html';
 
 const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
+  allowVulnerableTags: true,
   allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'hr', 'style']),
   allowedAttributes: {
     ...sanitizeHtml.defaults.allowedAttributes,
@@ -161,7 +162,6 @@ export default class NoteViewer extends Vue {
 
   @Watch('doc', {immediate: true})
   onDocChange() {
-    console.log("doc change")
     if (!this.shadow && this.shadowRoot) this.shadow = this.shadowRoot.attachShadow({mode: 'open'});
     if (this.shadow && (!this.note.type || this.note.type === 'html')) this.shadow.innerHTML = sanitizeHtml(this.doc, SANITIZE_OPTIONS);
   }
@@ -210,18 +210,19 @@ export default class NoteViewer extends Vue {
   }
 
   last_url = "";
-  last_date?: number = undefined;
 
   @Watch('date')
   @Watch('note', {immediate: true, deep: true})
   onNoteChanged() {
-    if (this.note && this.note.url) {
-      if (this.note.url === this.last_url && (this.last_date && this.date === this.last_date)) return;
+    if (this.note) {
+      const req_url = `/raw/c/${encodeURIComponent(this.cid)}/notes/${encodeURIComponent(this.nid)}`
+          + (this.date ? '/' + this.date : '') + (this.date ? '' : "?" + this.note.lastEdit);
+      if (req_url === this.last_url) return;
+      this.doc = null;
+      this.last_url = req_url;
       this.doc_loading = true;
-      this.last_url = this.note.url;
-      this.last_date = this.date;
-      fetch(`/raw/c/${encodeURIComponent(this.cid)}/notes/${encodeURIComponent(this.nid)}`
-          + (this.date ? '/' + this.date : '')).then(res => res.text()).then(text => {
+      fetch(req_url).then(res => res.text()).then(text => {
+        if (this.last_url !== req_url) return;
         if (!this.note) return;
         try {
           this.errorJSON = false;

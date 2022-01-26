@@ -10,7 +10,8 @@
       </v-col>
       <v-divider class="hidden-sm-and-up my-1" style="min-width:100%;"></v-divider>
       <v-col :style="{'min-width':$vuetify.breakpoint.xsOnly?'100%':'0'}" v-if="type==='markdown'">
-        <markdown :content="source"></markdown>
+        <markdown :fms="fms" :content="source"></markdown>
+        <QuizQuestion v-for="(f,i) in parsedFM" :def="f" :key="i" view-only></QuizQuestion>
       </v-col>
     </v-row>
   </div>
@@ -27,20 +28,25 @@ import 'vue-prism-editor/dist/prismeditor.min.css';
 import 'highlight.js/styles/github.css'
 import '@/styles/github-dark.scss';
 import {denormaliseJupyterOutput, normaliseJupyterOutput} from "@/mixins/helpers";
+import QuizQuestion from "@/components/quiz/QuizQuestion.vue";
+import {parseQuiz} from "../quiz/quiz";
 
 @Component({
   components: {
+    QuizQuestion,
     PrismEditor,
     Markdown
   }
 })
-export default class BlockSource extends Vue {
-  name = "BlockSource"
+export default class BlockSourceEditor extends Vue {
+  name = "BlockSourceEditor"
   @VModel({type: Object}) readonly cell!: Cell;
   @Prop(Boolean) readonly display!: boolean;
   @Prop(Boolean) readonly showLineNumber!: boolean;
   @Prop(String) readonly language!: string;
   @Prop({type: Boolean, default: false}) highlighted!: boolean;
+
+  fms: string[] = [];
 
   get hide() {
     return !this.display && this.cell.metadata.jupyter !== undefined && this.cell.metadata.jupyter.source_hidden
@@ -60,6 +66,16 @@ export default class BlockSource extends Vue {
 
   set source(src: string) {
     this.cell.source = denormaliseJupyterOutput(src);
+  }
+
+  get parsedFM() {
+    return this.fms.map(str => {
+      try {
+        return parseQuiz(str);
+      } catch (e) {
+        return null;
+      }
+    }).filter(Boolean)[0] || [];
   }
 }
 </script>

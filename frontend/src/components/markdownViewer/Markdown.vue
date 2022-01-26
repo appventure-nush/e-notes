@@ -27,6 +27,7 @@ import {modifyText} from "@/plugins/uwu/utils";
 if (Config.settings.animationCss) require('@/styles/animate.compat.css');
 
 const SANITIZE_OPTIONS = {
+  allowVulnerableTags: true,
   allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'hr', 'font']),
   allowedAttributes: {
     ...sanitizeHtml.defaults.allowedAttributes,
@@ -66,6 +67,7 @@ export default class Markdown extends Vue {
   onContentChange(val: string) {
     this.$nextTick(() => {
       if (!val) return this.container.innerHTML = "";
+      this.frontMatters.splice(0, this.frontMatters.length);
       let html = this.md.render(val);
       if (this.sanitize) html = sanitizeHtml(html, SANITIZE_OPTIONS);
       this.container.innerHTML = html;

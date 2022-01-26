@@ -12,7 +12,7 @@ import {Note} from "@/types/note";
 import {PrismEditor} from 'vue-prism-editor';
 import hljs from 'highlight.js/lib/common';
 import pretty from "pretty";
-import {formatFromString} from "@quilicicf/markdown-formatter";
+import {formatFromString, MarkdownFormatterOptions, RemarkStringifyOptions} from "@quilicicf/markdown-formatter";
 
 import 'vue-prism-editor/dist/prismeditor.min.css';
 import '@/styles/github-dark.scss';
@@ -25,6 +25,13 @@ import {Notebook} from "@/types/shims/shims-nbformat-v4";
 import {denormaliseJupyterOutput, normaliseJupyterOutput} from "@/mixins/helpers";
 import {NavigationGuardNext, Route} from "vue-router";
 
+const MD_FORMAT_OPTIONS: MarkdownFormatterOptions = {
+  watermark: "none"
+};
+const MD_STRINGIFY_OPTIONS: RemarkStringifyOptions = {
+  bullet: "-"
+};
+
 @Component({
   components: {
     JupyterEditor,
@@ -33,8 +40,8 @@ import {NavigationGuardNext, Route} from "vue-router";
   }
 })
 export default class NoteEditor extends Vue {
-  @Prop(String) readonly cid?: string;
-  @Prop(String) readonly nid?: string;
+  @Prop(String) readonly cid!: string;
+  @Prop(String) readonly nid!: string;
   @Prop(Array) readonly notes!: Note[];
   name = "NoteEditor";
   doc = '';
@@ -51,9 +58,9 @@ export default class NoteEditor extends Vue {
     if (!this.note) return;
     if (action === 'format') {
       if (this.note.type === 'jupyter') this.notebook.cells.forEach(cell => {
-        if (cell.cell_type === 'markdown') formatFromString(pretty(normaliseJupyterOutput(cell.source))).then(res => cell.source = denormaliseJupyterOutput(res.value.toString()));
+        if (cell.cell_type === 'markdown') formatFromString(normaliseJupyterOutput(cell.source), MD_FORMAT_OPTIONS, MD_STRINGIFY_OPTIONS).then(res => cell.source = denormaliseJupyterOutput(res.value.toString()));
       })
-      else if (this.note.type === 'markdown') formatFromString(pretty(this.doc)).then(res => this.doc = res.value.toString());
+      else if (this.note.type === 'markdown') formatFromString(this.doc, MD_FORMAT_OPTIONS, MD_STRINGIFY_OPTIONS).then(res => this.doc = res.value.toString());
       else this.doc = pretty(this.doc, {ocd: true});
     } else if (action === 'save') {
       this.loading = true;
@@ -96,7 +103,9 @@ export default class NoteEditor extends Vue {
   @Watch('note', {immediate: true, deep: true})
   onNoteChange() {
     this.doc = "";
-    if (this.note?.url) fetch(this.note.url).then(res => res.text()).then(text => {
+    if (!this.note) return;
+    const req_url = `/raw/c/${encodeURIComponent(this.cid)}/notes/${encodeURIComponent(this.nid)}?${this.note.lastEdit}`
+    fetch(req_url).then(res => res.text()).then(text => {
       if (!this.note) return;
       this.doc = text;
       if (this.note.type === "jupyter") this.notebook = JSON.parse(text);
