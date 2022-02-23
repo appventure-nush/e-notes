@@ -155,8 +155,12 @@ pre {
       margin: 0 0 0 0;
 
       &.source-code {
-        margin: 5px 0 0 5px;
-        padding-left: 5px;
+        margin: 0;
+        padding-left: 0;
+
+        pre.source-code-main {
+          padding: 5px 10px;
+        }
       }
 
       &.source-markdown {

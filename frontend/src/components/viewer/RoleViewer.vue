@@ -34,11 +34,19 @@
             </div>
             <v-hover v-slot="{hover}" v-else>
               <div class="my-1">
-                <UserAvatar :uid="uid" :size="46" classes="ma-1" :key="uid" v-for="uid in usersWithRole||[]"
+                <UserAvatar :uid="user.uid" :size="46" classes="ma-1" :key="user.uid" v-for="user in usersWithRole||[]"
                             :elevation="hover?3:0"></UserAvatar>
               </div>
             </v-hover>
+            <div v-if="showPlainEmail">
+              <code v-text="this.usersWithRole.map(u=>u.email).join(', ')"></code>
+            </div>
             <RoleUserPopup ref="users-popup" :rid="rid" :show="editing"></RoleUserPopup>
+            <div v-if="role.pendingEmail&&role.pendingEmail.length>0">
+              <h1 class="text-h5">Pending</h1>
+              <pre v-text="role.pendingEmail.join('\n')"></pre>
+            </div>
+            <v-btn v-if="!editing&&!creating" text @click="showPlainEmail=!showPlainEmail">Toggle Plain</v-btn>
           </v-card-text>
           <PermissionEditor v-model="editedPermissions" :editing="editing"
                             no-data="No permission overrides set for this role"></PermissionEditor>
@@ -66,6 +74,7 @@ import RoleUserPopup from "@/components/popup/RoleUserPopup.vue";
 import {EventBus} from "@/event";
 import Data from "@/store/data"
 import PermissionEditor from "@/components/PermissionEditor.vue";
+import {User} from "@/types/user";
 
 @Component({
   components: {PermissionEditor, RoleUserPopup, UserAvatar}
@@ -79,8 +88,9 @@ export default class RoleViewer extends Vue {
   loading = false;
   saving = false;
   editing = false;
+  showPlainEmail = false;
   editedRole: Role = {} as Role;
-  usersWithRole: string[] = [];
+  usersWithRole: User[] = [];
   editedPermissions: { cid: string, allow: number | boolean }[] = []
 
   // for creation only
@@ -90,10 +100,11 @@ export default class RoleViewer extends Vue {
     this.usersPopup.$on('emails', (emails: string[]) => {
       if (!this.creating) {
         this.saving = true;
-        post<{ updated: number, users: string[] }>(`/api/roles/${this.rid}/users`, {
+        post<{ updated: number, users: User[], role: Role }>(`/api/roles/${this.rid}/users`, {
           action: this.usersPopup.action,
           emails: emails
         }).then(json => {
+          Data.setRole({rid: json.role.rid, role: json.role});
           console.log("Updated users count", json.updated);
           this.usersWithRole = json.users;
         }).catch(e => alert(e)).finally(() => this.saving = false)
@@ -119,7 +130,7 @@ export default class RoleViewer extends Vue {
     let role = this.roles.find(r => r.rid === this.rid);
     if (!role) return this.$router.push({name: "Roles"});
     Data.setCurrentRole(role);
-    get<string[]>(`/api/roles/${this.rid}/users`).then(json => this.usersWithRole = json);
+    get<User[]>(`/api/roles/${this.rid}/users`).then(json => this.usersWithRole = json);
   }
 
   @Watch('roles', {immediate: true, deep: true})

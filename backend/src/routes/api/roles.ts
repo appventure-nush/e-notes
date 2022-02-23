@@ -1,10 +1,19 @@
 import {Router} from 'express';
 import {makeRole} from '../../types/role';
-import {checkAdmin, checkUser, profileCache, roleCache, sortHandler, updateRole, updateUser} from '../../utils';
+import {
+    checkAdmin,
+    checkUser,
+    getUser,
+    profileCache,
+    roleCache,
+    sortHandler,
+    updateRole,
+    updateUser
+} from '../../utils';
 import {_setPermissions} from "../../types/permissions";
-import {User} from "../../types/user";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
 import {failed, success} from "../../response";
+import {auth} from '../../app';
 
 const roles = Router();
 
@@ -20,36 +29,51 @@ roles.get("/:rid", checkUser, (req, res) => {
 });
 
 roles.get("/:rid/users", checkUser, (req, res) => {
-    return res.json(profileCache.values().filter(u => u.roles.includes(req.params.rid)).sort(sortHandler('uid')).map(u => u.uid));
+    return res.json(profileCache.values().filter(u => u.roles.includes(req.params.rid)).sort(sortHandler('uid')));
 });
 
 roles.post("/:rid/users", checkUser, checkAdmin, async (req, res) => {
-    let foundUsers: User[] = [];
-    if (req.body.uids) foundUsers = (req.body.uids as string[]).map(e => profileCache.get(e)).filter(u => Boolean(u)) as User[];
-    if (req.body.emails) foundUsers = (req.body.emails as string[]).map(e => profileCache.values().find(u => u.email?.toLowerCase() === e.toLowerCase())).filter(u => Boolean(u)) as User[];
-    if (foundUsers.length === 0) res.json(failed({
+    let users = req.body.emails as string[];
+    let role = roleCache.get(req.params.rid);
+    if (!role) return res.json(failed("role not found"));
+    if (!Array.isArray(users) || users.length === 0) return res.json(failed({
         reason: "no users specified",
         rid: req.params.rid
-    })); else {
-        let updated = 0;
-        await Promise.all(foundUsers.map(user => {
+    }));
+    let updated = 0;
+    const pending: string[] = [];
+    await Promise.all(users.map(async email => {
+        try {
+            const fbUser = await auth.getUserByEmail(email);
+            if (!fbUser) return pending.push(email);
+            let user = await getUser(fbUser.uid);
+            if (!user) return pending.push(email);
             if (req.body.action === "add") {
                 if (user.roles.includes(req.params.rid)) return user;
                 user.roles.push(req.params.rid);
-                updated++;
             } else {
                 if (!user.roles.includes(req.params.rid)) return user;
                 user.roles = user.roles.filter(role => role !== req.params.rid);
-                updated++;
             }
-            updateUser(user.uid, user);
-        }));
-        res.json(success({
-            updated,
-            users: profileCache.values().filter(u => u.roles.includes(req.params.rid)).sort(sortHandler('uid')).map(u => u.uid)
-        }));
-        await addAudit(simpleAudit(req.uid!, req.params.rid, Category.ROLE, Action.EDIT_ROLES, ["grant_roles"], {users: foundUsers.map(u => u.uid)}));
+            updated++;
+            await updateUser(user.uid, user);
+        } catch (e) {
+            return pending.push(email);
+        }
+    }));
+    if (pending.length > 0) {
+        role.pendingEmail = role.pendingEmail ?? [];
+        if (req.body.action === "add") role.pendingEmail.push(...pending);
+        else role.pendingEmail = role.pendingEmail.filter(e => !pending.includes(e));
+        role.pendingEmail = role.pendingEmail.filter((value, index, self) => self.indexOf(value) === index);
+        await updateRole(role.rid, role);
     }
+    res.json(success({
+        updated,
+        role,
+        users: profileCache.values().filter(u => u.roles.includes(req.params.rid)).sort(sortHandler('uid'))
+    }));
+    await addAudit(simpleAudit(req.uid!, req.params.rid, Category.ROLE, Action.EDIT_ROLES, ["grant_roles"], {users}));
 });
 
 roles.delete("/:rid", checkUser, checkAdmin, async (req, res) => {

@@ -5,6 +5,8 @@ export interface Role extends MutablePermissions {
     name: string;
     desc: string;
     defaultPerm: boolean;
+
+    pendingEmail?: string[];
 }
 
 export function makeRole(rid: string, name?: string, desc?: string, defaultPerm?: boolean | string): Role {

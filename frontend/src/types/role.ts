@@ -5,4 +5,5 @@ export interface Role extends MutablePermissions {
     name: string;
     desc: string;
     defaultPerm: boolean;
+    pendingEmail?: string[];
 }

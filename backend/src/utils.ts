@@ -60,9 +60,16 @@ export async function getUser(uid: string): Promise<User | undefined> { // heavy
         const get = await ref.get();
         if (get.exists) updateUserCache(fbUser.uid, user = get.data() as User);
         else {
-            if (endsWithAny(['@nushigh.edu.sg', '@nus.edu.sg', '@enotes.nush.app', '@nush.app'], fbUser.email)) {
+            const email = fbUser.email;
+            if (!email) throw new Error("no email!");
+            if (endsWithAny(['@nushigh.edu.sg', '@nus.edu.sg', '@enotes.nush.app', '@nush.app'], email)) {
                 user = makeUser(fbUser.uid);
                 fillUser(user, fbUser);
+                roleCache.values().filter(r => r.pendingEmail && r.pendingEmail.includes(email)).forEach(role => {
+                    user?.roles.push(role.rid);
+                    role.pendingEmail = role.pendingEmail?.filter(e => e !== email);
+                    updateRole(role.rid, role);
+                });
                 await Promise.all([ref.set(user), addAudit(simpleAudit("root", user.uid, Category.USER, Action.CREATE))]);
             } else {
                 throw new Error("only nus/nushigh emails allowed");
