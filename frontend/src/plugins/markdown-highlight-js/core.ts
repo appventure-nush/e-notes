@@ -4,6 +4,7 @@ import Renderer, {RenderRule} from 'markdown-it/lib/renderer';
 import {HighlightJsOptions} from "@/plugins/markdown-highlight-js/index";
 import {HLJSApi, LanguageFn} from "highlight.js";
 import vuetify from "@/plugins/vuetify"
+import {genRanHex} from "@/mixins/helpers";
 
 function maybe(f: () => any) {
     try {
@@ -13,23 +14,30 @@ function maybe(f: () => any) {
     }
 }
 
-const pyscript = (code: string) => `<py-repl theme="${vuetify.framework.theme.dark ? 'dark' : 'light'}" auto-generate="true">${code}</py-repl>`
-const pyscriptRead = (code: string) => `<py-script theme="${vuetify.framework.theme.dark ? 'dark' : 'light'}">${code}</py-script>`
+const pyscript: (hljs: HLJSApi, code: string) => string = (hljs: HLJSApi, code: string) => {
+    const id = genRanHex(8);
+    return `<div id="o_${id}"></div><py-repl class="${vuetify.framework.theme.dark ? 'dark' : 'light'}" output="o_${id}" theme="${vuetify.framework.theme.dark ? 'dark' : 'light'}" auto-generate="true">${code}</py-repl>`;
+}
+const pyscriptRead: (hljs: HLJSApi, code: string) => string = (hljs: HLJSApi, code: string) => {
+    const id = genRanHex(8);
+    console.log(code)
+    return `<div class="code-exec-box">${highlight(hljs, code, 'python')}<div id="o_${id}"></div><py-script class="${vuetify.framework.theme.dark ? 'dark' : 'light'}" output="o_${id}" theme="${vuetify.framework.theme.dark ? 'dark' : 'light'}">${code}</py-script></div>`;
+}
 const registerLangs = (hljs: HLJSApi, register?: { [key: string]: LanguageFn }) => register &&
     Object.entries(register).map(([lang, pack]) => {
         hljs.registerLanguage(lang, pack)
     })
 
 const highlight = (hljs: HLJSApi, code: string, lang?: string) =>
-    lang === 'py.box' ? pyscript(code) :
-        lang === 'py.script' ? pyscriptRead(code) :
-            lang + maybe(() => hljs.highlight(code, {language: lang || 'plaintext', ignoreIllegals: true}).value) || ''
+    lang === 'pybox' ? pyscript(hljs, code) :
+        lang === 'pyscript' ? pyscriptRead(hljs, code) :
+            maybe(() => hljs.highlight(code, {language: lang || 'plaintext', ignoreIllegals: true}).value) || ''
 
 const highlightAuto = (hljs: HLJSApi, code: string, lang?: string) =>
     lang
-        ? lang === 'py.box' ? pyscript(code) :
-            lang === 'py.script' ? pyscriptRead(code) : highlight(hljs, code, lang)
-        : lang + maybe(() => hljs.highlightAuto(code).value) || ''
+        ? lang === 'pybox' ? pyscript(hljs, code) :
+            lang === 'pyscript' ? pyscriptRead(hljs, code) : highlight(hljs, code, lang)
+        : maybe(() => hljs.highlightAuto(code).value) || ''
 
 const wrap = (render: RenderRule | undefined) =>
     (((tokens: Token[], idx: number, options: MarkdownIt.Options, env: any, self: Renderer) =>

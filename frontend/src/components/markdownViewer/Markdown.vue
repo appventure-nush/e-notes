@@ -29,7 +29,7 @@ if (Config.settings.animationCss) require('@/styles/animate.compat.css');
 
 const SANITIZE_OPTIONS = {
   allowVulnerableTags: true,
-  allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'hr', 'font']),
+  allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'hr', 'font', 'py-repl', 'py-script']),
   allowedAttributes: {
     ...sanitizeHtml.defaults.allowedAttributes,
     '*': ['id', 'class'],
@@ -74,7 +74,7 @@ export default class Markdown extends Vue {
       this.container.innerHTML = html;
       if (EventBus.uwufy) modifyText(this.container, (str, i) => uwuifier.uwuifySentence(str, i), ['pre', 'code']);
 
-      if (val.includes('```py.box') || val.includes('```py.script')) addPyScript()
+      if (val.includes('```pybox') || val.includes('```pyscript')) addPyScript()
     })
   }
 
@@ -111,6 +111,78 @@ export default class Markdown extends Vue {
 <style lang="scss" scoped>
 
 ::v-deep {
+  py-repl {
+    .parentBox {
+      box-shadow: 0 0 0 1px #aaaa;
+    }
+  }
+
+  py-script, py-repl {
+
+    .parentBox {
+      margin: 0.5em 0 !important;
+    }
+
+    .relative {
+      position: relative;
+    }
+
+    .absolute {
+      position: absolute
+    }
+
+    .right-1 {
+      right: 0.5em
+    }
+
+    .bottom-1 {
+      bottom: 0.5em
+    }
+
+    .opacity-0 {
+      opacity: 0
+    }
+
+    &:hover #btnRun {
+      opacity: 1;
+    }
+
+    .output {
+      div {
+        display: inline;
+      }
+    }
+
+    &.dark {
+      .ͼ2 .cm-gutters {
+        background-color: #151515;
+        color: #bbb;
+        border-right: 1px solid #444;
+      }
+
+      .ͼ2 .cm-activeLineGutter {
+        background-color: #232323;
+      }
+
+      .ͼ2 .cm-activeLine {
+        background-color: #232323;
+      }
+
+      .ͼ4 .cm-line, .ͼ2 .cm-content {
+        caret-color: white !important;
+      }
+
+      .ͼ2 .cm-selectionBackground {
+        background: #333;
+      }
+    }
+  }
+
+  .code-exec-box {
+    padding: 5px;
+    box-shadow: 0 0 0 1px #aaaa;
+  }
+
   img {
     max-width: 100%;
     height: auto;
