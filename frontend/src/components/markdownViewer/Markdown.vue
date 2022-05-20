@@ -23,6 +23,7 @@ import Config from "@/store/config";
 import {EventBus} from "@/event";
 import {uwuifier} from "@/plugins/others";
 import {modifyText} from "@/plugins/uwu/utils";
+import {addPyScript} from "@/mixins/helpers";
 // why not lol
 if (Config.settings.animationCss) require('@/styles/animate.compat.css');
 
@@ -72,6 +73,8 @@ export default class Markdown extends Vue {
       if (this.sanitize) html = sanitizeHtml(html, SANITIZE_OPTIONS);
       this.container.innerHTML = html;
       if (EventBus.uwufy) modifyText(this.container, (str, i) => uwuifier.uwuifySentence(str, i), ['pre', 'code']);
+
+      if (val.includes('```py.box') || val.includes('```py.script')) addPyScript()
     })
   }
 

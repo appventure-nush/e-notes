@@ -117,3 +117,25 @@ export function equals<T extends number | string>(a: T[], b: T[]) {
         }
     });
 }
+
+export function addPyScript() {
+    if (!document.getElementById('pyscript')) {
+        const env = document.createElement('py-env');
+        env.innerHTML = `
+        - numpy
+        - matplotlib`
+        document.head.appendChild(env);
+        const script = document.createElement('script');
+        script.id = 'pyscript';
+        script.defer = true
+        script.src = 'https://pyscript.net/alpha/pyscript.js';
+        document.head.appendChild(script);
+        const styles = document.createElement('style');
+        styles.innerHTML = `
+        .v-application.theme--dark .editor-box .cm-gutters{
+            background-color: #999;
+            color: #f5f5f5;
+        }
+        `
+    }
+}

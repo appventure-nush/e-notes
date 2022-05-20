@@ -31,6 +31,7 @@ import {Component, Prop, Vue} from "vue-property-decorator";
 import {Notebook} from "@/types/shims/shims-nbformat-v4";
 import BlockSource from "@/components/notebookViewer/BlockSource.vue";
 import BlockOutput from "@/components/notebookViewer/BlockOutput.vue";
+import {addPyScript} from "@/mixins/helpers";
 
 @Component({
   components: {BlockOutput, BlockSource}
@@ -42,6 +43,10 @@ export default class JupyterViewer extends Vue {
   graphic = true;
   plain = false;
   clickCellIndex = -1;
+
+  mounted() {
+    addPyScript()
+  }
 }
 </script>
 

@@ -109,7 +109,8 @@
     </v-main>
     <v-footer padless v-if="!$route.meta.hideFooter">
       <v-col class="text-center pb-0" cols="12">
-        <img :src="dark?'/images/appventure_logo.svg':'/images/appventure_logo_nobg.svg'" class="pa-0 mr-1" height="40"
+        <img :src="dark?'/images/appventure_logo.svg':'/images/appventure_logo_nobg.svg'" class="pa-0 mr-1"
+             height="40"
              alt=""/>
         <img id="school_logo" src="/images/nush_logo_color.svg" class="pa-1 ml-1" height="40" alt=""/>
       </v-col>

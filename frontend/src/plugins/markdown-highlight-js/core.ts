@@ -3,6 +3,7 @@ import Token from 'markdown-it/lib/token';
 import Renderer, {RenderRule} from 'markdown-it/lib/renderer';
 import {HighlightJsOptions} from "@/plugins/markdown-highlight-js/index";
 import {HLJSApi, LanguageFn} from "highlight.js";
+import vuetify from "@/plugins/vuetify"
 
 function maybe(f: () => any) {
     try {
@@ -12,18 +13,23 @@ function maybe(f: () => any) {
     }
 }
 
+const pyscript = (code: string) => `<py-repl theme="${vuetify.framework.theme.dark ? 'dark' : 'light'}" auto-generate="true">${code}</py-repl>`
+const pyscriptRead = (code: string) => `<py-script theme="${vuetify.framework.theme.dark ? 'dark' : 'light'}">${code}</py-script>`
 const registerLangs = (hljs: HLJSApi, register?: { [key: string]: LanguageFn }) => register &&
     Object.entries(register).map(([lang, pack]) => {
         hljs.registerLanguage(lang, pack)
     })
 
 const highlight = (hljs: HLJSApi, code: string, lang?: string) =>
-    maybe(() => hljs.highlight(code, {language: lang || 'plaintext', ignoreIllegals: true}).value) || ''
+    lang === 'py.box' ? pyscript(code) :
+        lang === 'py.script' ? pyscriptRead(code) :
+            lang + maybe(() => hljs.highlight(code, {language: lang || 'plaintext', ignoreIllegals: true}).value) || ''
 
 const highlightAuto = (hljs: HLJSApi, code: string, lang?: string) =>
     lang
-        ? highlight(hljs, code, lang)
-        : maybe(() => hljs.highlightAuto(code).value) || ''
+        ? lang === 'py.box' ? pyscript(code) :
+            lang === 'py.script' ? pyscriptRead(code) : highlight(hljs, code, lang)
+        : lang + maybe(() => hljs.highlightAuto(code).value) || ''
 
 const wrap = (render: RenderRule | undefined) =>
     (((tokens: Token[], idx: number, options: MarkdownIt.Options, env: any, self: Renderer) =>

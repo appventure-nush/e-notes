@@ -1,3 +1,4 @@
+import type express from "express";
 import {Router} from "express";
 import {checkUser, checkUserOptional, filterBadImageUpload, updateUser, userCache} from "../../utils";
 import {Action, addAudit, Category, simpleAudit} from "../../types/audit";
@@ -69,5 +70,7 @@ authentication.get('/logout', (req, res) => {
         .then(_ => res.json(success()))
         .catch(_ => res.json(error({reason: 'logout failed', message: _.message})));
 });
-
+authentication.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    res.status(500).json(error(err))
+})
 export default authentication;
