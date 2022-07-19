@@ -8,7 +8,7 @@
       </v-col>
       <v-col :style="{'min-width':$vuetify.breakpoint.xsOnly?'100%':'0'}">
         <v-card class="cell-content source-code" v-if="type==='code'" flat outlined>
-          <pre class="source-code-main hljs" :class="['language-'+language]" v-html="hljs"></pre>
+          <pre ref="hljs" class="source-code-main hljs" :class="['language-'+language]" v-html="hljs"></pre>
         </v-card>
         <div class="cell-content source-markdown" v-else-if="type==='markdown'">
           <markdown :fms="fms" :content="cell.source.join('')"></markdown>
@@ -23,7 +23,7 @@
 </template>
 
 <script lang="ts">
-import {Component, Prop, Vue, Watch} from "vue-property-decorator";
+import {Component, Prop, Vue} from "vue-property-decorator";
 import hljs from '@/plugins/hljs';
 import {Cell} from "@/types/shims/shims-nbformat-v4";
 import {normaliseJupyterOutput} from "@/mixins/helpers";
@@ -46,13 +46,12 @@ export default class BlockSource extends Vue {
   @Prop({type: Boolean, default: false}) highlighted!: boolean;
   fms: string[] = [];
 
-  @Watch('this.cell.source', {immediate: true})
-  onCodeChange() {
+  mounted() {
     if (this.$refs.hljs) lineNumbersBlock(this.$refs.hljs as Element, {singleLine: false, startFrom: 1})
   }
 
-  mounted() {
-    this.onCodeChange()
+  updated() {
+    if (this.$refs.hljs) lineNumbersBlock(this.$refs.hljs as Element, {singleLine: false, startFrom: 1})
   }
 
   get hljs() {
