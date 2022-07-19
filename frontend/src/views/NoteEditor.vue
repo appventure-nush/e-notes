@@ -15,7 +15,7 @@ import pretty from "pretty";
 import {formatFromString, MarkdownFormatterOptions, RemarkStringifyOptions} from "@quilicicf/markdown-formatter";
 
 import 'vue-prism-editor/dist/prismeditor.min.css';
-import '@/styles/github-dark.scss';
+import '@/plugins/hljs/hljs.scss';
 import {EventBus} from "@/event";
 import {post} from "@/mixins/api";
 import Data from "@/store/data"

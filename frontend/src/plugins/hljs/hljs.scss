@@ -1,0 +1,17 @@
+@import "@/plugins/hljs/hljs-onedark";
+
+// Line numbers
+.hljs {
+  table.hljs-ln {
+    border-collapse: collapse;
+    border-spacing: 0;
+  }
+
+  .hljs-ln-n:before {
+    content: attr(data-line-number)
+  }
+
+  .hljs-ln-numbers {
+    padding-right: 1em;
+  }
+}

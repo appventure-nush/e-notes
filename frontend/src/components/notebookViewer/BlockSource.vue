@@ -23,12 +23,13 @@
 </template>
 
 <script lang="ts">
-import {Component, Prop, Vue} from "vue-property-decorator";
+import {Component, Prop, Vue, Watch} from "vue-property-decorator";
 import hljs from '@/plugins/hljs';
 import {Cell} from "@/types/shims/shims-nbformat-v4";
 import {normaliseJupyterOutput} from "@/mixins/helpers";
 import QuizQuestion from "@/components/quiz/QuizQuestion.vue";
 import {parseQuiz} from "../quiz/quiz";
+import {lineNumbersBlock} from "@/plugins/hljs/hljs-line-number";
 
 @Component({
   components: {
@@ -44,6 +45,15 @@ export default class BlockSource extends Vue {
   @Prop(String) readonly language!: string;
   @Prop({type: Boolean, default: false}) highlighted!: boolean;
   fms: string[] = [];
+
+  @Watch('this.cell.source', {immediate: true})
+  onCodeChange() {
+    if (this.$refs.hljs) lineNumbersBlock(this.$refs.hljs as Element, {singleLine: false, startFrom: 1})
+  }
+
+  mounted() {
+    this.onCodeChange()
+  }
 
   get hljs() {
     return hljs.highlight(normaliseJupyterOutput(this.cell.source), {

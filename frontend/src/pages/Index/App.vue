@@ -108,15 +108,14 @@
       <router-view/>
     </v-main>
     <v-footer padless v-if="!$route.meta.hideFooter">
-      <v-col class="text-center pb-0" cols="12">
-        <img :src="dark?'/images/appventure_logo.svg':'/images/appventure_logo_nobg.svg'" class="pa-0 mr-1"
-             height="40"
-             alt=""/>
-        <img id="school_logo" src="/images/nush_logo_color.svg" class="pa-1 ml-1" height="40" alt=""/>
-      </v-col>
-      <v-col class="text-center pt-0 pb-1 font-weight-light" cols="12">
-        Developed by Zhao Yun
-      </v-col>
+      <div class="flex align-center text-center pa-2">
+        <a href="https://nush.app/projects/e-notes" target="_blank">
+          <img :src="dark?'/images/appventure_logo.svg':'/images/appventure_logo_nobg.svg'" class="pa-0 mr-1"
+               height="40"
+               alt=""/>
+          <img id="school_logo" src="/images/nush_logo_color.svg" class="pa-1 ml-1" height="40" alt=""/>
+        </a>
+      </div>
     </v-footer>
   </v-app>
 </template>

@@ -6,7 +6,7 @@ import plaintext from 'highlight.js/lib/languages/plaintext';
 import yaml from 'highlight.js/lib/languages/yaml';
 
 import 'highlight.js/styles/github.css'
-import '@/styles/github-dark.scss';
+import '@/plugins/hljs/hljs.scss';
 
 hljs.registerLanguage('html', html);
 hljs.registerLanguage('markdown', markdown);

@@ -1,0 +1,19 @@
+.block .block-output .block-output-content .output-std {
+  padding-left: 10px;
+}
+
+.block .cell-row .cell-content.source-code {
+  margin: 0;
+  padding-left: 0;
+
+  pre.source-code-main {
+    padding: 5px 10px;
+  }
+}
+
+.block .cell-row .cell-content.source-markdown {
+  img {
+    display: block;
+    margin: 0 auto;
+  }
+}

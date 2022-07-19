@@ -16,7 +16,7 @@ import TOC from "markdown-it-table-of-contents";
 import hljs from '@/plugins/hljs';
 import {MarkdownItVueOptions} from "@/components/markdownViewer/markdown";
 import 'katex/dist/katex.min.css'
-import '@/styles/github-dark.scss';
+import '@/plugins/hljs/hljs.scss';
 
 import anchor from "markdown-it-anchor";
 import Config from "@/store/config";

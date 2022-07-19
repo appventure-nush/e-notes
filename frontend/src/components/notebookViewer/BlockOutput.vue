@@ -1,5 +1,5 @@
 <template>
-  <div class="block-output">
+  <div :class="{'block-output':true,'block-hidden':hide}">
     <div :class='{"block-light-selected":highlighted,"block-light":!highlighted}'/>
     <div class="block-hidden" v-if="hide"/>
     <div class="block-output-content" v-else>
