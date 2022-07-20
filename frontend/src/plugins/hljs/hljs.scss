@@ -4,6 +4,7 @@
 .hljs table.hljs-ln {
   border-collapse: collapse;
   border-spacing: 0;
+  max-width: 100%;
 
   .hljs-ln-n:before {
     content: attr(data-line-number)
@@ -16,6 +17,8 @@
       border-right: thin solid #9999;
       background-color: #9992;
       text-align: right;
+      vertical-align: top;
+      min-width: 2.1em;
     }
 
     &.hljs-ln-code {

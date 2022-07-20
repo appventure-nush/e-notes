@@ -8,7 +8,7 @@
       </v-col>
       <v-col :style="{'min-width':$vuetify.breakpoint.xsOnly?'100%':'0'}">
         <v-card class="cell-content source-code" v-if="type==='code'" flat outlined>
-          <pre ref="hljs" class="source-code-main hljs" :class="['language-'+language]" v-html="hljs"></pre>
+          <div ref="hljs" class="source-code-main hljs" :class="['language-'+language]" v-html="hljs"></div>
         </v-card>
         <div class="cell-content source-markdown" v-else-if="type==='markdown'">
           <markdown :fms="fms" :content="cell.source.join('')"></markdown>

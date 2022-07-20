@@ -1,7 +1,3 @@
-pre {
-  overflow: auto;
-}
-
 .jupyter-viewer {
   width: 100%;
   height: 100%;
@@ -33,7 +29,7 @@ pre {
       background: unset;
       padding: 0;
       margin: 0;
-      font-size: 1em;
+      font-size: .85rem;;
     }
   }
 
@@ -92,10 +88,10 @@ pre {
     .cell-header {
       width: 64px;
       margin: 0 0 0 0;
-      padding: 8px 0 0;
+      padding: 0;
 
       text-align: right;
-      font-size: 12px;
+      font-size: .85rem;
       overflow: hidden;
 
       &.source {
@@ -115,6 +111,11 @@ pre {
       &.source-code {
         margin: 0;
         padding-left: 0;
+
+        .source-code-main {
+          font-family: "JetBrains Mono", "SF Mono", "Droid Sans Mono", "Space Mono", monospace;
+          white-space: pre-wrap;
+        }
       }
 
       &.source-markdown {
