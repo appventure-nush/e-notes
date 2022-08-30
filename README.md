@@ -24,10 +24,10 @@
 ### Maintaining
 
 - [frontend/](frontend/)
-    - Vue.js application written in typescript
+    - Vue.js application written in TypeScript
     - Is the frontend of the application, everything is client side
 - [backend/](backend/)
-    - express.js API backend written in typescript
+    - express.js API backend written in TypeScript
     - Is the backend of the application, everything is server side
 - IDE (optional)
     - .idea/: **WebStorm** by JetBrains
