@@ -11,7 +11,7 @@
         "build_front": "cd ../frontend && npm install && npm run build && node copy.js",
         "start": "node dist/bin/www",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "docker": "npm install && npm run build"
+        "docker": "npm install && tsc"
     },
     "dependencies": {
         "apicache": "^1.6.2",
