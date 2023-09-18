@@ -45,7 +45,9 @@ import Convert from "ansi-to-html";
 import HTMLOutput from "@/components/notebookViewer/HTMLOutput.vue";
 
 const convert = new Convert();
-@Component
+@Component({
+  components: {HTMLOutput}
+})
 export default class BlockOutput extends Vue {
   name = "BlockOutput"
   @Prop(Object) readonly cell!: Cell;
