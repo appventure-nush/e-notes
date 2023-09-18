@@ -9,7 +9,6 @@ import {Component, Prop, Vue} from "vue-property-decorator";
 export default class HTMLOutput extends Vue {
   name = "HTMLOutput"
   @Prop(String) readonly html!: string;
-  htmlDiv!: HTMLDivElement;
 
   recurseDescendants (node: Element) {
     for (var i = 0; i < node.children.length; i++) {
@@ -24,11 +23,10 @@ export default class HTMLOutput extends Vue {
     }
   }
 
-
   mounted() {
     console.log("running scripts");
     this.$nextTick(() => {
-        this.recurseDescendants(this.htmlDiv);
+        this.recurseDescendants(this.$refs.htmlDiv as Element);
     });
   }
 }
