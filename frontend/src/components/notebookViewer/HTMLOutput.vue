@@ -11,8 +11,6 @@ export default class HTMLOutput extends Vue {
   @Prop(String) readonly html!: string;
   htmlDiv!: HTMLDivElement;
 
-  
-
   recurseDescendants (node: Element) {
     for (var i = 0; i < node.children.length; i++) {
       var child = node.children[i];
@@ -28,7 +26,10 @@ export default class HTMLOutput extends Vue {
 
 
   mounted() {
-    this.recurseDescendants(this.htmlDiv);
+    console.log("running scripts");
+    this.$nextTick(() => {
+        this.recurseDescendants(this.htmlDiv);
+    });
   }
 }
 </script>
