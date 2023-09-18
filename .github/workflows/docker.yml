@@ -20,4 +20,4 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           registry: registry.nush.app
           repository: e-notes
-          tags: latest
+          tags: beta
