@@ -123,7 +123,7 @@ export function addPyScript() {
         const env = document.createElement('py-config');
         env.innerHTML = `
           packages = ["numpy", "matplotlib"]
-          
+
           [splashscreen]
             enabled = false
         `
@@ -131,7 +131,7 @@ export function addPyScript() {
         const script = document.createElement('script');
         script.id = 'pyscript';
         script.defer = true
-        script.src = 'https://pyscript.net/alpha/pyscript.js';
+        script.src = 'https://pyscript.net/latest/pyscript.js';
         document.head.appendChild(script);
         const styles = document.createElement('style');
         styles.innerHTML = `

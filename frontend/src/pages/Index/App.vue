@@ -321,7 +321,7 @@ body.rb.rb-lock-off {
   }
 }
 
-py-loader py-terminal {
+py-loader, py-terminal {
   display: none;
 }
 
