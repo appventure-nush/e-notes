@@ -21,7 +21,7 @@
               <v-col cols="12" v-if="graphic" class="cell-content output-display">
                 <img v-if="'image/png' in output.data" alt="Image Error"
                      :src="b64ToUrl(normaliseJupyterOutput(output.data['image/png']),'image/png')"/>
-                <div v-if="'text/html' in output.data" v-html="output.data['text/html'].join('')"></div>
+                <HTMLOutput v-if="'text/html' in output.data" :html="output.data['text/html'].join('')" />
               </v-col>
             </template>
             <pre v-else-if="output.output_type==='error'" class="cell-content output-err"
@@ -42,9 +42,12 @@
 import {Component, Prop, Vue} from "vue-property-decorator";
 import {Cell} from "@/types/shims/shims-nbformat-v4";
 import Convert from "ansi-to-html";
+import HTMLOutput from "@/components/notebookViewer/HTMLOutput.vue";
 
 const convert = new Convert();
-@Component
+@Component({
+  components: {HTMLOutput}
+})
 export default class BlockOutput extends Vue {
   name = "BlockOutput"
   @Prop(Object) readonly cell!: Cell;

@@ -122,8 +122,9 @@ export function addPyScript() {
     if (!document.getElementById('pyscript')) {
         const env = document.createElement('py-env');
         env.innerHTML = `
-        - numpy
-        - matplotlib`
+          - numpy
+          - matplotlib
+        `
         document.head.appendChild(env);
         const script = document.createElement('script');
         script.id = 'pyscript';
@@ -132,11 +133,12 @@ export function addPyScript() {
         document.head.appendChild(script);
         const styles = document.createElement('style');
         styles.innerHTML = `
-        .v-application.theme--dark .editor-box .cm-gutters{
+        .v-application.theme--dark .editor-box .cm-gutters {
             background-color: #999;
             color: #f5f5f5;
         }
         `
+        document.head.appendChild(styles);
     }
 }
 
