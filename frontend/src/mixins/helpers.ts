@@ -120,18 +120,16 @@ export function equals<T extends number | string>(a: T[], b: T[]) {
 
 export function addPyScript() {
     if (!document.getElementById('pyscript')) {
-        const env = document.createElement('py-config');
+        const env = document.createElement('py-env');
         env.innerHTML = `
-          packages = ["numpy", "matplotlib"]
-
-          [splashscreen]
-            enabled = false
+          - numpy
+          - matplotlib
         `
         document.head.appendChild(env);
         const script = document.createElement('script');
         script.id = 'pyscript';
         script.defer = true
-        script.src = 'https://pyscript.net/latest/pyscript.js';
+        script.src = 'https://pyscript.net/alpha/pyscript.js';
         document.head.appendChild(script);
         const styles = document.createElement('style');
         styles.innerHTML = `
@@ -140,6 +138,7 @@ export function addPyScript() {
             color: #f5f5f5;
         }
         `
+        document.head.appendChild(styles);
     }
 }
 
