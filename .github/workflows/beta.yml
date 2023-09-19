@@ -1,9 +1,9 @@
-name: Push to Registry
+name: Push to Registry (Beta Build)
 
 on:
   push:
     branches:
-      - master
+      - beta
 
 jobs:
   build:
@@ -20,4 +20,4 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           registry: registry.nush.app
           repository: e-notes
-          tags: latest
+          tags: beta
