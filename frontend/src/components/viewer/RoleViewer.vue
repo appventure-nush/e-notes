@@ -160,7 +160,7 @@ export default class RoleViewer extends Vue {
       defaultPerm: this.editedRole.defaultPerm,
       permissions: this.editedRole.permissions
     }).then(() => {
-      if (this.emailsWithRoles) post(`/api/roles/${this.editedRole.rid}/users`, {
+      if (this.emailsWithRoles.length) post(`/api/roles/${this.editedRole.rid}/users`, {
         action: this.usersPopup.action,
         emails: this.emailsWithRoles
       })
