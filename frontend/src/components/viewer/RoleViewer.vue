@@ -34,8 +34,9 @@
             </div>
             <v-hover v-slot="{hover}" v-else>
               <div class="my-1">
-                <UserAvatar :uid="user.uid" :size="46" classes="ma-1" :key="user.uid" v-for="user in usersWithRole||[]"
+                <UserAvatar :uid="user.uid" :size="46" classes="ma-1" :key="user.uid" v-for="user in usersWithRole||[]" 
                             :elevation="hover?3:0"></UserAvatar>
+                <template v-if="!usersWithRole.length">No users</template>
               </div>
             </v-hover>
             <div v-if="showPlainEmail">
