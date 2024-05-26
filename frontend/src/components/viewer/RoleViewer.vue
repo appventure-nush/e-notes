@@ -34,8 +34,9 @@
             </div>
             <v-hover v-slot="{hover}" v-else>
               <div class="my-1">
-                <UserAvatar :uid="user.uid" :size="46" classes="ma-1" :key="user.uid" v-for="user in usersWithRole||[]"
+                <UserAvatar :uid="user.uid" :size="46" classes="ma-1" :key="user.uid" v-for="user in usersWithRole||[]" 
                             :elevation="hover?3:0"></UserAvatar>
+                <template v-if="!usersWithRole.length">No users</template>
               </div>
             </v-hover>
             <div v-if="showPlainEmail">
@@ -46,7 +47,7 @@
               <h1 class="text-h5">Pending</h1>
               <pre v-text="role.pendingEmail.join('\n')"></pre>
             </div>
-            <v-btn v-if="!editing&&!creating" text @click="showPlainEmail=!showPlainEmail">Toggle Plain</v-btn>
+            <v-btn v-if="!editing&&!creating&&usersWithRole.length" text @click="showPlainEmail=!showPlainEmail">Toggle Plain</v-btn>
           </v-card-text>
           <PermissionEditor v-model="editedPermissions" :editing="editing"
                             no-data="No permission overrides set for this role"></PermissionEditor>
@@ -165,11 +166,12 @@ export default class RoleViewer extends Vue {
         emails: this.emailsWithRoles
       })
     }).then(() => {
-      const self = this;
+      const rid = this.editedRole.rid;
       EventBus.$emit('needRoleUpdate', () => {
-        self.$router.push({name: 'Role', params: {rid: self.editedRole.rid}});
-        self.saving = false;
-      })
+        // this.editedRole is reset in this callback
+        this.$router.push({name: 'Role', params: {rid: rid}});
+        this.saving = false;
+      });
     }).catch(err => {
       this.saving = false;
       alert(err);
