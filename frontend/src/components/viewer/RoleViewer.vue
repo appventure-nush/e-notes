@@ -159,10 +159,12 @@ export default class RoleViewer extends Vue {
       desc: this.editedRole.desc,
       defaultPerm: this.editedRole.defaultPerm,
       permissions: this.editedRole.permissions
-    }).then(() => post(`/api/roles/${this.editedRole.rid}/users`, {
-      action: this.usersPopup.action,
-      emails: this.emailsWithRoles
-    })).then(() => EventBus.$emit('needRoleUpdate', () => {
+    }).then(() => {
+      if (this.emailsWithRoles) post(`/api/roles/${this.editedRole.rid}/users`, {
+        action: this.usersPopup.action,
+        emails: this.emailsWithRoles
+      })
+    }).then(() => EventBus.$emit('needRoleUpdate', () => {
       this.$router.push({name: 'Role', params: {rid: this.editedRole.rid}});
       this.saving = false;
     })).catch(err => {
