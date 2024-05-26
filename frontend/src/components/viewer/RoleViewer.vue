@@ -47,7 +47,7 @@
               <h1 class="text-h5">Pending</h1>
               <pre v-text="role.pendingEmail.join('\n')"></pre>
             </div>
-            <v-btn v-if="!editing&&!creating" text @click="showPlainEmail=!showPlainEmail">Toggle Plain</v-btn>
+            <v-btn v-if="!editing&&!creating&&usersWithRole.length" text @click="showPlainEmail=!showPlainEmail">Toggle Plain</v-btn>
           </v-card-text>
           <PermissionEditor v-model="editedPermissions" :editing="editing"
                             no-data="No permission overrides set for this role"></PermissionEditor>
