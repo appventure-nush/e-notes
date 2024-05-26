@@ -165,9 +165,10 @@ export default class RoleViewer extends Vue {
         emails: this.emailsWithRoles
       })
     }).then(() => EventBus.$emit('needRoleUpdate', () => {
-        console.log('debug', this.editedRole.rid);
-        this.$router.push({name: 'Role', params: {rid: this.editedRole.rid}});
-        this.saving = false;
+      console.log(JSON.stringify(this));
+      console.log('debug', this.editedRole.rid);
+      this.$router.push({name: 'Role', params: {rid: this.editedRole.rid}});
+      this.saving = false;
     })).catch(err => {
       this.saving = false;
       alert(err);
